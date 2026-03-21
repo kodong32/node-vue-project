@@ -25,3 +25,6 @@ app.listen(port, () => {
 //기능별 라우터모듈
 const userRouter = require("./routers/user/user_router");
 app.use("/api/user", userRouter);
+//조사지 라우터모듈 (김민지)
+const surveyRouter = require("./routers/survey/survey_router");
+app.use("/api/survey", surveyRouter);
