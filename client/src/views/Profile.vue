@@ -23,8 +23,8 @@ const supInfo = reactive({
   relation: null,
   zipCode: "",
   address: "",
-  major: "",
-  middle: "",
+  major: [],
+  middle: [],
   sub: "",
 });
 
@@ -639,7 +639,7 @@ const addSupport = async () => {
               </div>
               <div class="row g-2">
                 <div class="col">
-                  <select class="form-select" v-model="supInfo.major">
+                  <select class="form-select" multiple v-model="supInfo.major">
                     <option disabled value="">대분류선택</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
@@ -648,7 +648,7 @@ const addSupport = async () => {
                 </div>
 
                 <div class="col">
-                  <select class="form-select" v-model="supInfo.middle">
+                  <select class="form-select" multiple v-model="supInfo.middle">
                     <option disabled value="" >중분류선택</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
