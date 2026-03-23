@@ -1,5 +1,5 @@
 <script setup>
-//일반이용자 회원가입 페이지
+//기관이용자 회원가입페이지
 import { onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 
@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
           <div class="col-lg-5 text-center mx-auto">
             <h1 class="text-white mb-2 mt-5">발달장애인 지원 프로그램</h1>
             <p class="text-lead text-white">
-              아래의 정보들을 입력한 후 회원가입을 신청해 주세요.
+              기관 직원용 회원가입 페이지입니다.
             </p>
           </div>
         </div>
@@ -202,35 +202,7 @@ onBeforeUnmount(() => {
                   placeholder="연락처"
                   aria-label="Tel"
                 />
-                <argon-input
-                  id="email"
-                  type="email"
-                  placeholder="이메일"
-                  aria-label="Email"
-                />
-                <argon-input
-                  id="zipCode"
-                  type="text"
-                  placeholder="우편번호"
-                  aria-label="ZipCode"
-                />
-                <argon-input
-                  id="address"
-                  type="text"
-                  placeholder="주소"
-                  aria-label="Address"
-                />
-                <argon-input
-                  id="file"
-                  type="file"
-                  placeholder="파일첨부"
-                  aria-laber="File"
-                />
-                <argon-input
-                  id="institution"
-                  type="text"
-                  placeholder="기관 선택"
-                />
+                <argon-input id="insti" type="text" placeholder="소속 기관" />
                 <!-- <argon-checkbox checked>
                   <label class="form-check-label" for="flexCheckDefault">
                     I agree the

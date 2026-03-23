@@ -3,7 +3,7 @@ import { onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonSwitch from "@/components/ArgonSwitch.vue";
+// import ArgonSwitch from "@/components/ArgonSwitch.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 const body = document.getElementsByTagName("body")[0];
 
@@ -45,17 +45,19 @@ onBeforeUnmount(() => {
             >
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">
-                  <h4 class="font-weight-bolder">Sign In</h4>
-                  <p class="mb-0">Enter your email and password to sign in</p>
+                  <h4 class="font-weight-bolder">로그인</h4>
+                  <p class="mb-0">
+                    아이디와 비밀번호를 입력하시고 로그인 하세요.
+                  </p>
                 </div>
                 <div class="card-body">
                   <form role="form">
                     <div class="mb-3">
                       <argon-input
-                        id="email"
-                        type="email"
-                        placeholder="Email"
-                        name="email"
+                        id="id"
+                        type="text"
+                        placeholder="아이디"
+                        name="id"
                         size="lg"
                       />
                     </div>
@@ -63,14 +65,14 @@ onBeforeUnmount(() => {
                       <argon-input
                         id="password"
                         type="password"
-                        placeholder="Password"
+                        placeholder="비밀번호"
                         name="password"
                         size="lg"
                       />
                     </div>
-                    <argon-switch id="rememberMe" name="remember-me"
+                    <!-- <argon-switch id="rememberMe" name="remember-me"
                       >Remember me</argon-switch
-                    >
+                    > -->
 
                     <div class="text-center">
                       <argon-button
@@ -79,18 +81,35 @@ onBeforeUnmount(() => {
                         color="success"
                         fullWidth
                         size="lg"
-                        >Sign in</argon-button
+                        >로그인</argon-button
                       >
                     </div>
                   </form>
                 </div>
                 <div class="px-1 pt-0 text-center card-footer px-lg-2">
                   <p class="mx-auto mb-4 text-sm">
-                    Don't have an account?
+                    아이디 / 비밀번호를 잊어버리셨나요?
                     <a
                       href="javascript:;"
                       class="text-success text-gradient font-weight-bold"
-                      >Sign up</a
+                      >아이디 찾기</a
+                    >
+                    |
+                    <a
+                      href="javascript:;"
+                      class="text-success text-gradient font-weight-bold"
+                      >비밀번호 찾기</a
+                    >
+                  </p>
+                </div>
+
+                <div class="px-1 pt-0 text-center card-footer px-lg-2">
+                  <p class="mx-auto mb-4 text-sm">
+                    회원이 아닌가요?
+                    <a
+                      href="javascript:;"
+                      class="text-success text-gradient font-weight-bold"
+                      >회원가입</a
                     >
                   </p>
                 </div>
@@ -110,11 +129,10 @@ onBeforeUnmount(() => {
                 <h4
                   class="mt-5 text-white font-weight-bolder position-relative"
                 >
-                  "Attention is the new currency"
+                  발달장애인 지원 프로그램
                 </h4>
                 <p class="text-white position-relative">
-                  The more effortless the writing looks, the more effort the
-                  writer actually put into the process.
+                  저희 발달장애인 지원 프로그램에 오신 것을 환영합니다.
                 </p>
               </div>
             </div>

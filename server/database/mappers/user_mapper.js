@@ -17,6 +17,38 @@ const testSelect = async () => {
   }
 };
 
+//일반이용자 회원가입<김경환, DB에 일반이용자의 회원정보를 등록>
+const insertUser = async (userInfo) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let [result] = await conn.query(userSql.insertUser, userInfo);
+    return result;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+//기관이용자 회원가입<김경환, DB에 일반이용자의 회원정보를 등록>
+const insertInstiUser = async (instiUserInfo) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let [result] = await conn.query(userSql.insertInstiUser, instiUserInfo);
+    return result;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
 //지원대상자 PK 생성용 마지막 row PK조회
 const getLastSupportId = async () => {
   let conn = null
@@ -49,7 +81,10 @@ const supportAdd = async (supportInfo) => {
     conn.release();
   }
 };
-
 module.exports = {
-  testSelect, supportAdd,getLastSupportId
+  testSelect,
+  insertUser,
+  insertInstiUser,
+  supportAdd,
+  getLastSupportId,
 };
