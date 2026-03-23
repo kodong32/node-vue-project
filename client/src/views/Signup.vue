@@ -3,13 +3,14 @@ import { onBeforeUnmount, onBeforeMount } from "vue";
 import { useStore } from "vuex";
 
 import Navbar from "@/examples/PageLayout/Navbar.vue";
-import AppFooter from "@/examples/PageLayout/Footer.vue";
+// import AppFooter from "@/examples/PageLayout/Footer.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonCheckbox from "@/components/ArgonCheckbox.vue";
+// import ArgonCheckbox from "@/components/ArgonCheckbox.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 const body = document.getElementsByTagName("body")[0];
 
 const store = useStore();
+
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
   store.state.showNavbar = false;
@@ -45,10 +46,9 @@ onBeforeUnmount(() => {
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-5 text-center mx-auto">
-            <h1 class="text-white mb-2 mt-5">Welcome!</h1>
+            <h1 class="text-white mb-2 mt-5">발달장애인 지원 프로그램</h1>
             <p class="text-lead text-white">
-              Use these awesome forms to login or create new account in your
-              project for free.
+              아래의 정보들을 입력한 후 회원가입을 신청해 주세요.
             </p>
           </div>
         </div>
@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
             <div class="card-header text-center pt-4">
               <h5>Register with</h5>
             </div>
-            <div class="row px-xl-5 px-sm-4 px-3">
+            <!-- <div class="row px-xl-5 px-sm-4 px-3">
               <div class="col-3 ms-auto px-1">
                 <a class="btn btn-outline-light w-100" href="javascript:;">
                   <svg
@@ -168,50 +168,91 @@ onBeforeUnmount(() => {
                   or
                 </p>
               </div>
-            </div>
+            </div> -->
             <div class="card-body">
               <form role="form">
                 <argon-input
                   id="name"
                   type="text"
-                  placeholder="Name"
+                  placeholder="이름"
                   aria-label="Name"
                 />
                 <argon-input
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  aria-label="Email"
+                  id="id"
+                  type="text"
+                  placeholder="아이디"
+                  aria-label="Id"
                 />
                 <argon-input
                   id="password"
                   type="password"
-                  placeholder="Password"
+                  placeholder="비밀번호"
                   aria-label="Password"
                 />
-                <argon-checkbox checked>
+                <argon-input
+                  id="passwordCheck"
+                  type="password"
+                  placeholder="비밀번호확인"
+                  aria-laber="PasswordCheck"
+                />
+                <argon-input
+                  id="tel"
+                  type="tel"
+                  placeholder="연락처"
+                  aria-label="Tel"
+                />
+                <argon-input
+                  id="email"
+                  type="email"
+                  placeholder="이메일"
+                  aria-label="Email"
+                />
+                <argon-input
+                  id="zipCode"
+                  type="text"
+                  placeholder="우편번호"
+                  aria-label="ZipCode"
+                />
+                <argon-input
+                  id="address"
+                  type="text"
+                  placeholder="주소"
+                  aria-label="Address"
+                />
+                <argon-input
+                  id="file"
+                  type="file"
+                  placeholder="파일첨부"
+                  aria-laber="File"
+                />
+                <argon-input
+                  id="institution"
+                  type="text"
+                  placeholder="기관 선택"
+                />
+                <!-- <argon-checkbox checked>
                   <label class="form-check-label" for="flexCheckDefault">
                     I agree the
                     <a href="javascript:;" class="text-dark font-weight-bolder"
                       >Terms and Conditions</a
                     >
                   </label>
-                </argon-checkbox>
+                </argon-checkbox> -->
                 <div class="text-center">
                   <argon-button
                     fullWidth
                     color="dark"
                     variant="gradient"
                     class="my-4 mb-2"
-                    >Sign up</argon-button
+                    >회원가입 신청</argon-button
                   >
                 </div>
-                <p class="text-sm mt-3 mb-0">
+                <!-- <p class="text-sm mt-3 mb-0">
                   Already have an account?
                   <a href="javascript:;" class="text-dark font-weight-bolder"
                     >Sign in</a
                   >
-                </p>
+                </p> -->
               </form>
             </div>
           </div>
@@ -219,5 +260,5 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </main>
-  <app-footer />
+  <!-- <app-footer /> -->
 </template>
