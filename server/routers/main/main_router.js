@@ -4,6 +4,7 @@ const router = express.Router();
 
 const mainService = require("../../services/main_service.js");
 
+// 메인페이지 조사지 내역 userId로 조회
 router.get(`/:userId`, async (req, res) => {
   const userId = req.params.userId;
   try {
