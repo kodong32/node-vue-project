@@ -28,3 +28,6 @@ app.use("/api/user", userRouter);
 //조사지 라우터모듈 (김민지)
 const surveyRouter = require("./routers/survey/survey_router");
 app.use("/api/survey", surveyRouter);
+//메인페이지 라우터모듈
+const mainRouter = require("./routers/main/main_router.js");
+app.use("/api/main", mainRouter);
