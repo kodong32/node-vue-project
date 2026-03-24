@@ -30,7 +30,7 @@ const selectSurveyById = async (no) => {
   }
 };
 
-//조사지 등록 <김민지 26.03.23 추가>
+//조사지 등록 <김민지 26.03.23 추가> 👉등록1번
 const insertSurvey = async (surveyInfo) => {
   let conn = null; //아직 커넥션 안빌려왔으니 초기값을 null로 설정;
   try {
@@ -46,7 +46,7 @@ const insertSurvey = async (surveyInfo) => {
   }
 };
 
-//일반이용자 조사지 등록 pk 생성용 마지막 row pk조회(김민지 26.03.24 추가)
+//일반이용자 조사지 등록 pk 생성용 마지막 row pk조회(김민지 26.03.24 추가) 👉등록2번
 const getLastJID = async () => {
   let conn = null;
   try {
