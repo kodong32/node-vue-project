@@ -2,19 +2,23 @@
 // 메인페이지 관련 router
 const express = require("express");
 const router = express.Router();
-
 const mainService = require("../../services/main_service.js");
 
-// 메인페이지 조사지 내역 userId로 조회
-router.get(`/:userId`, async (req, res) => {
-  const userId = req.params.userId;
-  try {
-    let result = await mainService.findByUserId(userId);
-    res.send(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "서버오류" });
-  }
+// 일반이용자
+router.get("/user/:id", async (req, res) => {
+  let result = await mainService.findByUser(req.params.id);
+  res.json(result);
+});
+
+// 기관담당자
+router.get("/manager/:id", async (req, res) => {
+  let result = await mainService.findByManager(req.params.id);
+  res.json(result);
+});
+// 기관관리자
+router.get("/general/:id", async (req, res) => {
+  let result = await mainService.findByGeneral(req.params.id);
+  res.json(result);
 });
 
 module.exports = router;
