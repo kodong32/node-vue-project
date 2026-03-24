@@ -17,6 +17,21 @@ const testSelect = async () => {
   }
 };
 
+//일반이용자 pk 생성용 마지막 row pk조회(김경환 2026.03.24 추가)
+const getLastUserId = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let [rows, meta] = await conn.query(userSql.lastUserId);
+    console.log(rows);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    conn.release();
+  }
+};
+
 //일반이용자 회원가입<김경환, DB에 일반이용자의 회원정보를 등록>
 const insertUser = async (userInfo) => {
   let conn = null;
@@ -34,12 +49,27 @@ const insertUser = async (userInfo) => {
   }
 };
 
+//기관이용자 pk 생성용 마지막 row pk조회(김경환 2026.03.24 추가)
+const getLastInstiId = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let [rows, meta] = await conn.query(userSql.lastInstiId);
+    console.log(rows);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    conn.release();
+  }
+};
+
 //기관이용자 회원가입<김경환, DB에 일반이용자의 회원정보를 등록>
 const insertInstiUser = async (instiUserInfo) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let [result] = await conn.query(userSql.insertInstiUser, instiUserInfo);
+    let result = await conn.query(userSql.insertInstiUser, instiUserInfo);
     return result;
   } catch (err) {
     console.log(err);
@@ -84,4 +114,6 @@ module.exports = {
   insertInstiUser,
   supportAdd,
   getLastSupportId,
+  getLastUserId,
+  getLastInstiId,
 };
