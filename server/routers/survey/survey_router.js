@@ -31,4 +31,11 @@ router.post("/user/answer", async (req, res) => {
   // res.send(result);
 });
 
+//조사지 문항에 대한 답변 <김민지, 26.03.24 추가>
+router.get("/getQuestionsByJID/:id", async (req, res) => {
+  let { id } = req.params;
+  let result = await surveyService.getQuestionsByJID(id);
+  res.json(result);
+});
+
 module.exports = router;

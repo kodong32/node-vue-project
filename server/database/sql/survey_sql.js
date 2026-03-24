@@ -70,6 +70,19 @@ SELECT
   ORDER BY answer_id
 `;
 
+// 조사지 기본정보 + 문항 가져오기 <김민지, 2026.03.24>
+const surveyQuestion = `
+SELECT
+  question_id,
+  Ver_Id,
+  titleCode,
+  question_no,
+  question_text,
+  answer_type
+FROM SurveyItem_Tbl
+WHERE Ver_Id = ?
+ORDER BY question_no;`;
+
 module.exports = {
   selectSurveyAll,
   selectSurveyById,
@@ -77,4 +90,5 @@ module.exports = {
   lastJId,
   selectAnswer,
   insertSurveyAnswer,
+  surveyQuestion,
 };

@@ -178,7 +178,26 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
+
+// 페이지 진입 시 사이드바 숨김 처리
+onMounted(() => {
+  document.body.classList.remove("g-sidenav-show");
+  // 강제로 스타일 주입 (사이드바 요소가 있을 경우)
+  const sidenav = document.getElementById("sidenav-main");
+  if (sidenav) {
+    sidenav.style.setProperty("display", "none", "important");
+  }
+});
+
+// 페이지 이탈 시 다시 사이드바 복구 (다른 페이지 영향 방지)
+onUnmounted(() => {
+  document.body.classList.add("g-sidenav-show");
+  const sidenav = document.getElementById("sidenav-main");
+  if (sidenav) {
+    sidenav.style.display = ""; // 원래 상태로 복구
+  }
+});
 
 const allSections = [
   {
@@ -286,13 +305,35 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
 };
 </script>
 
+<style>
+/* 중요: scoped가 없는 전역 스타일입니다. 
+   사이드바는 레이아웃에 있으므로 여기서 강제로 제어해야 합니다. */
+#sidenav-main,
+.sidenav,
+aside {
+  display: none !important;
+}
+
+/* 본문 영역 왼쪽 여백 강제 제거 */
+.main-content,
+#panel {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* 전체 배경 처리 */
+body.g-sidenav-show {
+  overflow-x: hidden !important;
+}
+</style>
+
 <style scoped>
+/* 페이지 내부 디자인용 scoped 스타일 */
 .survey-view-page {
   font-family: "Noto Sans KR", sans-serif;
   color: #333;
 }
 
-/* 헤더 & 등록일 */
 .header-bg {
   background-color: #5dbe8a !important;
   border-radius: 12px 12px 0 0;
@@ -318,15 +359,13 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
   padding-bottom: 8px;
 }
 
-/* 테이블 구조 수정 */
 .custom-bordered-table {
   border: 1px solid #dee2e6;
   border-collapse: collapse;
 }
 
-/* 서브 타이틀 행 (이미지와 동일하게 예/아니오 포함) */
 .sub-header-row {
-  border-top: 2px solid #333; /* 섹션 시작 강조선 */
+  border-top: 2px solid #333;
 }
 
 .border-bottom-dark {
@@ -337,7 +376,6 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
   border-bottom: 1px solid #dee2e6;
 }
 
-/* 결과 박스 (이미지 회색톤) */
 .result-box {
   display: inline-flex;
   align-items: center;
@@ -356,10 +394,6 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
   font-size: 14px;
 }
 
-/* 사유 입력박스 */
-.extra-info-box {
-  /* border-left: 4px solid #11cdef !important; */
-}
 .bg-info-soft {
   background-color: #e8f9fd;
   padding: 4px 8px;
@@ -367,7 +401,6 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
   font-size: 10px;
 }
 
-/* 하단 버튼 */
 .btn-list-back {
   background-color: #7a89a0;
   color: white;

@@ -12,7 +12,7 @@
 <script setup>
 import surveyTable from "./components/surveyCard.vue";
 import Sidebar from "../examples/Sidenav/SidenavList.vue";
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router"; //👉 페이지 이동(라우팅) 위해 사용
 
 const router = useRouter(); //👉 router 객체 생성 → router.push() 사용 가능
@@ -82,4 +82,66 @@ const surveyInfo = async (payload) => {
     alert("서버 연결에 실패했습니다.");
   }
 };
+
+const allSections = ref([]); // 문항 데이터
+const answers = ref([]); // 선택된 답변
+const extraInputs = ref({}); // 추가 입력
+const extraRequest = ref(""); // 추가 요청사항
+
+onMounted(async () => {
+  try {
+    const J_ID = "SUV0000"; // 조회할 조사지 ID
+    const response = await fetch(
+      `http://localhost:3000/survey/getQuestionsByJID/${J_ID}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const rawQuestions = await response.json();
+    // ✅ 수정: rawQuestions 선언 후 console.log 사용
+
+    console.log("DB에서 내려온 데이터:", rawQuestions); // ✅ 수정: 선언 후 로그 출력
+
+    // DB에서 내려온 raw 데이터를 Vue template 구조에 맞게 변환
+    const sectionsMap = {};
+
+    rawQuestions.forEach((q) => {
+      // section 구분
+      if (!sectionsMap[q.titleCode]) {
+        sectionsMap[q.titleCode] = { title: q.titleCode, subs: [] };
+      }
+      const section = sectionsMap[q.titleCode];
+
+      // subTitle 별로 sub 생성
+      let sub = section.subs.find((s) => s.subTitle === q.subTitle);
+      if (!sub) {
+        sub = {
+          subTitle: q.subTitle,
+          description: q.description || "",
+          questions: [],
+        };
+        section.subs.push(sub);
+      }
+
+      sub.questions.push({
+        text: q.question_text,
+        question_id: q.question_id,
+        hasExtraInput: false, // 필요 시 DB 컬럼 추가 후 true/false 처리
+      });
+    });
+
+    allSections.value = Object.values(sectionsMap);
+
+    // 답변/추가 입력 초기값
+    answers.value = [];
+    extraInputs.value = {};
+    extraRequest.value = "";
+
+    console.log("뷰용 구조로 변환한 데이터:", allSections.value);
+  } catch (err) {
+    console.error("조사항목 불러오기 실패:", err);
+  }
+});
 </script>

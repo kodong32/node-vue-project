@@ -107,6 +107,20 @@ const lastAnswer = async () => {
   }
 };
 
+//조사지 문항에 대한 답변 <김민지, 26.03.24 추가>
+const selectQuestionsByJID = async (id) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.surveyQuestion, [id]); // MySQL2 기준
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   selectSurveyAll,
   selectSurveyById,
@@ -115,4 +129,5 @@ module.exports = {
   selectAnswer,
   lastAnswer,
   insertSurveyAnswer,
+  selectQuestionsByJID,
 };

@@ -149,10 +149,22 @@ const surveyInfo = async (data) => {
   }
 };
 
+//조사지 문항에 대한 답변 <김민지, 26.03.24 추가>
+const getQuestionsByJID = async (id) => {
+  try {
+    const questions = await surveyMapper.selectQuestionsByJID(id);
+    return questions || [];
+  } catch (err) {
+    console.error("Service error:", err);
+    return [];
+  }
+};
+
 module.exports = {
   findAll,
   fineInfoByNo,
   createSurvey,
   createAnswer,
   surveyInfo,
+  getQuestionsByJID,
 };
