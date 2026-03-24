@@ -14,7 +14,7 @@ const mainAddress = ref("");
 const detailAddress = ref("");
 
 const supInfo = reactive({
-  G_UserId: "",
+  G_UserId: "GUSR0000", //현재 테스트를 위한 하드코딩상태임 Session 추가 시 변경예정 26.03.24
   I_userId1: null,
   I_userId2: null,
   name: "",
@@ -71,12 +71,21 @@ const addSupport = async () => {
     relation: supInfo.relation,
     zipCode: zipCode.value,
     address: `${mainAddress.value} ${detailAddress.value}`.trim(),
-    major: supInfo.major,
-    middle: supInfo.middle,
+    major: supInfo.major.join(","), 
+    middle: supInfo.middle.join(","), 
     sub: supInfo.sub,
   };
 
-  console.log(data);
+  let result = await fetch("/api/user/support/add", {
+    method: "post",
+    headers: { "Content-type": "application/json" },
+    body: JSON.stringify(data),
+  }).then((resp) => resp.json());
+  if (result.status == "Success") {
+    console.log("Success");
+  } else {
+    console.log("Failed");
+  }
 };
 </script>
 <template>
@@ -540,15 +549,15 @@ const addSupport = async () => {
                       type="radio"
                       id="male"
                       name="gender"
-                      value="M"
+                      value="c001"
                       v-model="supInfo.gender"
                     />
                     <label class="form-check-label" for="male">남자</label>
-                    <input 
+                    <input
                       type="radio"
                       id="female"
                       name="gender"
-                      value="F"
+                      value="c002"
                       v-model="supInfo.gender"
                     />
                     <label class="form-check-label" for="female">여자</label>
@@ -561,25 +570,25 @@ const addSupport = async () => {
                       type="radio"
                       id="parent"
                       name="rel"
-                      value="Parent"
+                      value="d001"
                       checked
                       v-model="supInfo.relation"
-                      /><label for="parent">부모</label>
+                    /><label for="parent">부모</label>
 
                     <input
                       type="radio"
                       id="child"
                       name="rel"
-                      value="Child"
+                      value="d002"
                       v-model="supInfo.relation"
-                      /><label for="child">자녀</label>
-                    <input 
+                    /><label for="child">자녀</label>
+                    <input
                       type="radio"
                       id="prod"
                       name="rel"
-                      value="Prod"
+                      value="d003"
                       v-model="supInfo.relation"
-                      /><label for="prod">요양보호사</label>
+                    /><label for="prod">요양보호사</label>
                   </div>
                 </div>
               </div>
@@ -649,7 +658,7 @@ const addSupport = async () => {
 
                 <div class="col">
                   <select class="form-select" multiple v-model="supInfo.middle">
-                    <option disabled value="" >중분류선택</option>
+                    <option disabled value="">중분류선택</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -657,7 +666,12 @@ const addSupport = async () => {
                 </div>
 
                 <div class="col">
-                  <argon-input class="mb-0" type="text" placeholder="기타사항 입력" v-model="supInfo.sub"/>
+                  <argon-input
+                    class="mb-0"
+                    type="text"
+                    placeholder="기타사항 입력"
+                    v-model="supInfo.sub"
+                  />
                 </div>
               </div>
               <hr class="horizontal dark" />
