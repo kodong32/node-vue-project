@@ -3,11 +3,11 @@
 const { pool } = require("../DAO.js");
 const mainSql = require("../sql/main_sql.js");
 
-const selectById = async (id) => {
+const selectByUserId = async (id) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(mainSql.selectById, id);
+    let rows = await conn.query(mainSql.selectByUserId, id);
     return rows;
   } catch (err) {
     console.error(err);
@@ -17,5 +17,5 @@ const selectById = async (id) => {
 };
 
 module.exports = {
-  selectById,
+  selectByUserId,
 };

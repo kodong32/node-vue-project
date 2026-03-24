@@ -3,8 +3,8 @@
 const mainMapper = require("../database/mappers/main_mapper.js");
 
 // 메인페이지 조사지 내역 조회
-const findById = async (id) => {
-  let list = await mainMapper.selectById(id);
+const findByUserId = async (id) => {
+  let list = await mainMapper.selectByUserId(id);
 
   if (!list || list.length == 0) return [];
   // 우선순위코드 => 등급
@@ -37,5 +37,5 @@ const findById = async (id) => {
 };
 
 module.exports = {
-  findById,
+  findByUserId,
 };

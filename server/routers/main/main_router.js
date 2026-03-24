@@ -9,7 +9,7 @@ const mainService = require("../../services/main_service.js");
 router.get(`/:userId`, async (req, res) => {
   const userId = req.params.userId;
   try {
-    let result = await mainService.findById(userId);
+    let result = await mainService.findByUserId(userId);
     res.send(result);
   } catch (err) {
     console.error(err);

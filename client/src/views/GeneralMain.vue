@@ -1,6 +1,6 @@
 <!-- GeneralMain.vue -->
 <script setup>
-import AuthorsTable from "./components/AuthorsMainTable.vue";
+import AuthorsTable from "./components/AuthorsMainTableTest.vue";
 </script>
 <template>
   <div class="py-4 container-fluid">

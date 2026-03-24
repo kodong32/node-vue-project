@@ -1,7 +1,7 @@
 // main_sql.js
 // 메인페이지 관련 sql문
 // userId로 조회
-const selectById = `
+const selectByUserId = `
 SELECT gu.name as generalName,
       iu.name as instiName,
       su.name as supportName,
@@ -28,5 +28,5 @@ WHERE gu.G_UserId = ? AND iu.roll IN ('a003');
 `;
 
 module.exports = {
-  selectById,
+  selectByUserId,
 };
