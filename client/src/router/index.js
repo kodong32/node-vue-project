@@ -12,6 +12,7 @@ import Signup from "./singup_router";
 import Support from "./support_router";
 import Main from "./surveyList_router";
 import SurveyAdd from "./survey_router";
+import surveySelect from "./surveySelect_router";
 
 const routes = [
   {
@@ -69,6 +70,7 @@ const routes = [
   ...Support,
   ...Main,
   ...SurveyAdd,
+  ...surveySelect,
 ];
 
 const router = createRouter({

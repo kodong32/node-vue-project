@@ -1,5 +1,6 @@
 <template>
   <div class="py-4 container-fluid">
+    <sidebar />
     <div class="row">
       <div class="col-12">
         <survey-table @submit-survey="surveyInfo" />
@@ -10,6 +11,7 @@
 
 <script setup>
 import surveyTable from "./components/surveyCard.vue";
+import Sidebar from "../examples/Sidenav/SidenavList.vue";
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router"; //👉 페이지 이동(라우팅) 위해 사용
 
@@ -52,8 +54,13 @@ const surveyInfo = async (payload) => {
     updated_at: info.updated_at,
   };
 
+  data.answers = [
+    { question_id: 1, answer: "예" },
+    { question_id: 2, answer: "아니오" },
+  ];
+
   try {
-    let response = await fetch(`http://localhost:3000/survey/user`, {
+    let response = await fetch(`http://localhost:3000/survey/user/survey`, {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
