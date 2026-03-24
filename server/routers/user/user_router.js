@@ -22,10 +22,33 @@ router.post(`/instiUsers`, async (req, res) => {
   let result = await userService.createInstiUser(target);
   res.send(result);
 });
+
+//지원 대상자 등록
 router.post(`/support/add`, async (req, res) => {
   let body = req.body;
   let result = await userService.supportAdd(body);
   res.send(result);
 });
 
+//지원 대상자 수정
+router.put(`/support/:supId`, async(req, res) => {
+  let supId = req.params.supId;
+  let body = req.body;
+  let result = await userService.supUpdate(supId,body);
+  res.send(result);
+});
+
+//지원 대상자 삭제
+router.delete(`/support/:supId`, async(req,res) => {
+  let supId = req.params.supId;
+  let result = await userService.supDelete(supId);
+  res.send(result);
+});
+
+//일반사용자 마이페이지 지원 대상자 목록 호출
+router.get(`/support/supList/:guserId`, async(req,res) => {
+  let loginParams = req.params.guserId;
+  let result = await userService.getSupportList(loginParams);
+  res.send(result);
+});
 module.exports = router;

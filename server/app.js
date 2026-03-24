@@ -31,3 +31,6 @@ app.use("/survey", surveyRouter);
 //메인페이지 라우터모듈
 const mainRouter = require("./routers/main/main_router.js");
 app.use("/main", mainRouter);
+//장애유형 라우터모듈
+const disRouter = require("./routers/user/disability_router.js");
+app.use("/dis",disRouter);

@@ -42,6 +42,43 @@ INSERT INTO Support_Tbl(support_id, G_UserId, I_userId1, I_userId2, name, born, 
 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
 `;
 
+//일반이용자의 지원대상자 목록
+const supportList = 
+`
+SELECT 
+    support_id,
+    G_UserId,
+    I_UserId1,
+    I_UserId2,
+    name,
+    born,
+    gender,
+    relation,
+    zipCode,
+    address,
+    major,
+    middle,
+    sub
+FROM Support_Tbl
+WHERE G_userId = ?
+`;
+
+
+//지원대상자 정보 업데이트
+const supUpdateSql = 
+`
+UPDATE Support_Tbl
+SET ?
+WHERE support_id = ?
+`;
+
+//지원대상자 삭제
+const supDelSql = 
+`
+DELETE FROM Support_Tbl
+WHERE support_id = ?
+`;
+
 module.exports = {
   testSelect,
   insertUser,
@@ -50,4 +87,7 @@ module.exports = {
   lastSupportId,
   lastUserId,
   lastInstiId,
+  supportList,
+  supUpdateSql,
+  supDelSql
 };

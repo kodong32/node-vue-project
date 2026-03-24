@@ -155,9 +155,47 @@ const supportAdd = async (supportObj) => {
   // }
 };
 
+//지원대상자 수정
+const supUpdate = async (supId, supInfo) => {
+  let updateData = {
+    ...supInfo,
+    major: Array.isArray(supInfo.major) ? supInfo.major.join(",") : supInfo.major,
+    middle: Array.isArray(supInfo.middle) ? supInfo.middle.join(",") : supInfo.middle,
+  };
+  let result = await userMapper.supUpdate(supId, updateData);
+
+  let resObj = {
+    status: result.affectedRows > 0 ? "Success" : "Failed",
+    target: {
+      'sup_Id': supId,
+      ...supInfo,
+    }
+  }
+  return resObj;
+};
+
+//지원대상자 삭제
+const supDelete = async (supId) => {
+  let result = await userMapper.supDel(supId);
+  let resObj = {
+    status : result.affectedRows > 0 ? "Success" : "Failed",
+    "sup_Id" : supId
+  }
+  return resObj;
+}
+
+//지원대상자 목록
+const getSupportList = async (supInfo) => {
+  let result = await userMapper.supportList(supInfo);
+  return result;
+};
+
 module.exports = {
   testSelect,
   createUser,
   createInstiUser,
   supportAdd,
+  getSupportList,
+  supUpdate,
+  supDelete,
 };

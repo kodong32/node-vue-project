@@ -91,7 +91,9 @@ const getLastSupportId = async () => {
   } catch (err) {
     console.log(err);
   } finally {
-    conn.release();
+    if (conn) {
+      conn.release();
+    }
   }
 };
 
@@ -100,14 +102,75 @@ const supportAdd = async (supportInfo) => {
   try {
     conn = await pool.getConnection();
     let result = await conn.query(userSql.supportAddSql, supportInfo);
-    console.log(result);
     return result;
   } catch (err) {
     console.log(err);
   } finally {
-    conn.release();
+    if (conn) {
+      conn.release();
+    }
   }
 };
+
+const supUpdate = async (supId, supInfo) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();  //Auto Commit 해제
+    let result = await conn.query(userSql.supUpdateSql, [supInfo, supId]);
+    //추가 DML 실행 => 같은 트랜잭션으로 묶임
+    conn.commit();
+    return result;
+
+  } catch (err) {
+    console.log(err);
+    conn.rollback();
+  }
+  finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const supDel = async (supId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+    let result = await conn.query(userSql.supDelSql, supId);
+    conn.commit();
+    return result;
+  }
+  catch (err) {
+    console.log(err);
+    conn.rollback();
+  }
+  finally{
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
+const supportList = async (supInfo) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let result = await conn.query(userSql.supportList, supInfo);
+    return result;
+
+  } catch (err) {
+    console.log(err);
+  }
+  finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+
+};
+
 module.exports = {
   testSelect,
   insertUser,
@@ -116,4 +179,7 @@ module.exports = {
   getLastSupportId,
   getLastUserId,
   getLastInstiId,
+  supportList,
+  supUpdate,
+  supDel,
 };
