@@ -26,29 +26,62 @@ INNER JOIN Support_Tbl su ON gu.G_UserId = su.G_UserId
 INNER JOIN Survey_Tbl sv ON gu.G_UserId = sv.G_UserId
 `;
 
+// 페이징 sql
+const baseCount = `
+SELECT COUNT(DISTINCT sv.J_ID) as totalCount
+FROM GeneralUser_Tbl gu
+INNER JOIN InstiUser_Tbl iu ON gu.institution_id = iu.institution_id
+INNER JOIN Support_Tbl su ON gu.G_UserId = su.G_UserId
+INNER JOIN Survey_Tbl sv ON gu.G_UserId = sv.G_UserId
+`;
+
 const selectByUser =
   baseSelect +
   `
 WHERE gu.G_UserId = ? AND iu.roll IN ('a003')
-ORDER BY sv.created_at DESC;
+ORDER BY sv.created_at DESC
+LIMIT ? OFFSET ?
+`;
+
+const countByUser =
+  baseCount +
+  `
+WHERE gu.G_UserId = ? AND iu.roll IN ('a003')
 `;
 
 const selectByManager =
   baseSelect +
   `
 WHERE iu.I_UserId = ? AND iu.roll = 'a003' 
-ORDER BY sv.created_at DESC;
+ORDER BY sv.created_at DESC
+LIMIT ? OFFSET ?
+`;
+
+const countByManager =
+  baseCount +
+  `
+WHERE iu.I_UserId = ? AND iu.roll = 'a003'
 `;
 
 const selectByGeneral =
   baseSelect +
   `
 WHERE gu.institution_id = ? AND iu.roll = 'a003'
-ORDER BY sv.created_at DESC;
+ORDER BY sv.created_at DESC
+LIMIT ? OFFSET ?
+`;
+
+const countByGeneral =
+  baseCount +
+  `
+WHERE gu.institution_id = ? AND iu.roll = 'a003'
 `;
 
 module.exports = {
   selectByUser,
+  countByUser,
   selectByManager,
+  countByManager,
   selectByGeneral,
+  countByGeneral,
 };

@@ -35,21 +35,40 @@ const formatListData = (list) => {
 };
 
 // 일반이용자
-const findByUser = async (id) => {
-  let list = await mainMapper.selectByUser(id);
-  return formatListData(list);
+const findByUser = async (id, page, limit) => {
+  // 1. Mapper에서 { data: [...], totalCount: 숫자 } 형태의 객체를 받아옴!
+  let result = await mainMapper.selectByUser(id, page, limit);
+
+  // 2. 알맹이(result.data)만 쏙 빼서 랭크명, 버튼 활성화 등의 가공을 거침
+  let formattedData = formatListData(result.data);
+
+  // 3. 프론트로 쏴주기 위해 다시 원래 형태 { data, totalCount }로 묶어서 반환!
+  return {
+    data: formattedData,
+    totalCount: result.totalCount,
+  };
 };
 
 // 기관담당자
-const findByManager = async (id) => {
-  let list = await mainMapper.selectByManager(id);
-  return formatListData(list);
+const findByManager = async (id, page, limit) => {
+  let result = await mainMapper.selectByManager(id, page, limit);
+  let formattedData = formatListData(result.data);
+
+  return {
+    data: formattedData,
+    totalCount: result.totalCount,
+  };
 };
 
 // 기관관리자
-const findByGeneral = async (id) => {
-  let list = await mainMapper.selectByGeneral(id);
-  return formatListData(list);
+const findByGeneral = async (id, page, limit) => {
+  let result = await mainMapper.selectByGeneral(id, page, limit);
+  let formattedData = formatListData(result.data);
+
+  return {
+    data: formattedData,
+    totalCount: result.totalCount,
+  };
 };
 
 module.exports = {
