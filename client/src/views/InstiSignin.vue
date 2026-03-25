@@ -17,14 +17,14 @@ const goSingup = () => {
   router.push("/user/signup");
 };
 
-//기관직원 로그인 페이지로 이동 (김경환 2026.03.25)
-const goInstiLog = () => {
-  router.push("/insti/login");
+//일반이용자 로그인 페이지로 이동 (김경환 2026.03.25)
+const goLog = () => {
+  router.push("/user/login");
 };
 
 //회원가입으로 생성한 계정으로 로그인 시도(김경환 2026.03.25)
-import { useAuthStore } from "@/stores/counter";
-const authStore = useAuthStore();
+import { useInstiAuthStore } from "@/stores/counter";
+const authStore = useInstiAuthStore();
 const loginId = ref("");
 const loginPw = ref("");
 const goMain = async () => {
@@ -80,19 +80,17 @@ onBeforeUnmount(() => {
                       class="mt-auto p-3 d-flex justify-content-center gap-3"
                     >
                       <div class="col-auto">
-                        <argon-button>일반이용자</argon-button>
+                        <argon-button color="dark" @click="goLog()"
+                          >일반이용자</argon-button
+                        >
                       </div>
                       <div class="col-auto">
-                        <argon-button color="dark" @click="goInstiLog()"
-                          >기관직원</argon-button
-                        >
+                        <argon-button>기관직원</argon-button>
                       </div>
                     </div>
                   </div>
-                  <h4 class="font-weight-bolder">로그인</h4>
-                  <p class="mb-0">
-                    아이디와 비밀번호를 입력하시고 로그인 하세요.
-                  </p>
+                  <h4 class="font-weight-bolder">기관 로그인</h4>
+                  <p class="mb-0">기관 소속 전용 로그인 페이지입니다.</p>
                 </div>
                 <div class="card-body">
                   <form role="form">
