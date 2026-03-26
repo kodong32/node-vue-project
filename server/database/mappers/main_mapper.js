@@ -4,7 +4,7 @@ const { pool } = require("../DAO.js");
 const mainSql = require("../sql/main_sql.js");
 
 // 일반이용자
-const selectByUser = async (id, page = 1, limit = 10) => {
+const selectByUser = async (id, page = 1, limit = 5) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
@@ -24,7 +24,7 @@ const selectByUser = async (id, page = 1, limit = 10) => {
 };
 
 // 기관담당자
-const selectByManager = async (id, page = 1, limit = 10) => {
+const selectByManager = async (id, page = 1, limit = 5) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
@@ -49,7 +49,7 @@ const selectByManager = async (id, page = 1, limit = 10) => {
 };
 
 // 기관관리자
-const selectByGeneral = async (id, page = 1, limit = 10) => {
+const selectByGeneral = async (id, page = 1, limit = 5) => {
   let conn = null;
   try {
     conn = await pool.getConnection();

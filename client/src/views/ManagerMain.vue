@@ -17,7 +17,7 @@ const fetchSurveyList = async (page = 1) => {
     const response = await axios.get(
       "http://localhost:3000/main/manager/IUSR0000",
       {
-        params: { page: page, limit: 10 },
+        params: { page: page, limit: 5 },
       },
     );
 
@@ -49,7 +49,7 @@ const handlePageChange = (newPage) => {
 
         <main-pagination
           :totalCount="totalCount"
-          :limit="10"
+          :limit="5"
           :currentPage="currentPage"
           @page-change="handlePageChange"
         />

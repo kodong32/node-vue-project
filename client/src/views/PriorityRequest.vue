@@ -12,17 +12,27 @@ const candidateInfo = ref(null); // 백엔드에서 받아올 정보
 const selectedPriority = ref(""); // 선택한 우선순위 코드 (f001, f002, f003)
 const reasonText = ref(""); // 입력한 사유
 
-// 화면 켜지자마자 데이터 가져오기
 onMounted(async () => {
-  const surveyId = route.params.id; // 나중에 라우터에 :id 연결해야 함!
+  // 💡 1. 하드코딩 변수 세팅
+  // const surveyId = "SUV0018";
+  const surveyId = route.params.id;
 
-  // 🚨 지금은 테스트용으로 하드코딩된 ID(SUV0017)를 넣어서 화면을 확인하자!
-  // 실제 연결 시에는: `http://localhost:3000/priority/candidate/${surveyId}` 로 변경
+  if (!surveyId) {
+    alert("조사지 정보가 없습니다!");
+    return;
+  }
+
+  // 💡 2. route 변수 사용한 척 해서 에러(no-unused-vars) 없애기
+  // console.log(`현재 페이지 ID (사용 안함): ${route.params.id}`);
+
   try {
-    const response = await axios.get(`http://localhost:3000/priority/SUV0018`);
+    // 💡 3. 네 백엔드 세팅에 맞게 /candidate/ 빼고 정확한 주소로 찌르기!
+    const response = await axios.get(
+      `http://localhost:3000/priority/${surveyId}`,
+    );
     candidateInfo.value = response.data;
-  } catch (error) {
-    console.error("정보 로딩 실패:", error);
+  } catch (err) {
+    console.error(`정보 로딩 실패: ${err}`);
   }
 });
 
@@ -42,6 +52,10 @@ const submitRequest = () => {
     reason: reasonText.value,
   });
   alert("콘솔창을 확인해보세요! 이제 이걸 백엔드로 쏘는 API만 만들면 됩니다.");
+};
+
+const goBack = () => {
+  router.push("/manager");
 };
 </script>
 
@@ -135,10 +149,7 @@ const submitRequest = () => {
               <button class="btn btn-primary mb-0" @click="submitRequest">
                 승인 요청
               </button>
-              <button
-                class="btn btn-secondary mb-0"
-                @click="$router.push('/manager')"
-              >
+              <button class="btn btn-secondary mb-0" @click="goBack">
                 취소
               </button>
             </div>

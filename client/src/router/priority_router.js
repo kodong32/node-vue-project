@@ -4,6 +4,6 @@ export default [
   {
     path: "/manager/priority-request/:id",
     name: "PriorityRequest",
-    component: () => import("../views/manager/PriorityRequest.vue"),
+    component: () => import("../views/PriorityRequest.vue"),
   },
 ];

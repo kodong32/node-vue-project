@@ -15,6 +15,7 @@ import SurveyAdd from "./survey_router";
 import surveySelect from "./surveySelect_router";
 import adminRouter from "./admin_router";
 import { useAdminAuthStore } from "@/stores/counter"; //admin Auth 사용 session 26.03.26 고동현 추가
+import priority from "./priority_router";
 
 const routes = [
   {
@@ -74,6 +75,7 @@ const routes = [
   ...SurveyAdd,
   ...surveySelect,
   ...adminRouter,
+  ...priority,
 ];
 
 const router = createRouter({
