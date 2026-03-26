@@ -85,22 +85,26 @@ const props = defineProps({
               v-for="(item, index) in props.surveyList"
               :key="item.surveyId || index"
             >
+              <!-- 지원대상자 -->
               <td class="align-middle text-center">
                 <h6 class="mb-0 text-sm">{{ item.supportName }}</h6>
               </td>
 
+              <!-- 보호자 -->
               <td class="align-middle text-center">
                 <p class="text-xs font-weight-bold mb-0">
                   {{ item.generalName }}
                 </p>
               </td>
 
+              <!-- 등록일 -->
               <td class="align-middle text-center">
                 <span class="text-secondary text-xs font-weight-bold">{{
                   item.registerDate
                 }}</span>
               </td>
 
+              <!-- 조사지 -->
               <td class="align-middle text-center">
                 <button
                   class="btn btn-primary btn-sm mb-0 px-3 py-1"
@@ -110,6 +114,7 @@ const props = defineProps({
                 </button>
               </td>
 
+              <!-- 담당자 -->
               <td class="align-middle text-center">
                 <p class="text-xs font-weight-bold mb-0">
                   <button
@@ -122,19 +127,65 @@ const props = defineProps({
                 </p>
               </td>
 
+              <!-- 우선순위 -->
               <td class="align-middle text-center text-sm">
-                <span class="badge badge-sm bg-gradient-success">{{
-                  item.priorityName || item.priorityCode
-                }}</span>
+                <button
+                  v-if="
+                    props.userRole === 'MANAGER' && item.priorityCode === '미정'
+                  "
+                  class="btn btn-sm btn-outline-warning mb-0 px-3 py-1"
+                  @click="
+                    $router.push(`/manager/priority-request/${item.surveyId}`)
+                  "
+                >
+                  요청
+                </button>
+
+                <button
+                  v-else-if="
+                    props.userRole === 'MANAGER' && item.priorityCode === '반려'
+                  "
+                  class="btn btn-sm btn-danger mb-0 px-3 py-1"
+                  @click="
+                    $router.push(`/manager/priority-request/${item.surveyId}`)
+                  "
+                >
+                  반려
+                </button>
+
+                <span
+                  v-else
+                  class="badge badge-sm"
+                  :class="{
+                    'bg-gradient-danger':
+                      item.priorityCode === '긴급' ||
+                      item.priorityCode === '반려',
+                    'bg-gradient-success': item.priorityCode === '중점',
+                    'bg-gradient-info': item.priorityCode === '계획',
+                    'bg-gradient-secondary':
+                      item.priorityCode === '심사중' ||
+                      item.priorityCode === '미정',
+                  }"
+                >
+                  {{ item.priorityCode }}
+                </span>
               </td>
 
+              <!-- 진행상태 -->
               <td class="align-middle text-center text-xs">
                 검토 {{ item.reviewCount }}건 <br />
                 계획 {{ item.planCount }}건 <br />
-                반려 {{ item.rejectCount }}건 <br />
+                <span
+                  :class="{
+                    'text-danger font-weight-bold': item.rejectCount > 0,
+                  }"
+                  >반려 {{ item.rejectCount }}건</span
+                >
+                <br />
                 종료 {{ item.finishCount }}건
               </td>
 
+              <!-- 지원계획 -->
               <td class="align-middle text-center">
                 <button
                   class="btn btn-sm mb-0 px-3 py-1"
@@ -145,6 +196,7 @@ const props = defineProps({
                 </button>
               </td>
 
+              <!-- 지원결과 -->
               <td class="align-middle text-center">
                 <button
                   class="btn btn-sm mb-0 px-3 py-1"

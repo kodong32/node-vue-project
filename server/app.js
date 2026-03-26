@@ -33,7 +33,10 @@ const mainRouter = require("./routers/main/main_router.js");
 app.use("/main", mainRouter);
 //장애유형 라우터모듈
 const disRouter = require("./routers/user/disability_router.js");
-app.use("/dis",disRouter);
+app.use("/dis", disRouter);
 //시스템관리자
-const adminRouter= require("./routers/admin/admin_router.js");
+const adminRouter = require("./routers/admin/admin_router.js");
 app.use("/admin", adminRouter);
+//우선순위요청
+const priorityRouter = require("./routers/survey/priority_router.js");
+app.use("/priority", priorityRouter);
