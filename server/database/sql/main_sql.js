@@ -1,5 +1,5 @@
 // main_sql.js 메인페이지
-
+// (SELECT name FROM Support_Tbl WHERE support_id = sv.support_id) as supportName,
 // 공통 쿼리 분리
 const baseSelect = `
 SELECT gu.name as generalName,
@@ -20,17 +20,17 @@ SELECT gu.name as generalName,
       (SELECT COUNT(*) FROM PlanResult_Tbl r JOIN Plan_Tbl p ON r.supportPlan_id = p.supportPlan_id WHERE p.J_ID = sv.J_ID AND r.state = 'g001') as finishCount,
       (SELECT COUNT(*) FROM Plan_Tbl p WHERE p.J_ID = sv.J_ID) as hasPlanCount,
       (SELECT COUNT(*) FROM PlanResult_Tbl r JOIN Plan_Tbl p ON r.supportPlan_id = p.supportPlan_id WHERE p.J_ID = sv.J_ID) as hasResultCount
-FROM GeneralUser_Tbl gu
-JOIN Support_Tbl su ON gu.G_UserId = su.G_UserId
-JOIN Survey_Tbl sv ON gu.G_UserId = sv.G_UserId
+FROM Survey_Tbl sv  /* 🌟 무조건 조사지(Survey)가 뼈대가 되어야 해! */
+JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
+JOIN Support_Tbl su ON sv.support_id = su.support_id  /* 🌟 G_UserId가 아니라 support_id로 연결! */
 LEFT JOIN InstiUser_Tbl iu ON su.I_UserId1 = iu.I_UserId
 `;
 
 const baseCount = `
-SELECT COUNT(DISTINCT sv.J_ID) as totalCount
-FROM GeneralUser_Tbl gu
-JOIN Support_Tbl su ON gu.G_UserId = su.G_UserId
-JOIN Survey_Tbl sv ON gu.G_UserId = sv.G_UserId
+SELECT COUNT(sv.J_ID) as totalCount
+FROM Survey_Tbl sv  /* 🌟 위랑 똑같이! */
+JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
+JOIN Support_Tbl su ON sv.support_id = su.support_id  /* 🌟 위랑 똑같이! */
 LEFT JOIN InstiUser_Tbl iu ON su.I_UserId1 = iu.I_UserId
 `;
 
@@ -41,7 +41,7 @@ const selectByUser =
   baseSelect +
   `
 WHERE gu.G_UserId = ? 
-ORDER BY sv.created_at DESC
+ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
 
@@ -58,7 +58,7 @@ const selectByManager =
   baseSelect +
   `
 WHERE su.I_UserId1 = ? 
-ORDER BY sv.created_at DESC
+ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
 
@@ -75,7 +75,7 @@ const selectByGeneral =
   baseSelect +
   `
 WHERE gu.institution_id = ? 
-ORDER BY sv.created_at DESC
+ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
 

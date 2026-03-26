@@ -7,7 +7,7 @@ const mainService = require("../../services/main_service.js");
 // 일반이용자
 router.get("/user/:id", async (req, res) => {
   const page = req.query.page || 1;
-  const limit = req.query.limit || 10;
+  const limit = req.query.limit || 5;
 
   let result = await mainService.findByUser(req.params.id, page, limit);
   res.json(result);
@@ -16,7 +16,7 @@ router.get("/user/:id", async (req, res) => {
 // 기관담당자
 router.get("/manager/:id", async (req, res) => {
   const page = req.query.page || 1;
-  const limit = req.query.limit || 10;
+  const limit = req.query.limit || 5;
 
   let result = await mainService.findByManager(req.params.id, page, limit);
   res.json(result);
@@ -24,7 +24,7 @@ router.get("/manager/:id", async (req, res) => {
 // 기관관리자
 router.get("/general/:id", async (req, res) => {
   const page = req.query.page || 1;
-  const limit = req.query.limit || 10;
+  const limit = req.query.limit || 5;
 
   let result = await mainService.findByGeneral(req.params.id, page, limit);
   res.json(result);

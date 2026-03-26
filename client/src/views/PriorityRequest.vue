@@ -12,13 +12,18 @@ const candidateInfo = ref(null); // 백엔드에서 받아올 정보
 const selectedPriority = ref(""); // 선택한 우선순위 코드 (f001, f002, f003)
 const reasonText = ref(""); // 입력한 사유
 
-// 화면 켜지자마자 데이터 가져오기
 onMounted(async () => {
   // 💡 1. 하드코딩 변수 세팅
-  const surveyId = "SUV0018";
+  // const surveyId = "SUV0018";
+  const surveyId = route.params.id;
+
+  if (!surveyId) {
+    alert("조사지 정보가 없습니다!");
+    return;
+  }
 
   // 💡 2. route 변수 사용한 척 해서 에러(no-unused-vars) 없애기
-  console.log(`현재 페이지 ID (사용 안함): ${route.params.id}`);
+  // console.log(`현재 페이지 ID (사용 안함): ${route.params.id}`);
 
   try {
     // 💡 3. 네 백엔드 세팅에 맞게 /candidate/ 빼고 정확한 주소로 찌르기!
@@ -26,8 +31,8 @@ onMounted(async () => {
       `http://localhost:3000/priority/${surveyId}`,
     );
     candidateInfo.value = response.data;
-  } catch (error) {
-    console.error("정보 로딩 실패:", error);
+  } catch (err) {
+    console.error(`정보 로딩 실패: ${err}`);
   }
 });
 
