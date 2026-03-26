@@ -2,7 +2,7 @@
 const { pool } = require("../DAO.js");
 const prioritySql = require("../sql/priority_sql.js");
 
-const selectSupportInfo = async (id) => {
+const getSupportInfo = async (id) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
@@ -16,5 +16,5 @@ const selectSupportInfo = async (id) => {
 };
 
 module.exports = {
-  selectSupportInfo,
+  getSupportInfo,
 };
