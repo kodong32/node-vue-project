@@ -1,6 +1,43 @@
 //sysadmin service
 const adminMapper = require("../database/mappers/admin_mapper.js");
 
+//SysAdmin Login
+const sysAdminLogin = async (loginInfo) => {
+  try {
+    const { id, password } = loginInfo;
+    const rows = await adminMapper.adminLogin(id);
+
+    //Id 없을 시
+    if (rows.length === 0) {
+      return {
+        status: "Failed",
+        message: "아이디 없음"
+      };
+    };
+
+    const sysadmin = rows;
+
+    if (sysadmin.password !== password) {
+      return {
+        status: "Failed",
+        message: "비밀번호 틀림"
+      };
+    };
+
+    return {
+      status: "Success",
+      user: {
+        adminId: sysadmin.Sys_Id,
+        id: sysadmin.id,
+        role: sysadmin.roll
+      }
+    }
+  }
+  catch (err) {
+    console.log(err);
+  }
+};
+
 //조사지생성 Inser
 const SurveyInsert = async (surveyObj) => {
   try {
@@ -71,6 +108,26 @@ const SurveyInsert = async (surveyObj) => {
 };
 
 
+//조사지 ListUP
+const getSurveyVersionList = async () => {
+  let rows = await adminMapper.surveyVersionList();
+  return {
+    status: "Success",
+    list: rows,
+  };
+};
+
+//조사지 버전 사용
+const setActiveVersion = async (verId) => {
+  let result = await adminMapper.setActiveVersion(verId);
+
+  return{
+    status : "Success",
+    message : "버전 변경 완료"
+  }
+};
+
+
 module.exports = {
-  SurveyInsert,
+  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion
 };

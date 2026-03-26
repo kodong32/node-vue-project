@@ -14,8 +14,6 @@ LIMIT 1
 `;
 
 
-
-
 const SurveyFormInsert =
 `
 INSERT INTO SurveyForm_Tbl(Ver_Id, Sys_Id, version, description, created_at )
@@ -29,9 +27,42 @@ VALUES(?, ?, ?, ?, ?, ?)
 `;
 
 
+const adminLoginSql = 
+`
+SELECT Sys_Id, id, password, roll
+FROM SysAdmin_Tbl
+WHERE id = ?
+`;
+
+const getSurveyVersionList =
+`
+SELECT Ver_Id, version, description, created_at, use_yn
+FROM SurveyForm_Tbl
+ORDER BY created_at DESC, Ver_Id DESC
+`;
+
+
+const useYtoNSql = 
+`
+UPDATE SurveyForm_Tbl
+SET use_yn = 'N'
+WHERE use_yn = 'Y'
+`;
+
+const useVersionSql =
+`
+UPDATE SurveyForm_Tbl
+SET use_yn = 'Y'
+WHERE Ver_Id = ?
+`;
+
 module.exports = {
   lastFormId,
   lastItemId,
   SurveyFormInsert,
-  SurveyItemInsert
+  SurveyItemInsert,
+  adminLoginSql,
+  getSurveyVersionList,
+  useYtoNSql,
+  useVersionSql 
 };

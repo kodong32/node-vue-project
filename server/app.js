@@ -2,9 +2,21 @@ require("dotenv").config({ path: "./database/dbConfig.env" });
 
 const express = require("express");
 const cors = require("cors");
+const session = require("express-session");
 
 const app = express();
 const port = 3000;
+
+//Session Token
+app.use(session({
+  secret: "my-secret-key",   // 아무 문자열
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 30 // 30분
+  }
+}));
+
 
 //미들웨어
 app.use(cors());

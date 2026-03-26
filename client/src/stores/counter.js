@@ -80,3 +80,68 @@ export const useAuthStore = defineStore("auth", {
     },
   },
 });
+
+//sysadmin pinia
+export const useAdminAuthStore = defineStore("adminAuth", {
+  state: () => ({
+    user: null,
+    isLoggedIn: false,
+  }),
+  actions: {
+    async login(id, password) {
+      try {
+        const response = await axios.post("/api/admin/login", {
+          id: id,
+          password: password,
+        });
+
+        if (response.data.status === "Success") {
+          this.user = response.data.user;
+          this.isLoggedIn = true;
+          return true;
+        } else {
+          this.user = null;
+          this.isLoggedIn = false;
+          return false;
+        }
+      } catch (error) {
+        console.error("관리자 로그인 요청 중 오류 발생:", error);
+        this.user = null;
+        this.isLoggedIn = false;
+        return false;
+      }
+    },
+    //back단 session은 살아있을 수 있기에 check로직 추가
+    async checkLogin() {
+      try {
+        const response = await axios.get("/api/admin/me");
+
+        if (response.data.status === "Success") {
+          this.user = response.data.user;
+          this.isLoggedIn = true;
+          return true;
+        } else {
+          this.user = null;
+          this.isLoggedIn = false;
+          return false;
+        }
+      } catch (error) {
+        console.error("관리자 로그인 확인 중 오류 발생:", error);
+        this.user = null;
+        this.isLoggedIn = false;
+        return false;
+      }
+    },
+
+    async logout() {
+      try {
+        await axios.post("/api/admin/logout");
+      } catch (error) {
+        console.error("관리자 로그아웃 요청 중 오류 발생:", error);
+      } finally {
+        this.user = null;
+        this.isLoggedIn = false;
+      }
+    },
+  },
+});
