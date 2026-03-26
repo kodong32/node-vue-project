@@ -144,6 +144,23 @@ const getSurveyDetail = async (verId) => {
   };
 };
 
+//이전버전 불러오기
+const getCurrentSurveyDetail = async () =>{
+  const rows = await adminMapper.getCurrentSurveyDetail();
+
+  if(!rows || rows.length === 0){
+    return {
+      status : "Failed",
+      message : "현재 사용중인 조사지가 없습니다.",
+    }
+  }
+  
+  return {
+    status : "Success",
+    data : rows,
+  }
+};
+
 module.exports = {
-  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion,getSurveyDetail
+  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion,getSurveyDetail, getCurrentSurveyDetail
 };

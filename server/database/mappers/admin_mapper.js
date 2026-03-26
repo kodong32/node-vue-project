@@ -127,10 +127,10 @@ const setActiveVersion = async (verId) => {
     await conn.beginTransaction();
 
     let yton = await pool.query(adminSql.useYtoNSql);
-    
+
     let result = await pool.query(adminSql.useVersionSql, verId);
 
-    if(result.affectedRows <= 0 ){
+    if (result.affectedRows <= 0) {
       throw new Error("버전 활성화 실패");
     }
     await conn.commit();
@@ -160,6 +160,23 @@ const getDetailVersion = async (verId) => {
   }
 };
 
+const getCurrentSurveyDetail = async () => {
+  let conn = null;
+
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(adminSql.getCurrentSurveyDetailSql);
+    return rows;
+
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
 module.exports = {
   getLastSurveyFormId,
   getLastSurveyItemId,
@@ -167,5 +184,6 @@ module.exports = {
   adminLogin,
   surveyVersionList,
   setActiveVersion,
-  getDetailVersion
+  getDetailVersion,
+  getCurrentSurveyDetail
 };

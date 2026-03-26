@@ -74,6 +74,24 @@ WHERE f.Ver_Id = ?
 ORDER BY i.titleCode, i.question_no
 `;
 
+const getCurrentSurveyDetailSql = 
+`
+SELECT 
+  f.Ver_Id,
+  f.version,
+  f.description,
+  f.created_at,
+  i.titleCode,
+  i.question_no,
+  i.question_text,
+  i.answer_type
+FROM SurveyForm_Tbl as f
+JOIN SurveyItem_Tbl as i
+  ON f.Ver_id = i.Ver_Id
+WHERE f.use_yn = 'Y'
+ORDER BY i.titleCode, i.question_no
+`;
+
 module.exports = {
   lastFormId,
   lastItemId,
@@ -83,5 +101,6 @@ module.exports = {
   getSurveyVersionList,
   useYtoNSql,
   useVersionSql ,
-  getSurveyDetail
+  getSurveyDetail,
+  getCurrentSurveyDetailSql
 };
