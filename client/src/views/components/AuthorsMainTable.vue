@@ -12,6 +12,18 @@ const props = defineProps({
     type: String,
     required: true, // "USER", "MANAGER", "ADMIN" 중 하나가 들어올 예정
   },
+  totalCount: {
+    type: Number,
+    required: true,
+  },
+  currentPage: {
+    type: Number,
+    required: true,
+  },
+  limit: {
+    type: Number,
+    required: true,
+  },
 });
 </script>
 
@@ -25,6 +37,16 @@ const props = defineProps({
         <table class="table align-items-center mb-0">
           <thead>
             <tr>
+              <th
+                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+              >
+                번호
+              </th>
+              <th
+                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+              >
+                지원자명
+              </th>
               <th
                 class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
               >
@@ -85,6 +107,17 @@ const props = defineProps({
               v-for="(item, index) in props.surveyList"
               :key="item.surveyId || index"
             >
+              <!-- 번호 -->
+              <td class="align-middle text-center">
+                <span class="text-secondary text-xs font-weight-bold">
+                  {{
+                    props.totalCount -
+                    (props.currentPage - 1) * props.limit -
+                    index
+                  }}
+                </span>
+              </td>
+
               <!-- 지원대상자 -->
               <td class="align-middle text-center">
                 <h6 class="mb-0 text-sm">{{ item.supportName }}</h6>

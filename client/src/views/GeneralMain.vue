@@ -45,7 +45,13 @@ const handlePageChange = (newPage) => {
   <div class="py-4 container-fluid">
     <div class="row">
       <div class="col-12">
-        <authors-table :surveyList="listData" userRole="GENERAL" />
+        <authors-table
+          :surveyList="listData"
+          userRole="GENERAL"
+          :totalCount="totalCount"
+          :currentPage="currentPage"
+          :limit="5"
+        />
 
         <main-pagination
           :totalCount="totalCount"
