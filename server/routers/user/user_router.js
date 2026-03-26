@@ -70,9 +70,98 @@ router.post(`/ilogin`, async (req, res) => {
   res.send(result);
 });
 
-// //회원 아이디 중복검사
-// router.get(`/useridcheck`, async (req, res)=> {
-//   let checkId = req.
-// })
+//일반사용자 로그아웃
+// router.post(`/logout`, async (req, res) => {
+//   try {
+//     req.session.destroy((err) => {
+//       if (err) {
+//         console.log(err);
+//         return res.status(500).json({
+//           status: "error",
+//           message: "로그아웃 실패",
+//         });
+//       }
+//       res.json({
+//         status: "success",
+//         message: "로그아웃 완료",
+//       });
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "서버 오류",
+//     });
+//   }
+// });
+
+// router.get(`/userme`, async (req, res) => {
+//   try {
+//     console.log("session:", req.session);
+//     if (!req.session.loginUser) {
+//       return res.json({
+//         status: "fail",
+//         message: "로그인 안됨",
+//       });
+//     }
+//     res.json({
+//       status: "success",
+//       user: req.seesion.loginUser,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "서버 오류",
+//     });
+//   }
+// });
+
+// //기관
+// router.post(`/ilogout`, async (req, res) => {
+//   try {
+//     req.session.destroy((err) => {
+//       if (err) {
+//         console.log(err);
+//         return res.status(500).json({
+//           status: "error",
+//           message: "로그아웃 실패",
+//         });
+//       }
+//       res.json({
+//         status: "success",
+//         message: "로그아웃 완료",
+//       });
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "서버 오류",
+//     });
+//   }
+// });
+
+// router.get(`/insitime`, async (req, res) => {
+//   try {
+//     console.log("session:", req.session);
+//     if (!req.session.loginUser) {
+//       return res.json({
+//         status: "fail",
+//         message: "로그인 안됨",
+//       });
+//     }
+//     res.json({
+//       status: "success",
+//       user: req.seesion.loginUser,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "서버 오류",
+//     });
+//   }
+// });
 
 module.exports = router;

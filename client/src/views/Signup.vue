@@ -197,18 +197,14 @@ onBeforeUnmount(() => {
                   aria-label="Name"
                   v-model="userInfo.name"
                 />
-                <div class="row">
-                  <div class="col-md-12">
-                    <argon-input
-                      id="id"
-                      type="text"
-                      placeholder="아이디"
-                      aria-label="Id"
-                      v-model="userInfo.id"
-                    />
-                    <argon-button>중복 확인</argon-button>
-                  </div>
-                </div>
+                <argon-input
+                  id="id"
+                  type="text"
+                  placeholder="아이디"
+                  aria-label="Id"
+                  v-model="userInfo.id"
+                />
+                <!-- <argon-button @click.prevent="">중복 확인</argon-button> -->
                 <argon-input
                   id="password"
                   type="password"

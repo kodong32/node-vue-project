@@ -42,10 +42,15 @@ export const useInstiAuthStore = defineStore("instiAuth", {
         return false;
       }
     },
-    logout() {
-      this.user = null;
-      this.roll = null;
-      this.isLoggedIn = false;
+    async logout() {
+      try {
+        await axios.post("api/user/ilogout");
+      } catch (error) {
+        console.error("로그아웃 요청 중 오류 발생:", error);
+      } finally {
+        this.user = null;
+        this.isLoggedIn = false;
+      }
     },
   },
 });

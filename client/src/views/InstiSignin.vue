@@ -33,7 +33,12 @@ const goMain = async () => {
 
   if (isSuccess) {
     alert(`${authStore.user.name}님, 환영합니다!`); // DB에서 가져온 이름 활용
-    router.push("/general"); // 메인 페이지로 이동
+    console.log("role:", authStore.roll);
+    if (authStore.roll === "a002") {
+      router.push("/general"); // 기관 관리자 메인 페이지로 이동
+    } else {
+      router.push("/manager"); // 기관 담당자 메인 페이지로 이동
+    }
   } else {
     alert("아이디 또는 비밀번호가 올바르지 않습니다.");
   }
@@ -178,7 +183,7 @@ onBeforeUnmount(() => {
                   발달장애인 지원 프로그램
                 </h4>
                 <p class="text-white position-relative">
-                  저희 발달장애인 지원 프로그램에 오신 것을 환영합니다.
+                  이곳은 기관 소속 전용 로그인 페이지입니다.
                 </p>
               </div>
             </div>
