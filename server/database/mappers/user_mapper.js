@@ -163,7 +163,7 @@ const supportList = async (supInfo) => {
   }
 };
 
-//회원 로그인  확인(김경환 2026.03.25)
+//회원 로그인 확인(김경환 2026.03.25)
 const confirmUser = async (id, password) => {
   let conn = null;
   try {
@@ -198,6 +198,24 @@ const confirmInstiUser = async (id, password) => {
     }
   }
 };
+
+//아이디 중복 확인(김경환 2026.03.26)
+// const userIdCheck = async (id) => {
+//   let conn = null;
+//   try {
+//     conn = await pool.getConnection();
+//     console.log(id);
+//     let result = await conn.query(userSql.userIdCheck, id);
+//     console.log(result);
+//     return result;
+//   } catch (err) {
+//     conolse.log(err);
+//   } finally {
+//     if (conn) {
+//       conn.release();
+//     }
+//   }
+// };
 module.exports = {
   testSelect,
   insertUser,
@@ -211,4 +229,5 @@ module.exports = {
   supDel,
   confirmUser,
   confirmInstiUser,
+  // userUdCheck,
 };

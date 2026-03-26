@@ -79,7 +79,7 @@ const goInsti = () => {
   router.push("/insti/signup");
 };
 
-//계정이 있을 경우 로그인 페이지로 이동하는 라우터(김경환 2026.03.25)
+//로그인 페이지로 이동하는 라우터(김경환 2026.03.25)
 const goLogin = () => {
   router.push("/user/login");
 };
@@ -197,13 +197,18 @@ onBeforeUnmount(() => {
                   aria-label="Name"
                   v-model="userInfo.name"
                 />
-                <argon-input
-                  id="id"
-                  type="text"
-                  placeholder="아이디"
-                  aria-label="Id"
-                  v-model="userInfo.id"
-                />
+                <div class="row">
+                  <div class="col-md-12">
+                    <argon-input
+                      id="id"
+                      type="text"
+                      placeholder="아이디"
+                      aria-label="Id"
+                      v-model="userInfo.id"
+                    />
+                    <argon-button>중복 확인</argon-button>
+                  </div>
+                </div>
                 <argon-input
                   id="password"
                   type="password"
@@ -220,7 +225,7 @@ onBeforeUnmount(() => {
                 <argon-input
                   id="tel"
                   type="tel"
-                  placeholder="연락처"
+                  placeholder="연락처 (-) 없이 입력하세요."
                   aria-label="Tel"
                   v-model="userInfo.tel"
                 />

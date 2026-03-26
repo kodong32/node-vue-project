@@ -63,11 +63,16 @@ router.post(`/login`, async (req, res) => {
 });
 
 //기관
-router.post(`/login`, async (req, res) => {
+router.post(`/ilogin`, async (req, res) => {
   let body = req.body;
   console.log(body);
   let result = await userService.confirmInstiUser(body.id, body.password);
   res.send(result);
 });
+
+// //회원 아이디 중복검사
+// router.get(`/useridcheck`, async (req, res)=> {
+//   let checkId = req.
+// })
 
 module.exports = router;

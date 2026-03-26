@@ -33,7 +33,7 @@ const goMain = async () => {
 
   if (isSuccess) {
     alert(`${authStore.user.name}님, 환영합니다!`); // DB에서 가져온 이름 활용
-    router.push("/user/main"); // 메인 페이지로 이동
+    router.push("/general"); // 메인 페이지로 이동
   } else {
     alert("아이디 또는 비밀번호가 올바르지 않습니다.");
   }
@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
         <div class="container">
           <div class="row">
             <div
-              class="mx-auto col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0"
+              class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-auto ms-lg-0 me-lg-auto"
             >
               <div class="card card-plain">
                 <div class="pb-0 card-header text-start">

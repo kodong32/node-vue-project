@@ -89,6 +89,12 @@ FROM InstiUser_Tbl
 WHERE id = ?
 AND password = ?`;
 
+//일반회원 아이디 중복 확인용(김경환 2026.03.26)
+// const userIdCheck = `
+// SELECT G_UserId, institution_id, name, id, password, tel, email, zipCode, address, document1, document2
+// FROM GeneralUser_Tbl
+// WHERE id = ?
+// `;
 module.exports = {
   testSelect,
   insertUser,
@@ -102,4 +108,5 @@ module.exports = {
   supDelSql,
   confirmUser,
   confirmInstiUser,
+  // userIdCheck,
 };

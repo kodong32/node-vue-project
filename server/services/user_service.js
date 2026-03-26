@@ -135,7 +135,6 @@ const supportAdd = async (supportObj) => {
       middle,
       sub,
     ];
-  
 
     let result = await userMapper.supportAdd(insertData);
     return {
@@ -203,11 +202,19 @@ const confirmUser = async (id, password) => {
 const confirmInstiUser = async (id, password) => {
   let infos = await userMapper.confirmInstiUser(id, password);
   if (infos.length > 0) {
-    return { success: true, user: infos[0] };
+    return { success: true, user: infos[0], roll: "" };
   } else {
     return { success: false };
   }
 };
+
+//아이디 중복 확인
+// const userIdCheck = async(id)=>{
+//   let info = await userMapper.userIdCheck(id)
+//   if (info.lengh === 0){
+//     return info
+//   }
+// }
 module.exports = {
   testSelect,
   createUser,

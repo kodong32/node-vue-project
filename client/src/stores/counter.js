@@ -16,13 +16,14 @@ export const useCounterStore = defineStore("counter", () => {
 export const useInstiAuthStore = defineStore("instiAuth", {
   state: () => ({
     user: null, // 로그인한 유저 정보 저장
+    roll: null,
     isLoggedIn: false, // 로그인 여부
   }),
   actions: {
     async login(id, password) {
       try {
         // 백엔드 주소로 POST 요청 보냄
-        const response = await axios.post("/api/insti/login", {
+        const response = await axios.post("/api/user/ilogin", {
           id: id,
           password: password,
         });
@@ -30,6 +31,7 @@ export const useInstiAuthStore = defineStore("instiAuth", {
         // 백엔드가 준 결과(result) 확인
         if (response.data.success) {
           this.user = response.data.user; // 유저 정보 저장
+          this.roll = response.data.roll;
           this.isLoggedIn = true; // 로그인 상태 true
           return true; // 컴포넌트에 성공 알림
         } else {
@@ -42,6 +44,7 @@ export const useInstiAuthStore = defineStore("instiAuth", {
     },
     logout() {
       this.user = null;
+      this.roll = null;
       this.isLoggedIn = false;
     },
   },

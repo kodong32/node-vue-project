@@ -28,7 +28,7 @@ const goUser = () => {
   router.push("/user/signup");
 };
 
-//계정이 있을 경우 로그인 페이지로 이동하는 라우터(김경환 2026.03.25)
+//로그인 페이지로 이동하는 라우터(김경환 2026.03.25)
 const goLogin = () => {
   router.push("/user/login");
 };
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
                 <argon-input
                   id="tel"
                   type="tel"
-                  placeholder="연락처"
+                  placeholder="연락처 (-) 없이 입력하세요"
                   aria-label="Tel"
                   v-model="instiUserInfo.tel"
                 />
