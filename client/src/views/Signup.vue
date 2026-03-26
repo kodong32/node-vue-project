@@ -235,7 +235,9 @@ onBeforeUnmount(() => {
                 <div class="row">
                   <div class="col-md-12">
                     <label class="form-control-label">주소</label>
-                    <div class="row g-2 mb-2 align-items-stretch">
+                    <div
+                      class="row g-2 mb-2 align-items-stretch justify-content-start"
+                    >
                       <div class="col-4">
                         <argon-input
                           class="mb-0"
@@ -282,7 +284,6 @@ onBeforeUnmount(() => {
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-4"></div>
                 </div>
                 <div class="mt-2">
                   <argon-input

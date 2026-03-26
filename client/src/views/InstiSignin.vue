@@ -34,7 +34,7 @@ const goMain = async () => {
   if (isSuccess) {
     alert(`${authStore.user.name}님, 환영합니다!`); // DB에서 가져온 이름 활용
     console.log("role:", authStore.roll);
-    if (authStore.roll === "a002") {
+    if (authStore.user.roll === "a002") {
       router.push("/general"); // 기관 관리자 메인 페이지로 이동
     } else {
       router.push("/manager"); // 기관 담당자 메인 페이지로 이동
