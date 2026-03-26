@@ -8,7 +8,7 @@ router.get("/:id", async (req, res) => {
     const info = await priorityService.fetchSupportInfo(req.params.id);
     res.json(info);
   } catch (err) {
-    console.error(`지원자 정보 조회 라우터 에러: ${error}`);
+    console.error(`지원자 정보 조회 라우터 에러: ${err}`);
     res.status(500).json({ message: "서버 에러 발생" });
   }
 });

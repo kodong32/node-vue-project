@@ -6,7 +6,7 @@ const getSupportInfo = async (id) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    const [rows] = await conn.query(prioritySql.selectSupportInfo, [id]);
+    const rows = await conn.query(prioritySql.selectSupportInfo, [id]);
     return rows;
   } catch (err) {
     console.error(`지원자 정보 에러: ${err}`);
