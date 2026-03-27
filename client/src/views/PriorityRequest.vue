@@ -37,7 +37,8 @@ onMounted(async () => {
 });
 
 // 승인 요청 버튼 클릭 시 실행할 함수 (뼈대만)
-const submitRequest = () => {
+const submitRequest = async () => {
+  // 1. 유효성 검사 (입력 확인)
   if (!selectedPriority.value) {
     alert("우선순위(계획/중점/긴급)를 선택해주세요!");
     return;
@@ -47,11 +48,30 @@ const submitRequest = () => {
     return;
   }
 
-  console.log("서버로 보낼 데이터:", {
-    priority: selectedPriority.value,
-    reason: reasonText.value,
-  });
-  alert("콘솔창을 확인해보세요! 이제 이걸 백엔드로 쏘는 API만 만들면 됩니다.");
+  // 2. 주소창에서 조사지 ID 꺼내기 (예: SUV0019)
+  const surveyId = route.params.id;
+
+  try {
+    // 💡 3. 백엔드로 POST 요청 쏘기! (data 덩어리를 같이 보냄)
+    const response = await axios.post(
+      `http://localhost:3000/priority/${surveyId}`,
+      {
+        priority: selectedPriority.value, // f001, f002, f003
+        reason: reasonText.value, // 사용자가 입력한 텍스트
+      },
+    );
+
+    // 💡 4. 백엔드가 성공했다고(200 OK) 답변을 주면?
+    if (response.status === 200) {
+      alert("우선순위 승인 요청이 완료되었습니다!");
+
+      // 요청이 끝났으니 담당자 메인 화면으로 돌려보내기
+      router.push("/manager");
+    }
+  } catch (err) {
+    console.error("승인 요청 실패:", err);
+    alert("승인 요청 중 오류가 발생했습니다. 다시 시도해주세요.");
+  }
 };
 
 const goBack = () => {

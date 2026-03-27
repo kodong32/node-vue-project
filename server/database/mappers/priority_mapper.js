@@ -16,7 +16,7 @@ const getSupportInfo = async (id) => {
 };
 
 const generateApprovalId = async (conn) => {
-  const [rows] = await conn.query(prioritySql.selectLastApprovalId);
+  const rows = await conn.query(prioritySql.selectLastApprovalId);
   if (rows.length === 0) return "APPR0000";
 
   const lastId = rows[0].approval_Id; // ex: 'APPR0012'
