@@ -47,11 +47,6 @@ const props = defineProps({
               >
                 지원자명
               </th>
-              <th
-                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-              >
-                지원자명
-              </th>
 
               <th
                 class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"

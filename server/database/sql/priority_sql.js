@@ -6,7 +6,14 @@ SELECT sp.name as supportName,
     gu.name as generalName,
     sp.born as birthDate,
     sp.gender as genderCode,
-    dm.description as disMajorName
+    dm.description as disMajorName,
+    sv.result as currentStatus, /* 현재 상태 코드 (예: f005) */
+    (
+      SELECT result_reason 
+      FROM ApprovalWait_Tbl 
+      WHERE J_ID = sv.J_ID AND appr_result = 'g002' 
+      ORDER BY approval_Id DESC LIMIT 1
+    ) as rejectReason /* 가장 최근에 '반려(g002)'된 건의 사유만 쏙 빼오기 */
 FROM Survey_Tbl sv
 JOIN Support_Tbl sp ON sv.support_id = sp.support_id
 JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId

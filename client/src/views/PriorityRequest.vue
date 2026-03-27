@@ -11,6 +11,7 @@ const router = useRouter();
 const candidateInfo = ref(null); // 백엔드에서 받아올 정보
 const selectedPriority = ref(""); // 선택한 우선순위 코드 (f001, f002, f003)
 const reasonText = ref(""); // 입력한 사유
+const rejectReasonMsg = ref("");
 
 onMounted(async () => {
   // 💡 1. 하드코딩 변수 세팅
@@ -31,6 +32,9 @@ onMounted(async () => {
       `http://localhost:3000/priority/${surveyId}`,
     );
     candidateInfo.value = response.data;
+    if (response.data.rejectReason && response.data.currentStatus === "f005") {
+      rejectReasonMsg.value = response.data.rejectReason;
+    }
   } catch (err) {
     console.error(`정보 로딩 실패: ${err}`);
   }
@@ -83,6 +87,17 @@ const goBack = () => {
   <div class="container-fluid py-4">
     <div class="row">
       <div class="col-12 col-lg-8 mx-auto">
+        <div
+          v-if="rejectReasonMsg"
+          class="alert alert-light border border-danger text-danger d-flex align-items-center mb-4"
+          role="alert"
+        >
+          <div>
+            <strong>🚨 관리자 반려 사유:</strong><br />
+            {{ rejectReasonMsg }}
+          </div>
+        </div>
+
         <div class="card mb-4">
           <div class="card-header pb-0">
             <h6 class="mb-0">지원자 정보</h6>
