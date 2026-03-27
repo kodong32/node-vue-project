@@ -6,4 +6,9 @@ export default [
     name: "PriorityRequest",
     component: () => import("../views/PriorityRequest.vue"),
   },
+  {
+    path: "/general/priority-approval/:id",
+    name: "PriorityApproval",
+    component: () => import("../views/PriorityApproval.vue"),
+  },
 ];

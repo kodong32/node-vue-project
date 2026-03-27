@@ -47,11 +47,6 @@ const props = defineProps({
               >
                 지원자명
               </th>
-              <th
-                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-              >
-                지원자명
-              </th>
 
               <th
                 class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
@@ -164,6 +159,19 @@ const props = defineProps({
               <td class="align-middle text-center text-sm">
                 <button
                   v-if="
+                    props.userRole === 'GENERAL' &&
+                    item.priorityCode === '심사중'
+                  "
+                  class="btn btn-sm btn-warning mb-0 px-3 py-1"
+                  @click="
+                    $router.push(`/general/priority-approval/${item.surveyId}`)
+                  "
+                >
+                  심사
+                </button>
+
+                <button
+                  v-else-if="
                     props.userRole === 'MANAGER' && item.priorityCode === '미정'
                   "
                   class="btn btn-sm btn-outline-warning mb-0 px-3 py-1"
