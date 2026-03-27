@@ -7,60 +7,92 @@ const route = useRoute();
 const router = useRouter();
 
 // 상태 관리
-const candidateInfo = ref(null); // 지원자 정보
+const candidateInfo = ref(null);
 const requestInfo = ref({
-  priorityCode: "중점", // 테스트용 하드코딩 (나중에 DB에서 가져올 예정)
-  reason:
-    "대상자의 생활 상황 및 지원 욕구를 종합적으로 고려한 결과 중점적인 지원이 필요하다고 판단됨.",
+  priorityCode: "", // 'f002' 같은 원본 코드 (나중에 승인할 때 돌려줘야 함)
+  priorityText: "", // '중점' 같은 화면 표시용 한글
+  reason: "", // 담당자가 적은 사유
 });
 
-const showRejectInput = ref(false); // 반려 사유 입력창 표시 여부
-const rejectReasonText = ref(""); // 입력한 반려 사유
+const showRejectInput = ref(false);
+const rejectReasonText = ref("");
 
-// 화면 켜질 때 데이터 가져오기
+// 💡 화면 켜질 때 DB에서 2가지 데이터 다 가져오기!
 onMounted(async () => {
   const surveyId = route.params.id;
 
-  // 💡 상단 지원자 정보는 기존에 만든 API 재활용!
   try {
-    const response = await axios.get(
+    // 1. 지원자 기본 정보
+    const candidateRes = await axios.get(
       `http://localhost:3000/priority/${surveyId}`,
     );
-    candidateInfo.value = response.data;
+    candidateInfo.value = candidateRes.data;
 
-    // TODO: 백엔드 API가 완성되면 여기서 '요청된 우선순위'와 '사유'도 같이 불러와서 requestInfo에 담을 거야!
+    // 2. 담당자가 올린 결재 대기 정보(사유, 요청단계)
+    const requestRes = await axios.get(
+      `http://localhost:3000/priority/request-info/${surveyId}`,
+    );
+    if (requestRes.data) {
+      requestInfo.value = requestRes.data;
+    }
   } catch (err) {
     console.error("정보 로딩 실패:", err);
   }
 });
 
-// [승인] 버튼 클릭
-const approveRequest = () => {
+// 💡 [승인] 버튼 클릭 시 백엔드로 POST 쏘기
+const approveRequest = async () => {
   if (confirm("이 우선순위 요청을 승인하시겠습니까?")) {
-    alert("승인이 완료되었습니다! (백엔드 연결 대기중)");
-    console.log("승인 쏠 데이터:", route.params.id);
-    router.push("/general"); // 목록으로 이동
+    try {
+      const surveyId = route.params.id;
+      const response = await axios.post(
+        `http://localhost:3000/priority/decide/${surveyId}`,
+        {
+          action: "approve",
+          reqPriorityCode: requestInfo.value.priorityCode, // 예: 원래 요청했던 'f002'를 같이 보냄
+        },
+      );
+
+      if (response.status === 200) {
+        alert("승인이 완료되었습니다!");
+        router.push("/general"); // 완료 후 메인화면으로!
+      }
+    } catch (err) {
+      console.error("승인 처리 에러:", err);
+      alert("처리 중 서버 오류가 발생했습니다.");
+    }
   }
 };
 
-// [반려 등록] 버튼 클릭 (사유 적고 최종 제출)
-const submitReject = () => {
+// 💡 [반려 등록] 버튼 클릭 시 백엔드로 POST 쏘기
+const submitReject = async () => {
   if (!rejectReasonText.value.trim()) {
     alert("반려 사유를 입력해주세요!");
     return;
   }
 
   if (confirm("정말 반려하시겠습니까?")) {
-    alert("반려 처리되었습니다! (백엔드 연결 대기중)");
-    console.log("반려 쏠 데이터:", {
-      id: route.params.id,
-      reason: rejectReasonText.value,
-    });
-    router.push("/general"); // 목록으로 이동
+    try {
+      const surveyId = route.params.id;
+      const response = await axios.post(
+        `http://localhost:3000/priority/decide/${surveyId}`,
+        {
+          action: "reject",
+          rejectReason: rejectReasonText.value, // 관리자가 빡쳐서(?) 적은 반려 사유
+        },
+      );
+
+      if (response.status === 200) {
+        alert("반려 처리되었습니다!");
+        router.push("/general");
+      }
+    } catch (err) {
+      console.error("반려 처리 에러:", err);
+      alert("처리 중 서버 오류가 발생했습니다.");
+    }
   }
 };
 
-// 뒤로가기
 const goBack = () => {
   router.push("/general");
 };
@@ -113,7 +145,9 @@ const goBack = () => {
                 class="d-inline-flex justify-content-center align-items-center bg-gradient-success text-white rounded-circle shadow"
                 style="width: 100px; height: 100px"
               >
-                <h4 class="text-white mb-0">{{ requestInfo.priorityCode }}</h4>
+                <h4 class="text-white mb-0">
+                  {{ requestInfo.priorityText || "로딩중" }}
+                </h4>
               </div>
             </div>
 
