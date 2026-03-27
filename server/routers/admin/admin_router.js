@@ -89,11 +89,16 @@ router.put(`/surveyActive/:verId`, requireAdmin, async (req,res) => {
 });
 
 //조사지 Detail조회
-
 router.get(`/surveydetail/:verId`, requireAdmin, async (req,res) => {
   let verId = req.params.verId;
   let result = await adminService.getSurveyDetail(verId);
 
+  res.send(result);
+});
+
+//조사지 이전버전 불러오기
+router.get(`/surveyCurrent`, requireAdmin, async (req, res) => {
+  let result = await adminService.getCurrentSurveyDetail();
   res.send(result);
 });
 

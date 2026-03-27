@@ -13,7 +13,7 @@
                 </div>
               </div>
             </div>
-            <button class="btn btn-outline-primary w-15">이전버전 불러오기</button>
+            <button class="btn btn-outline-primary w-15" @click="loadPrevVersion()">이전버전 불러오기</button>
           </div>
 
           <div class="card-body p-4">
@@ -382,6 +382,62 @@ const addInput = (sub) => {
 
 const removeInput = (sub, index) => {
   sub.inputs.splice(index, 1);
+};
+
+const bindPrevVersionToSections = (rows) => {
+  allSections.value.forEach((section) => {
+    section.subs.forEach((sub) => {
+      sub.inputs = [] ;
+    })
+  });
+
+  rows.forEach((row) => {
+    allSections.value.forEach((section) => {
+      section.subs.forEach((sub) => {
+        if(sub.titleCode === row.titleCode){
+          sub.inputs.push({
+            text : row.question_text || "",
+            answerType : row.answer_type || "e001",
+            questionNo : row.question_no || 0,
+          });
+        }
+      });
+    });
+  });
+  
+  allSections.value.forEach((section) => {
+    section.subs.forEach((sub) => {
+      sub.inputs.sort((a,b) => a.questionNo - b.questionNo);
+    });
+  });
+};
+
+const loadPrevVersion = async () => {
+  try{
+    let result = await fetch(`/api/admin/surveyCurrent`)
+    .then((resp) => resp.json())
+    .catch((err) => console.log(err));
+    
+    if(result.status === "Success"){
+      const rows = result.data;
+      
+      if(!rows || rows.length === 0){
+        alert('현재 사용중인 조사지에 대한 데이터가 없습니다.')
+        return;
+      }
+
+      versionDesc.value = rows[0].description || "";
+
+      bindPrevVersionToSections(rows);
+
+      alert("현재 사용중인 조사지의 버전 데이터를 불러왔습니다.");
+    }else{
+      alert(result.message || "이전버전 불러오기 실패");
+    }
+    
+  }catch (err) {
+    console.log(err);
+  }
 };
 
 const openModal = () => {
