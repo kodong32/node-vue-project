@@ -144,7 +144,7 @@ const getSurveyDetail = async (verId) => {
   };
 };
 
-//이전버전 불러오기
+//이전버전 data 불러오기
 const getCurrentSurveyDetail = async () =>{
   const rows = await adminMapper.getCurrentSurveyDetail();
 
@@ -161,6 +161,23 @@ const getCurrentSurveyDetail = async () =>{
   }
 };
 
+//가장 최근 버전만 가져오기(ex)1.4)
+const getLatestVersion = async () => {
+  const rows = await adminMapper.getLatestVersion();
+
+  if(!rows || rows.length === 0) {
+    return {
+      stats : "Failed",
+      message : "등록된 조사지가 없습니다."
+    }
+  }
+  
+  return {
+    status : "Success",
+    data : rows,
+  }
+};
+
 module.exports = {
-  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion,getSurveyDetail, getCurrentSurveyDetail
+  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion,getSurveyDetail, getCurrentSurveyDetail, getLatestVersion
 };

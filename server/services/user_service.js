@@ -188,6 +188,23 @@ const getSupportList = async (supInfo) => {
   return result;
 };
 
+//일반이용자 마이페이지 접속
+const getUserInfo = async (userId) => {
+  let result = await userMapper.getUserInfo(userId);
+
+  if(!result){
+    return {
+      stats : "Failed",
+      message : "사용자 정보를 찾을 수 없습니다."
+    };
+  }
+
+  return {
+    status : "Success",
+    data : result,
+  };
+};
+
 //로그인 정보 확인(김경환 2026.03.25)
 const confirmUser = async (id, password) => {
   let infos = await userMapper.confirmUser(id, password);
@@ -225,4 +242,5 @@ module.exports = {
   supDelete,
   confirmUser,
   confirmInstiUser,
+  getUserInfo
 };

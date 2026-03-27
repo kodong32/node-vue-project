@@ -22,7 +22,6 @@
               <input
                 type="text"
                 class="form-control"
-                placeholder="예: 1.1"
                 v-model="version"
               />
             </div>
@@ -302,6 +301,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { onBeforeMount } from "vue";
 
 const router = useRouter();
 
@@ -527,6 +527,33 @@ const insertSurveyForm = async (payload) => {
   const data = await result.json();
   return data;
 };
+
+//조사지 최근버전가져오기
+const getLatestVersion = async () => {
+  const result = await fetch(`/api/admin/latestVersion`)
+  .then((resp) => resp.json())
+  .catch((err) => console.log(err));
+
+  version.value = makeNextVersion(result.data[0].version);;
+};
+
+//version 계산기
+const makeNextVersion = (ver) => {
+  let [major, minor] = ver.split(".").map(Number);
+
+  minor += 1;
+
+  if (minor >= 10) {
+    major += 1;
+    minor = 0;
+  }
+
+  return `${major}.${minor}`;
+};
+
+onBeforeMount(()=>{
+  getLatestVersion();
+});
 </script>
 
 <style scoped>

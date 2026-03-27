@@ -1,12 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-// import Dashboard from "../views/Dashboard.vue";
-// import Tables from "../views/Tables.vue";
-// import Billing from "../views/Billing.vue";
-// import VirtualReality from "../views/VirtualReality.vue";
-// import RTL from "../views/Rtl.vue";
-// import Profile from "../views/Profile.vue";
-// import Signup from "../views/Signup.vue";
-// import Signin from "../views/Signin.vue";
 import Login from "./signin_router";
 import Signup from "./singup_router";
 import Support from "./support_router";
@@ -14,8 +6,10 @@ import Main from "./surveyList_router";
 import SurveyAdd from "./survey_router";
 import surveySelect from "./surveySelect_router";
 import adminRouter from "./admin_router";
+import supInsert from "./supPlanInsert_router";
 import { useAdminAuthStore } from "@/stores/counter"; //admin Auth 사용 session 26.03.26 고동현 추가
 import priority from "./priority_router";
+import axios from "axios";
 
 const routes = [
   {
@@ -23,51 +17,6 @@ const routes = [
     name: "/",
     redirect: "/user",
   },
-  // {
-  //   path: "/",
-  //   name: "/",
-  //   redirect: "/dashboard-default",
-  // },
-  // {
-  //   path: "/dashboard-default",
-  //   name: "Dashboard",
-  //   component: Dashboard,
-  // },
-  // {
-  //   path: "/tables",
-  //   name: "Tables",
-  //   component: Tables,
-  // },
-  // {
-  //   path: "/billing",
-  //   name: "Billing",
-  //   component: Billing,
-  // },
-  // {
-  //   path: "/virtual-reality",
-  //   name: "Virtual Reality",
-  //   component: VirtualReality,
-  // },
-  // {
-  //   path: "/rtl-page",
-  //   name: "RTL",
-  //   component: RTL,
-  // },
-  // {
-  //   path: "/profile",
-  //   name: "Profile",
-  //   component: Profile,
-  // },
-  // {
-  //   path: "/signin",
-  //   name: "Signin",
-  //   component: Signin,
-  // },
-  // {
-  //   path: "/signup",
-  //   name: "Signup",
-  //   component: Signup,
-  // },
   ...Login,
   ...Signup,
   ...Support,
@@ -76,6 +25,7 @@ const routes = [
   ...surveySelect,
   ...adminRouter,
   ...priority,
+  ...supInsert,
 ];
 
 const router = createRouter({
@@ -84,7 +34,7 @@ const router = createRouter({
   linkActiveClass: "active",
 });
 
-//관리자용 client router gaurd
+// client router gaurd
 router.beforeEach(async (to, from, next) => {
   const adminAuthStore = useAdminAuthStore();
 
@@ -105,6 +55,55 @@ router.beforeEach(async (to, from, next) => {
       return next("/admin/login");
     }
   }
+
+  //일반 회원 마이페이지 route check
+  if(to.path.includes("/mypage")){
+    try {
+      const response = await axios.get("/api/user/session-check");
+      const result = response.data;
+
+      if(!result.isLogin){
+        alert("로그인이 필요합니다.");
+        return next("/user/login");
+      }
+
+      const loginUserId = result.user.id;
+      const urlUserId = to.params.userId;
+
+      if(urlUserId && loginUserId !== urlUserId){
+        alert("본인 페이지에만 접근할 수 있습니다.");
+        return next(`/${loginUserId}/mypage/support`);
+      }
+    }
+    catch (err) {
+      console.log("일반회원 가드 오류",err);
+      return next("/user/login");
+    }
+  }
+
+  //기관 회원 route check
+  if(to.path === "/manager"){
+    try{
+      const response = await axios.get("/api/user/isession-check");
+      const result = response.data;
+
+      if(!result.isLogin){
+        alert("기관 회원 로그인이 필요합니다.");
+        return next("/user/login");
+      }
+      const role = result.user.role;
+
+      if(role !== "a002" && role !== "a003") {
+        alert("기관 회원 권한이 없습니다.");
+        return next("/user/login");
+      }
+
+    }catch (err) {  
+      console.log("기관 회원 가드 오류",err);
+      return next("/user/login");
+    } 
+  }
+
 
   next();
 });

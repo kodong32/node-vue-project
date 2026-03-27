@@ -102,4 +102,10 @@ router.get(`/surveyCurrent`, requireAdmin, async (req, res) => {
   res.send(result);
 });
 
+//조사지 최근버전만 가져오기
+router.get(`/latestVersion`, requireAdmin, async (req, res) => {
+  let result = await adminService.getLatestVersion();
+  res.send(result);
+});
+
 module.exports = router;

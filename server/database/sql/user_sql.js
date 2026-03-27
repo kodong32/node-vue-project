@@ -62,6 +62,23 @@ FROM Support_Tbl
 WHERE G_userId = ?
 `;
 
+//일반이용자 정보조회
+const getUserInfo =
+`
+SELECT
+  g.G_UserId AS GUSERID,
+  g.id,
+  g.name,
+  g.tel,
+  g.email,
+  g.address,
+  i.institution_name AS institution
+FROM GeneralUser_Tbl g
+LEFT JOIN Institution_Tbl i
+  ON g.institution_id = i.institution_id
+WHERE g.id = ?
+`;
+
 //지원대상자 정보 업데이트
 const supUpdateSql = `
 UPDATE Support_Tbl
@@ -108,5 +125,6 @@ module.exports = {
   supDelSql,
   confirmUser,
   confirmInstiUser,
+  getUserInfo,
   // userIdCheck,
 };

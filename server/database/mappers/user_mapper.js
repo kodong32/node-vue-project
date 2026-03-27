@@ -163,6 +163,25 @@ const supportList = async (supInfo) => {
   }
 };
 
+
+const getUserInfo = async (userId) => {
+  let conn = null;
+  try{
+    conn = await pool.getConnection();
+    let rows = await conn.query(userSql.getUserInfo, userId);
+    console.log(rows[0]);
+    return rows[0];
+
+  }catch (err) {
+    console.log(err);
+
+  }finally {
+    if(conn){
+      conn.release();
+    }
+  }
+}
+
 //회원 로그인 확인(김경환 2026.03.25)
 const confirmUser = async (id, password) => {
   let conn = null;
@@ -229,5 +248,6 @@ module.exports = {
   supDel,
   confirmUser,
   confirmInstiUser,
+  getUserInfo,
   // userUdCheck,
 };

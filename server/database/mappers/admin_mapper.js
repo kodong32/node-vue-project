@@ -69,6 +69,8 @@ const insertSurveyAll = async (formData, itemDataList) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
+    await conn.query(adminSql.SurveyFormYtoN);
+
     const formResult = await conn.query(adminSql.SurveyFormInsert, formData);
     if (formResult.affectedRows <= 0) {
       throw new Error("SurveyForm Insert 실패");
@@ -160,6 +162,8 @@ const getDetailVersion = async (verId) => {
   }
 };
 
+
+//조사지 이전버전 불러오기
 const getCurrentSurveyDetail = async () => {
   let conn = null;
 
@@ -171,7 +175,25 @@ const getCurrentSurveyDetail = async () => {
   } catch (err) {
     console.log(err);
   } finally {
-    if(conn){
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+//조사지 최근 버전 가져오기
+const getLatestVersion = async () => {
+  let conn = null;
+
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(adminSql.latestVersion);
+    return rows;
+
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
       conn.release();
     }
   }
@@ -185,5 +207,6 @@ module.exports = {
   surveyVersionList,
   setActiveVersion,
   getDetailVersion,
-  getCurrentSurveyDetail
+  getCurrentSurveyDetail,
+  getLatestVersion
 };

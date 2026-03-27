@@ -14,10 +14,22 @@ LIMIT 1
 `;
 
 
-const SurveyFormInsert =
-`
-INSERT INTO SurveyForm_Tbl(Ver_Id, Sys_Id, version, description, created_at )
-VALUES(?, ?, ?, ?, ?)
+const SurveyFormInsert = `
+INSERT INTO SurveyForm_Tbl(Ver_Id, Sys_Id, version, description, created_at, use_yn)
+VALUES(?, ?, ?, ?, ?, 'Y')
+`;
+
+const SurveyFormYtoN = `
+UPDATE SurveyForm_Tbl
+SET use_yn = 'N'
+WHERE use_yn = 'Y'
+`;
+
+const latestVersion = `
+SELECT version
+FROM SurveyForm_Tbl
+WHERE use_yn = 'Y'
+LIMIT 1;
 `;
 
 const SurveyItemInsert =
@@ -102,5 +114,7 @@ module.exports = {
   useYtoNSql,
   useVersionSql ,
   getSurveyDetail,
-  getCurrentSurveyDetailSql
+  getCurrentSurveyDetailSql,
+  SurveyFormYtoN,
+  latestVersion
 };
