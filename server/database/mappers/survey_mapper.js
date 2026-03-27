@@ -123,6 +123,20 @@ const selectItemsByJID = async (id) => {
   }
 };
 
+//일반이용자가 추가한 지원대상자 정보 <김민지, 260326>
+const SupportById = async (id) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.SupportById, id);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   selectSurveyAll,
   selectSurveyById,
@@ -131,4 +145,5 @@ module.exports = {
   getLastJID,
   lastAnswer,
   insertSurveyAnswer,
+  SupportById,
 };

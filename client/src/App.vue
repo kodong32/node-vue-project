@@ -56,7 +56,13 @@ const navClasses = computed(() => {
   >
     <!-- nav -->
 
-    <navbar :class="[navClasses]" v-if="showNavbar" />
+    <!-- 이 코드 지움 -->
+    <!-- <navbar :class="[navClasses]" v-if="showNavbar" /> -->
+    <navbar
+      :class="[navClasses]"
+      v-if="showNavbar && !$route.meta.hideNavbar"
+    />
+    <!-- 라우터에 코드 한 줄 추가하면 그 페이지에는 자동으로 고정상단바 안뜸 -->
 
     <router-view />
 

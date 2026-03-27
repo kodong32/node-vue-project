@@ -46,4 +46,20 @@ router.get("/selectItemsByJID/:id", async (req, res) => {
   res.send(result);
 });
 
+// router.post("/user", async (req, res) => {
+//   try {
+//     const result = await surveyService.surveyInfo(req.body);
+//     res.send({ status: "success", J_ID: req.body.J_ID });
+//   } catch (err) {
+//     console.error("DB ERROR:", err);
+//     res.status(400).send({ status: "fail", message: err.message });
+//   }
+// });
+
+//일반이용자가 추가한 지원대상자 정보 <김민지, 260326>
+router.get("/support", async (req, res) => {
+  let result = await surveyService.AllSupports();
+  res.send(result);
+});
+
 module.exports = router;

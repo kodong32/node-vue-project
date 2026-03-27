@@ -216,9 +216,24 @@ const selectItemsByJID = async (id) => {
   }
 };
 
+//일반이용자가 추가한 지원대상자 정보 <김민지, 260326>
+const SupportById = async (id) => {
+  try {
+    const rows = await surveyMapper.SupportById(id);
+    if (!rows || rows.length === 0) {
+      return null;
+    }
+    return rows[0];
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
 module.exports = {
   findAll,
   findInfoByNo,
   surveyInfo,
   selectItemsByJID,
+  SupportById,
 };

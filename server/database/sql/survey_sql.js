@@ -113,6 +113,20 @@ FROM SurveyUserAnswer_Tbl
 ORDER BY answer_id DESC
 LIMIT 1`;
 
+//일반이용자가 추가한 지원대상자 정보 <김민지, 260326>
+const SupportById = `
+SELECT 
+    support_id,
+    name,
+    major,
+    middle,
+    sub,
+    gender,
+    born
+FROM Support_Tbl 
+WHERE G_UserId = ?;
+`;
+
 module.exports = {
   selectSurveyAll,
   selectSurveyById,
@@ -121,4 +135,5 @@ module.exports = {
   surveySelectItem,
   lastJId,
   lastAnswer,
+  SupportById,
 };

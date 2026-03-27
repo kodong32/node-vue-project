@@ -1,27 +1,52 @@
 <template>
-  <div>
-    <surveyTop />
-  </div>
-  <div class="py-4 container-fluid">
-    <sidebar />
-    <div class="row">
-      <div class="col-12">
-        <surveyCard @submit-survey="surveyInfo" />
-        <!-- 자식 컴포넌트에서 surveyInfo 함수 가져와서 데이터 받음 -->
-        <surveyAnswer />
-      </div>
+  <surveyTop />
+  <!-- <div class="py-4 container-fluid"> -->
+  <!-- <sidebar /> -->
+  <sidebar @select-support="loadSupportDetail" />
+  <div class="row">
+    <!-- <div class="col-12">
+      <surveyCard @submit-survey="surveyInfo" />
+      자식 컴포넌트에서 surveyInfo 함수 가져와서 데이터 받음
+      !-- <surveyAnswer /> -->
+    <!-- </div> -->
+    <div class="col-12">
+      <surveyCard
+        :selected-support="selectedSupport"
+        @submit-survey="surveyInfo"
+      />
     </div>
   </div>
+  <!-- </div> -->
 </template>
 
 <script setup>
 import surveyCard from "./components/surveyCard.vue"; //조사지 카드 컴포넌트 가져옴
 import Sidebar from "../examples/Sidenav/SidenavList.vue"; //사이드바 컴포넌트 가져옴
-import surveyTop from "../examples/Navbars/surveyTop.vue";
+import surveyTop from "./components/surveyHeader.vue";
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router"; //페이지 이동(라우팅) 위해 사용
+import axios from "axios";
+
 const router = useRouter(); //router 인스턴스 생성
-// import axios from "axios";
+
+// --- [추가] 선택된 대상자 정보를 담을 반응형 변수 ---
+const selectedSupport = ref(null);
+
+// --- [추가] 사이드바에서 선택한 ID로 상세 정보를 가져오는 함수 ---
+const loadSupportDetail = async (supportId) => {
+  try {
+    // 우리가 만든 라우터 주소로 GET 요청
+    const response = await axios.get(
+      `http://localhost:3000/support/${supportId}`,
+    );
+    if (response.data) {
+      selectedSupport.value = response.data; // 받아온 데이터를 저장 -> surveyCard로 전달됨
+      console.log("선택된 대상자 상세 정보:", selectedSupport.value);
+    }
+  } catch (err) {
+    console.error("대상자 정보를 불러오는데 실패했습니다.", err);
+  }
+};
 
 ////조사지 등록 함수
 const info = reactive({
@@ -46,7 +71,9 @@ const surveyInfo = async (payload) => {
   info.J_ID = payload.extraInputs.J_ID;
   info.Ver_Id = payload.Ver_Id || "현재사용중Ver";
   info.G_UserId = payload.extraInputs.G_UserId;
-  info.support_id = payload.support_id || "";
+  // --- [수정] 만약 선택된 대상자가 있다면 그 ID를 우선적으로 사용 ---
+  info.support_id =
+    selectedSupport.value?.support_id || payload.support_id || "";
 
   info.result = payload.extraInputs.result?.trim() || null; // 우선순위 저장 (조사지 첫 등록건이라 우선순위 없음)
   info.reason = payload.extraInputs.reason || null; //반려사유 저장 (조사지 첫 등록건이라 반려사유 없음)
@@ -65,9 +92,8 @@ const surveyInfo = async (payload) => {
     updated_at: info.updated_at,
     answers: payload.answers,
   };
-  console.log("DEBUG 전송 데이터:", data); // 값 확인 필수
 
-  data.answers = payload.answers; //surveyCard에 있는 answers 코드 안에 있는 예/아니오 데이터 가져옴
+  // data.answers = payload.answers; //surveyCard에 있는 answers 코드 안에 있는 예/아니오 데이터 가져옴
 
   try {
     let response = await fetch(`http://localhost:3000/survey/user`, {

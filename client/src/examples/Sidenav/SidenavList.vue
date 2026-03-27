@@ -1,9 +1,12 @@
 <!-- <김민지, 전체 코드 간략하게 수정중 26.03.25>  -->
 <script setup>
-import { computed, ref } from "vue"; //계산된 값과 변수를 반응형으로 만듦
-// import {onMounted} from "vue"; //지원대상자 이름 가지고오는 함수 시도중
+import { computed, ref, defineEmits } from "vue"; //계산된 값과 변수를 반응형으로 만듦
+import { onMounted } from "vue"; //지원대상자 이름 가지고오는 함수 시도중
+import axios from "axios";
 import { useRoute } from "vue-router"; //현재 URL 정보를 가져옴
 const route = useRoute();
+// [추가] 부모 컴포넌트(survey.vue)로 데이터를 보내기 위한 emit 정의
+const emit = defineEmits(["select-support"]);
 
 // 현재 경로가 설문 추가 페이지인지 확인 (라우트 이름 또는 경로 포함 여부 체크)
 const isSurveyPage = computed(() => {
@@ -24,16 +27,62 @@ const gender = ref("");
 const birthDate = ref("");
 
 //지원대상자명 선택하는 함수 시도중
-// const users = ref([]);
+const users = ref([]);
 
-// onMounted(async () => {
 //   //페이지 로딩 시 자동 실행
-//   const guserId = "GUSR0002"; //지원대상자 이름 실제값 반응형
-//   const resp = await axios.get(`/main/support/supList/${guserId.value}`);
-//   //axios : 프론트 + 백엔드 연결해주는 durgkf
-//   users.value = resp.data;
-//   console.log(resp);
+const guserId = ref(""); //지원대상자 이름 실제값 반응형
+// const resp = await axios.get(
+//   `http://localhost:3000/main/support/supList/${guserId}`,
+// );
+// //   //axios : 프론트 + 백엔드 연결해주는 durgkf
+// users.value = resp.data;
+// console.log("대상자 목록 로드 완료:", users.value);
 // });
+
+// --- [추가] 이름 선택 시 실행되는 함수 (중요!) ---
+const onUserChange = () => {
+  // 1. 선택된 이름과 일치하는 데이터를 리스트에서 찾음
+  const selectedUser = users.value.find(
+    (user) => user.name === applicantName.value,
+  );
+
+  if (selectedUser) {
+    // 2. 사이드바 내부 입력창들에 데이터 자동 채우기
+    largeCategory.value = selectedUser.major;
+    mediumCategory.value = selectedUser.middle;
+    smallCategory.value = selectedUser.sub;
+    gender.value = selectedUser.gender;
+    birthDate.value = selectedUser.born;
+
+    // 3. 부모(survey.vue)에게 선택된 support_id를 전달 (DB 저장을 위함)
+    emit("select-support", selectedUser.support_id);
+  } else {
+    // 선택 해제 시 초기화
+    clearFields();
+  }
+};
+
+const clearFields = () => {
+  largeCategory.value = "";
+  mediumCategory.value = "";
+  smallCategory.value = "";
+  gender.value = "";
+  birthDate.value = "";
+};
+
+onMounted(async () => {
+  // .value를 붙여야 하지만, 만약 '전체 목록'을 가져오는 API라면
+  // 뒤에 ID를 붙이지 않고 호출해야 할 수도 있습니다.
+  // 일단 현재 코드에서 에러를 고치려면 .value를 붙입니다.
+  try {
+    const resp = await axios.get(
+      `http://localhost:3000/support/${guserId.value}`,
+    );
+    users.value = resp.data;
+  } catch (error) {
+    console.error("데이터 로드 실패:", error);
+  }
+});
 </script>
 
 <template>
@@ -49,10 +98,15 @@ const birthDate = ref("");
           <div class="mb-3 me-3">
             <select
               v-model="applicantName"
+              @change="onUserChange"
               class="form-select border custom-input"
             >
               <option value="">선택하세요</option>
-              <option v-for="user in users" :key="user.id" :value="user.name">
+              <option
+                v-for="user in users"
+                :key="user.support_id"
+                :value="user.name"
+              >
                 {{ user.name }}
               </option>
             </select>
@@ -70,18 +124,21 @@ const birthDate = ref("");
               v-model="largeCategory"
               class="form-control border custom-input mb-2"
               placeholder="대분류 입력"
+              readonly
             />
             <input
               type="text"
               v-model="mediumCategory"
               class="form-control border custom-input mb-2"
               placeholder="중분류 입력"
+              readonly
             />
             <input
               type="text"
               v-model="smallCategory"
               class="form-control border custom-input"
               placeholder="소분류 입력"
+              readonly
             />
           </div>
 
@@ -97,6 +154,7 @@ const birthDate = ref("");
                 v-model="gender"
                 class="form-control border custom-input text-center"
                 placeholder="남/여"
+                readonly
               />
             </div>
             <div class="flex-fill">
@@ -105,9 +163,11 @@ const birthDate = ref("");
               >
               <input
                 type="text"
+                v-member="birthDate"
                 v-model="birthDate"
                 class="form-control border custom-input text-center"
                 placeholder="YY.MM.DD"
+                readonly
               />
             </div>
           </div>

@@ -4,5 +4,6 @@ export default [
     path: "/user/surveyselect",
     name: "userSurveySelect",
     component: () => import("../views/surveySelect.vue"),
+    meta: { hideNavbar: true }, // 이 페이지에서만 고정 상단바 취소
   },
 ];

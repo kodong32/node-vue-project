@@ -1,4 +1,5 @@
 <template>
+  <surveyTop />
   <div class="py-4 container-fluid">
     <div class="row">
       <div class="col-12">
@@ -12,6 +13,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import SelectCard from "./components/surveySelectCard.vue";
+import surveyTop from "./components/surveyHeader.vue";
 
 //조사지 조회 함수
 const allSections = ref([]); // 문항 데이터
