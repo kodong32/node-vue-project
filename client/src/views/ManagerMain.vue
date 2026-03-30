@@ -16,7 +16,7 @@ const fetchSurveyList = async (page = 1) => {
   try {
     // 💡 백엔드에 ?page=번호 형태로 요청 날리기!
     const response = await axios.get(
-      "http://localhost:3000/main/manager/IUSR0000",
+      "http://localhost:3000/main/manager/IUSR0003",
       {
         params: { page: page, limit: 5 },
       },

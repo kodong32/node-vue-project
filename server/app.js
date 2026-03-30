@@ -53,3 +53,9 @@ app.use("/admin", adminRouter);
 //우선순위요청
 const priorityRouter = require("./routers/survey/priority_router.js");
 app.use("/priority", priorityRouter);
+//관리자지원계획서
+const generalPlanRouter = require("./routers/plan/general_plan_router.js");
+app.use("/general/plan", generalPlanRouter);
+//일반이용자지원계획서
+const userPlanRouter = require("./routers/plan/user_plan_router");
+app.use("/user/plan", userPlanRouter);

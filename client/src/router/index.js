@@ -12,6 +12,7 @@ import priority from "./priority_router";
 import axios from "axios";
 import Consult from "./consult_router";
 import ConsultAdd from "./consultInsert_router";
+import GeneralPlan from "./general_plan_router";
 
 const routes = [
   {
@@ -30,6 +31,7 @@ const routes = [
   ...supInsert,
   ...Consult,
   ...ConsultAdd,
+  ...GeneralPlan,
 ];
 
 const router = createRouter({
