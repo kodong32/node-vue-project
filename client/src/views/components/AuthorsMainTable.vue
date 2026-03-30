@@ -43,10 +43,6 @@ const props = defineProps({
   },
 });
 
-//담당자 배정 페이지 이동 버튼(김경환 20260330)
-import { useRouter } from "vue-router";
-const router = useRouter;
-
 const goManager = () => {
   router.push("/general/select-manager/:id");
 };
