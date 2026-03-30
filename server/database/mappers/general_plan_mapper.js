@@ -26,6 +26,10 @@ const getGeneralPlanList = async (filters, limit, offset) => {
       sql += ` AND sp.name LIKE ?`;
       params.push(`%${filters.supportName}%`);
     }
+    if (filters.surveyId) {
+      sql += ` AND p.J_ID = ?`;
+      params.push(filters.surveyId); // 정확한 일치 검색이므로 LIKE 대신 = 사용
+    }
 
     // 💡 3. 최신순 정렬 및 무한 스크롤
     sql += ` ORDER BY p.wirte_at DESC LIMIT ? OFFSET ?`;

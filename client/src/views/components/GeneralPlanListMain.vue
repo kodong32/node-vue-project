@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import axios from "axios";
 import GeneralPlanCardList from "@/views/components/GeneralPlanCardList.vue";
 import { Modal } from "bootstrap"; // 💡 여기서 가져온 Modal을 아래 onMounted에서 쓸 거야!
+
+const route = useRoute();
 
 // 상태 변수
 const userRole = ref("GENERAL");
@@ -14,6 +17,7 @@ const searchFilters = ref({
   managerName: "",
   guardianName: "",
   supportName: "",
+  surveyId: route.query.surveyId || "",
 });
 
 // 모달 객체를 담아둘 변수
@@ -32,12 +36,13 @@ const fetchPlans = async () => {
           managerName: searchFilters.value.managerName,
           guardianName: searchFilters.value.guardianName,
           supportName: searchFilters.value.supportName,
+          surveyId: searchFilters.value.surveyId,
         },
       },
     );
     planList.value = response.data;
-  } catch (error) {
-    console.error("계획서 목록 로딩 실패:", error);
+  } catch (err) {
+    console.error("계획서 목록 로딩 실패:", err);
   }
 };
 

@@ -1,5 +1,22 @@
 <script setup>
 import { defineProps } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goToPlan = (surveyId) => {
+  if (props.userRole === "USER") {
+    // 1. 일반 이용자: 승인된 계획서만 보는 전용 상세 페이지로!
+    router.push(`/user/plan/detail/${surveyId}`);
+  } else if (props.userRole === "MANAGER") {
+    // 2. 기관 담당자: 담당자용 리스트/상세 페이지로! (아직 안 만들었지만 주소는 뚫어놓자)
+    router.push(`/manager/plan?surveyId=${surveyId}`);
+  } else if (props.userRole === "GENERAL") {
+    // 3. 기관 관리자: 방금 우리가 예쁘게 만든 그 리스트 페이지로 이동!
+    // 팁: surveyId를 쿼리로 달고 가면, 그 페이지에서 해당 조사지만 쏙 필터링할 수 있어!
+    router.push(`/general/plan?surveyId=${surveyId}`);
+  }
+};
 
 // 💡 부모 컴포넌트에서 던져줄 데이터(surveyList)와 권한(userRole)을 받을 바구니 준비!
 const props = defineProps({
@@ -232,6 +249,7 @@ const props = defineProps({
                   class="btn btn-sm mb-0 px-3 py-1"
                   :class="item.hasPlan ? 'btn-info' : 'btn-outline-secondary'"
                   :disabled="!item.hasPlan"
+                  @click="goToPlan(item.surveyId)"
                 >
                   보기
                 </button>

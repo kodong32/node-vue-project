@@ -17,6 +17,7 @@ router.get("/list", async (req, res) => {
       managerName: req.query.managerName || "",
       guardianName: req.query.guardianName || "",
       supportName: req.query.supportName || "",
+      surveyId: req.query.surveyId || "",
     };
 
     if (!filters.instiId) {
