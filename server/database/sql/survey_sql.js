@@ -104,7 +104,7 @@ FROM SurveyItem_Tbl
 WHERE Ver_Id = (
     SELECT Ver_Id
     FROM SurveyForm_Tbl
-    WHERE is_active = 'Y'
+    WHERE use_yn = 'Y'
     LIMIT 1
 )
 ORDER BY question_no
@@ -137,7 +137,7 @@ SELECT
 FROM Support_Tbl S
 LEFT JOIN DisMiddle_Tbl M 
     ON S.middle = M.j_Code
-WHERE S.G_UserId = ?;
+WHERE S.support_id = ?;
 `;
 
 //현재 활성화된 아이디만 가져오는 쿼리 <김민지, 26.03.27>
@@ -150,16 +150,16 @@ const getActiveVerId = `
 `;
 
 const getQuestionsByJID = `
-SELECT
-  question_id,
-  question_text,
-  titleCode,
-  question_no,
-  answer_type,
-  Ver_Id
-FROM SurveyItem_Tbl
+SELECT 
+    question_id, 
+    question_text, 
+    titleCode, 
+    question_no, 
+    answer_type, 
+    Ver_Id 
+FROM SurveyItem_Tbl 
 WHERE Ver_Id = ?
-ORDER BY question_no ASC
+ORDER BY titleCode ASC, question_no ASC; 
 `;
 
 module.exports = {

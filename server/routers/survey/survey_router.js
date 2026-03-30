@@ -64,6 +64,7 @@ router.get("/support/:id", async (req, res) => {
 });
 
 router.post("user", async (req, res) => {
+  console.log("들어온 데이터:", req.body);
   let data = req.body;
   let result = await surveyService.momUser(data);
   res.send(result);
@@ -72,6 +73,14 @@ router.post("user", async (req, res) => {
 router.get("/getQuestionsByJID/:id", async (req, res) => {
   let { id } = req.params;
   let result = await surveyService.getQuestionsByJID(id);
+
+  res.json(result || []);
+});
+
+router.get("/getActiveVerId", async (req, res) => {
+  const result = await surveyService.getActiveVerId();
+  console.log(result);
   res.send(result);
 });
+
 module.exports = router;

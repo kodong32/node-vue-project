@@ -1,66 +1,24 @@
-<!-- <김민지, 전체 코드 간략하게 수정중 26.03.25>  -->
+<!-- <김민지, 전체 코드 간략하게 수정중 26.03.30>  -->
 <script setup>
-// import { computed, ref, defineEmits } from "vue";
-// import { onMounted } from "vue";
-// import { useRoute } from "vue-router";
-// const route = useRoute();
-// const emit = defineEmits(["select-support"]);
-
-// const isSurveyPage = computed(() => {
-//   return route.name === "userSurveyAdd" || route.path.includes("userSurveyAdd");
-// });
-
-// const applicantName = ref("");
-// const largeCategory = ref("");
-// const mediumCategory = ref("");
-// const smallCategory = ref("");
-// const gender = ref("");
-// const birthDate = ref("");
-// const users = ref([]);
-// const guserId = ref("");
-
-// const onUserChange = () => {
-//   const selectedUser = applicantName.value;
-
-//   if (!selectedUser || typeof selectedUser !== "object") return;
-
-//   largeCategory.value = selectedUser.major;
-//   mediumCategory.value = selectedUser.middle;
-//   smallCategory.value = selectedUser.sub;
-//   gender.value = selectedUser.gender;
-//   birthDate.value = selectedUser.born;
-
-//   emit("select-support", selectedUser.support_id);
-// };
-
-// onMounted(async () => {
-//   try {
-//     const userId = guserId.value || "GUSR0000";
-//     const resp = await fetch(`http://localhost:3000/survey/support/${userId}`);
-//     users.value = resp.data || [];
-//   } catch (error) {
-//     console.error("데이터 로드 실패:", error);
-//   }
-// });
-
 import { ref, defineEmits, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const emit = defineEmits(["select-support"]);
 
-const isSurveyPage = computed(() => {
-  return route.name === "userSurveyAdd" || route.path.includes("userSurveyAdd");
-});
+const selectedSupportId = ref("");
+const users = ref([]);
+const guserId = ref("GUSR0000");
 
 const largeCategory = ref("");
 const mediumCategory = ref("");
 const smallCategory = ref("");
 const gender = ref("");
 const birthDate = ref("");
-const users = ref([]);
-const selectedSupportId = ref("");
-const guserId = ref("GUSR0000");
+
+const isSurveyPage = computed(() => {
+  return route.name === "userSurveyAdd" || route.path.includes("userSurveyAdd");
+});
 
 const onUserChange = () => {
   const selectedUser = users.value.find(
@@ -73,7 +31,6 @@ const onUserChange = () => {
     c001: "남",
     c002: "여",
   };
-
   const categoryMap = {
     MJ001: "기질성 정신장애",
     MJ002: "정신 및 행동장애",
@@ -105,14 +62,12 @@ onMounted(async () => {
     const response = await fetch(
       `http://localhost:3000/survey/support/${guserId.value}`,
     );
-
     if (!response.ok) {
       throw new Error(`HTTP 오류: ${response.status}`);
     }
-
     const data = await response.json();
+
     users.value = data || [];
-    console.log("users =", users.value);
   } catch (error) {
     console.error("데이터 로드 실패:", error);
   }

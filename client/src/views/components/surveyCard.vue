@@ -1,98 +1,40 @@
 <script setup>
-import { ref, reactive } from "vue";
-
-const allSections = [
-  {
-    title: "지원사유",
-    subs: [
-      {
-        subTitle: "긴급 지원 필요",
-        description: "즉시 지원인식 및 서비스 필요",
-        questions: [
-          "현재 긴급하게 도움이 필요한 상황(주거, 건강, 안전 등)이 있다.",
-          "최근 돌봄 제공자(가족, 보호자)의 부재 또는 돌봄 공백이 발생하였다.",
-          "현재 상황이 즉각적인 공공기관 또는 서비스 지원이 필요할 정도로 위급하다.",
-        ],
-      },
-      {
-        subTitle: "중점 지원 필요",
-        description: "즉시 지원인식 및 서비스 필요",
-        questions: [
-          "일상생활을 유지하기 위해 지속적인 도움이나 지원 서비스가 필요하다.",
-          "현재 받고 있는 지원만으로는 생활 유지에 어려움이 있다.",
-          "특정 영역(건강, 생활, 이동 등)에서 우선적으로 지원이 필요하다.",
-        ],
-      },
-      {
-        subTitle: "계획 수립 필요",
-        description: "즉시 지원인식 및 서비스 필요",
-        questions: [
-          "앞으로의 생활 또는 서비스 이용을 위한 장기적인 계획이 필요하다.",
-          "현재 이용 가능한 지원 서비스나 제도에 대한 안내 및 상담이 필요하다.",
-          {
-            text: "향후 생활 지원을 위한 개인 맞춤형 계획 수립이 필요하다.",
-            hasExtraInput: true,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: "지원이 필요한 서비스",
-    subs: [
-      {
-        subTitle: "개인별 지원",
-        questions: [
-          "개인의 상황에 맞는 맞춤형 지원 서비스가 필요하다.",
-          "일상생활(식사, 위생, 정리 등)에 개인 지원이 필요하다.",
-          "개인 활동(외출, 사회활동 등)에 도움이 필요하다.",
-        ],
-      },
-      {
-        subTitle: "교통",
-        questions: [
-          "병원, 복지시설 등 필요한 장소로 이동하는데 어려움이 있다.",
-          "대중교통 이용이 어렵거나 제한이 있다.",
-        ],
-      },
-    ],
-  },
-  {
-    title: "이용중인 복지 서비스",
-    subs: [
-      {
-        subTitle: "생활안정",
-        questions: [
-          "현재 생활비 또는 기본적인 생계 유지에 어려움이 있다.",
-          "안정적인 주거 환경 유지에 어려움이 있다.",
-          "생활을 유지하기 위해 추가적인 경제적 지원이 필요하다.",
-        ],
-      },
-      {
-        subTitle: "고용",
-        questions: [
-          "취업을 원하지만 취업 기회를 얻기 어렵다.",
-          "취업을 위해 직업 교육 또는 취업 지원 서비스가 필요하다.",
-        ],
-      },
-    ],
-  },
-];
-
-const answers = reactive(
-  allSections.map((s) => s.subs.map((sub) => sub.questions.map(() => ""))),
-);
-
-const extraRequest = ref("");
-const isModalOpen = ref(false);
-const extraInputs = reactive({ result: "", reason: "", date: "" });
+import { ref, reactive, watch } from "vue";
 
 const props = defineProps({
   selectedSupport: {
     type: Object,
     default: null,
   },
+  // [추가] 부모(surveyRegister)로부터 관리자가 수정한 문항 데이터를 받습니다.
+  sections: {
+    type: Array,
+    default: () => [],
+  },
 });
+
+// [수정] 하드코딩된 데이터는 삭제하고, props로 받은 데이터를 사용합니다.
+const allSections = ref([]);
+const answers = ref([]);
+
+// [추가] 부모로부터 문항 데이터가 들어오면 답변 배열을 그 크기에 맞게 초기화합니다.
+watch(
+  () => props.sections,
+  (newSections) => {
+    if (newSections && newSections.length > 0) {
+      allSections.value = newSections;
+      // 문항 구조에 맞게 답변 배열 생성 (전부 빈값으로 초기화)
+      answers.value = newSections.map((s) =>
+        s.subs.map((sub) => sub.questions.map(() => "")),
+      );
+    }
+  },
+  { immediate: true },
+);
+
+const extraRequest = ref("");
+const isModalOpen = ref(false);
+const extraInputs = reactive({ result: "", reason: "", date: "" });
 
 const openModal = () => {
   isModalOpen.value = true;
@@ -106,71 +48,55 @@ const closeModal = () => {
 
 const emit = defineEmits(["submit-survey"]);
 
+// [수정] 유효성 검사 및 데이터 전송 로직
 const surveyInfo = () => {
-  // 1. 모든 질문이 '예' 또는 '아니오' 선택되었는지 확인
-  for (let sIdx = 0; sIdx < allSections.length; sIdx++) {
-    // allSections 배열 반복 → 각 큰 섹션(예: 지원사유, 이용중인 복지 서비스 등)
-    // sIdx는 섹션 인덱스
-    for (let subIdx = 0; subIdx < allSections[sIdx].subs.length; subIdx++) {
-      // 현재 섹션의 subs 배열 반복 → 하위 카테고리(예: 긴급 지원 필요, 중점 지원 필요)
-      // subIdx는 하위 섹션 인덱스
+  for (let sIdx = 0; sIdx < allSections.value.length; sIdx++) {
+    for (
+      let subIdx = 0;
+      subIdx < allSections.value[sIdx].subs.length;
+      subIdx++
+    ) {
       for (
         let qIdx = 0;
-        qIdx < allSections[sIdx].subs[subIdx].questions.length;
+        qIdx < allSections.value[sIdx].subs[subIdx].questions.length;
         qIdx++
       ) {
-        // 현재 하위 섹션의 questions 배열 반복 → 각 질문
-        // qIdx는 질문 인덱스
-        const answer = answers[sIdx][subIdx][qIdx];
-        // answers 배열에서 사용자가 선택한 '예' 또는 '아니오' 값을 가져옴
-        const question = allSections[sIdx].subs[subIdx].questions[qIdx];
-        // 현재 질문 객체(혹은 문자열)를 가져옴
+        const answer = answers.value[sIdx][subIdx][qIdx];
+        const question = allSections.value[sIdx].subs[subIdx].questions[qIdx];
 
-        // 예/아니오 미선택
-        if (!answer) {
-          // 만약 사용자가 예/아니오를 선택하지 않았다면
+        if (!answer && question.answer_type === "e001") {
           alert(
-            `"${allSections[sIdx].title} > ${allSections[sIdx].subs[subIdx].subTitle}"
-            질문 ${qIdx + 1}에 예/아니오를 선택해주세요.`,
+            `"${allSections.value[sIdx].title} > ${allSections.value[sIdx].subs[subIdx].subTitle}"\n질문 ${qIdx + 1}에 예/아니오를 선택해주세요.`,
           );
-          return; // 제출 막음
+          return;
         }
 
-        // '예' 선택 시 추가 입력 필수
         if (answer === "예" && question.hasExtraInput) {
-          // 현재 질문에 '예' 선택하고, 추가 입력 필드가 필요한 질문이면
           if (!extraInputs.reason.trim() || !extraInputs.date.trim()) {
-            // 사유(reason) + 필요 시기(date)가 비어있으면
             alert(
               `질문 ${qIdx + 1}에 대해 구체적 사유와 필요 시기를 입력해주세요.`,
             );
-            return; // 제출 막음
+            return;
           }
         }
       }
     }
   }
 
+  // [수정] 서버 전송용 데이터 포맷팅 (DB 컬럼명에 맞춰 ID 전달)
   let flatAnswers = [];
-  let qIdCount = 1;
-
-  for (let sIdx = 0; sIdx < allSections.length; sIdx++) {
-    for (let subIdx = 0; subIdx < allSections[sIdx].subs.length; subIdx++) {
-      for (
-        let qIdx = 0;
-        qIdx < allSections[sIdx].subs[subIdx].questions.length;
-        qIdx++
-      ) {
+  allSections.value.forEach((section, sIdx) => {
+    section.subs.forEach((sub, subIdx) => {
+      sub.questions.forEach((q, qIdx) => {
         flatAnswers.push({
-          question_id: "ITEM" + String(qIdCount).padStart(4, "0"),
-          answer: answers[sIdx][subIdx][qIdx],
+          question_id: q.question_id, // 서버에서 가져온 실제 ID 사용
+          answer: answers.value[sIdx][subIdx][qIdx],
+          titleCode: section.title, // 필요시 추가
         });
-        qIdCount++;
-      }
-    }
-  }
+      });
+    });
+  });
 
-  // 3. 모든 검증 통과 시 제출
   emit("submit-survey", {
     answers: flatAnswers,
     extraInputs: extraInputs,
@@ -181,30 +107,24 @@ const surveyInfo = () => {
 };
 
 const resetCancel = () => {
-  allSections.forEach((section, sIdx) => {
-    section.subs.forEach((sub, subIdx) => {
-      sub.questions.forEach((_, qIdx) => {
-        answers[sIdx][subIdx][qIdx] = "";
-      });
-    });
-  });
-  extraInputs.reason = "";
-  extraInputs.date = "";
-  extraRequest.value = "";
-  closeModal();
+  if (confirm("작성 내용을 초기화하시겠습니까?")) {
+    answers.value = allSections.value.map((s) =>
+      s.subs.map((sub) => sub.questions.map(() => "")),
+    );
+    extraInputs.reason = "";
+    extraInputs.date = "";
+    extraRequest.value = "";
+    closeModal();
+  }
 };
 
-//날짜
 const dateFormat = (dateVal) => {
+  if (!dateVal) return "-";
   let newDate = new Date(dateVal);
-  let year = newDate.getFullYear();
-  let month = ("0" + (newDate.getMonth() + 1)).slice(-2);
-  let day = ("0" + newDate.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
+  return `${newDate.getFullYear()}-${("0" + (newDate.getMonth() + 1)).slice(-2)}-${("0" + newDate.getDate()).slice(-2)}`;
 };
 
 const today = ref(new Date());
-
 const todayAdd = new Date().toISOString().split("T")[0];
 </script>
 
@@ -256,9 +176,7 @@ const todayAdd = new Date().toISOString().split("T")[0];
                         <td
                           class="text-dark font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
                         >
-                          {{
-                            sub.description || "즉시 지원인식 및 서비스 필요"
-                          }}
+                          {{ sub.description }}
                         </td>
                         <td
                           class="text-center text-dark font-weight-bolder text-sm py-3 border-bottom-dark border-start"
@@ -288,9 +206,22 @@ const todayAdd = new Date().toISOString().split("T")[0];
                         <td
                           class="text-sm text-dark text-wrap py-3 ps-3 align-middle"
                         >
-                          {{ typeof q === "string" ? q : q.text }}
+                          {{ q.text }}
+
+                          <div v-if="q.answer_type === 'e002'" class="mt-2">
+                            <textarea
+                              class="form-control form-control-sm"
+                              rows="3"
+                              v-model="answers[sIdx][subIdx][qIdx]"
+                              placeholder="내용을 입력해주세요."
+                            ></textarea>
+                          </div>
+
                           <div
-                            v-if="q.hasExtraInput"
+                            v-if="
+                              q.hasExtraInput &&
+                              answers[sIdx][subIdx][qIdx] === '예'
+                            "
                             class="mt-3 p-3 bg-gray-100 border-radius-md border extra-info-box"
                           >
                             <div class="row">
@@ -321,23 +252,28 @@ const todayAdd = new Date().toISOString().split("T")[0];
                             </div>
                           </div>
                         </td>
+
                         <td class="text-center border-start align-middle">
                           <input
+                            v-if="q.answer_type === 'e001'"
                             type="radio"
                             :name="`q_${sIdx}_${subIdx}_${qIdx}`"
                             value="예"
                             v-model="answers[sIdx][subIdx][qIdx]"
                             class="form-check-input custom-radio"
                           />
+                          <span v-else class="text-secondary">-</span>
                         </td>
                         <td class="text-center border-start align-middle">
                           <input
+                            v-if="q.answer_type === 'e001'"
                             type="radio"
                             :name="`q_${sIdx}_${subIdx}_${qIdx}`"
                             value="아니오"
                             v-model="answers[sIdx][subIdx][qIdx]"
                             class="form-check-input custom-radio"
                           />
+                          <span v-else class="text-secondary">-</span>
                         </td>
                       </tr>
                     </template>
@@ -345,18 +281,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
                 </table>
               </div>
             </template>
-
-            <div class="mt-5 mb-5">
-              <h6 class="text-sm font-weight-bolder mb-3 text-dark">
-                <span class="text-success me-1">●</span> 추가 요청사항
-              </h6>
-              <textarea
-                class="form-control comment-box"
-                rows="4"
-                v-model="extraRequest"
-                placeholder="추가로 요청하실 사항을 적어주세요."
-              ></textarea>
-            </div>
 
             <div class="d-flex justify-content-center mt-5 mb-4">
               <button
@@ -377,7 +301,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
       </div>
     </div>
 
-    <!-- 모달창 템플릿 / Transition 쓰는 이유는 모달창이 부드럽게 열리게 하려고 사용함-->
     <Transition name="fade">
       <div v-if="isModalOpen" class="modal-overlay">
         <div class="modal-content-wrapper shadow-lg">
@@ -391,118 +314,18 @@ const todayAdd = new Date().toISOString().split("T")[0];
               >
             </div>
           </div>
-
           <div class="card-body modal-scrollable p-4 bg-white">
             <template v-for="(section, sIdx) in allSections" :key="'m' + sIdx">
-              <div class="section-title-box mb-3" :class="{ 'mt-4': sIdx > 0 }">
-                <div class="d-flex align-items-center">
-                  <span class="dot-icon me-2">●</span>
-                  <h6 class="mb-0 font-weight-bolder text-dark">
-                    {{ section.title }}
-                  </h6>
+              <div class="section-title-box mb-3">{{ section.title }}</div>
+              <div v-for="(sub, subIdx) in section.subs" :key="'ms' + subIdx">
+                <div v-for="(q, qIdx) in sub.questions" :key="'mq' + qIdx">
+                  <p v-if="answers[sIdx][subIdx][qIdx]">
+                    질문: {{ q.text }} / 답변: {{ answers[sIdx][subIdx][qIdx] }}
+                  </p>
                 </div>
               </div>
-
-              <div class="table-responsive mb-4">
-                <table
-                  class="table align-items-center mb-0 custom-bordered-table"
-                >
-                  <tbody>
-                    <template
-                      v-for="(sub, subIdx) in section.subs"
-                      :key="'ms' + subIdx"
-                    >
-                      <tr class="sub-header-row bg-white">
-                        <td
-                          class="text-success font-weight-bolder text-sm ps-3 py-2 border-bottom-dark"
-                          style="width: 20%"
-                        >
-                          {{ sub.subTitle }}
-                        </td>
-                        <td
-                          class="text-dark font-weight-bolder text-sm ps-3 py-2 border-bottom-dark"
-                        >
-                          {{
-                            sub.description || "즉시 지원인식 및 서비스 필요"
-                          }}
-                        </td>
-                        <td
-                          class="text-center text-dark font-weight-bolder text-sm py-2 border-bottom-dark border-start"
-                          style="width: 70px"
-                        >
-                          예
-                        </td>
-                        <td
-                          class="text-center text-dark font-weight-bolder text-sm py-2 border-bottom-dark border-start"
-                          style="width: 70px"
-                        >
-                          아니오
-                        </td>
-                      </tr>
-
-                      <tr
-                        v-for="(q, qIdx) in sub.questions"
-                        :key="'mq' + qIdx"
-                        class="question-row"
-                      >
-                        <td
-                          class="text-center text-secondary text-xs font-weight-bold border-end align-middle"
-                          style="width: 50px"
-                        >
-                          {{ qIdx + 1 }}
-                        </td>
-                        <td
-                          class="text-sm text-dark text-wrap py-2 ps-3 align-middle"
-                        >
-                          {{ typeof q === "string" ? q : q.text }}
-                          <div
-                            v-if="
-                              q.hasExtraInput &&
-                              answers[sIdx][subIdx][qIdx] === '예'
-                            "
-                            class="mt-2 p-2 bg-gray-100 border-radius-md text-xs border"
-                          >
-                            <span class="text-success font-weight-bold"
-                              >[사유]</span
-                            >
-                            {{ extraInputs.reason || "-" }}
-                            <span class="ms-2 text-success font-weight-bold"
-                              >[시기]</span
-                            >
-                            {{ extraInputs.date || "-" }}
-                          </div>
-                        </td>
-                        <td class="text-center border-start align-middle">
-                          <div
-                            v-if="answers[sIdx][subIdx][qIdx] === '예'"
-                            class="selected-dot mx-auto"
-                          ></div>
-                        </td>
-                        <td class="text-center border-start align-middle">
-                          <div
-                            v-if="answers[sIdx][subIdx][qIdx] === '아니오'"
-                            class="selected-dot mx-auto"
-                          ></div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tbody>
-                </table>
-              </div>
             </template>
-
-            <div class="mt-4">
-              <h6 class="text-sm font-weight-bolder mb-2 text-dark">
-                <span class="text-success me-1">●</span> 추가 요청사항
-              </h6>
-              <div
-                class="p-3 bg-gray-100 border-radius-md text-sm border min-vh-10"
-              >
-                {{ extraRequest || "내용 없음" }}
-              </div>
-            </div>
           </div>
-
           <div
             class="modal-footer d-flex justify-content-center bg-white border-top py-3"
           >
@@ -510,7 +333,7 @@ const todayAdd = new Date().toISOString().split("T")[0];
               class="btn btn-success px-5 py-2 me-2 shadow-sm"
               @click="surveyInfo"
             >
-              등록
+              최종 등록
             </button>
             <button
               class="btn btn-outline-secondary px-5 py-2 shadow-sm"

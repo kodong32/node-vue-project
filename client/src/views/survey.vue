@@ -1,118 +1,147 @@
 <template>
   <surveyTop />
-  <!-- <div class="py-4 container-fluid"> -->
-  <!-- <sidebar /> -->
   <sidebar @select-support="loadSupportDetail" />
-  <!-- <sidebar /> -->
-  <div class="row">
-    <!-- <div class="col-12">
-      <surveyCard @submit-survey="surveyInfo" />
-      자식 컴포넌트에서 surveyInfo 함수 가져와서 데이터 받음
-      !-- <surveyAnswer /> -->
-    <!-- </div> -->
-    <surveyAnswer />
-    <div class="col-12">
-      <!-- <SurveyCard
-        :selected-support="selectedSupport"
-        @submit-survey="surveyInfo"
-      /> -->
-      <SurveyCard @submit-survey="surveyInfo" />
+  <div class="py-4 container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <SurveyCard
+          v-if="allSections.length > 0"
+          :sections="allSections"
+          :selectedSupport="selectedSupport"
+          @submit-survey="surveyInfo"
+        />
+        <div v-else class="text-center py-5 card shadow-sm">
+          <span class="p-4">최신 설문 문항을 불러오는 중입니다...</span>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- </div> -->
 </template>
 
 <script setup>
-import SurveyCard from "./components/surveyCard.vue"; //조사지 카드 컴포넌트 가져옴
-import Sidebar from "../examples/Sidenav/SidenavList.vue"; //사이드바 컴포넌트 가져옴
+import SurveyCard from "./components/surveyCard.vue";
+import Sidebar from "../examples/Sidenav/SidenavList.vue";
 import surveyTop from "./components/surveyHeader.vue";
 import { ref, reactive, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router"; //페이지 이동(라우팅) 위해 사용
-// import axios from "axios";
+import { useRouter, useRoute } from "vue-router";
 
-const router = useRouter(); //router 인스턴스 생성
+const router = useRouter();
 const route = useRoute();
 
 const selectedSupport = ref(null);
+const allSections = ref([]);
+const Ver_Id = ref(null);
+
+const info = reactive({
+  G_UserId: "GUSR0000",
+  support_id: "",
+  Ver_Id: "",
+});
+
+const getActiveVerId = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/survey/getActiveVerId");
+    if (!response.ok) throw new Error("Ver_Id를 가져오는 데 실패했습니다.");
+
+    const data = await response.json();
+    if (data?.Ver_Id) {
+      Ver_Id.value = data.Ver_Id;
+      info.Ver_Id = data.Ver_Id;
+      console.log("활성 Ver_Id:", Ver_Id.value);
+    } else {
+      console.warn("활성 Ver_Id가 없습니다. 기본값 사용.");
+      Ver_Id.value = "FORM0004";
+      info.Ver_Id = "FORM0004";
+    }
+  } catch (err) {
+    console.error("Ver_Id 로딩 에러:", err);
+    Ver_Id.value = "FORM0004";
+    info.Ver_Id = "FORM0004";
+  }
+};
+
+const loadLatestQuestions = async () => {
+  if (!Ver_Id.value) {
+    console.warn("Ver_Id 없음 → 문항 로드 중단");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/survey/getQuestionsByJID/${Ver_Id.value}`,
+    );
+
+    if (!response.ok) throw new Error("문항 데이터를 가져오는데 실패했습니다.");
+
+    const rawQuestions = await response.json();
+    console.log("등록 페이지 문항 로드 완료:", rawQuestions);
+
+    const sectionsMap = {};
+    rawQuestions.forEach((item) => {
+      if (!sectionsMap[item.titleCode]) {
+        sectionsMap[item.titleCode] = {
+          title: item.titleCode,
+          subs: [],
+        };
+      }
+
+      let sub = sectionsMap[item.titleCode].subs.find(
+        (s) => s.subTitle === item.titleCode,
+      );
+
+      if (!sub) {
+        sub = {
+          subTitle: item.titleCode,
+          description: "내용을 확인하고 체크해주세요.",
+          questions: [],
+        };
+        sectionsMap[item.titleCode].subs.push(sub);
+      }
+
+      sub.questions.push({
+        text: item.question_text,
+        question_id: item.question_id,
+        answer_type: item.answer_type,
+      });
+    });
+
+    allSections.value = Object.values(sectionsMap);
+  } catch (err) {
+    console.error("문항 로딩 에러:", err);
+  }
+};
 
 const loadSupportDetail = async (support_id) => {
-  console.log("부모로 들어온 ID:", support_id);
-
   if (!support_id) {
     selectedSupport.value = null;
     info.support_id = "";
     return;
   }
 
-  // 먼저 즉시 저장
   info.support_id = support_id;
-  selectedSupport.value = { support_id };
   try {
     const response = await fetch(
       `http://localhost:3000/survey/support/${support_id}`,
     );
-    if (!response.ok) {
-      throw new Error(`HTTP 오류: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP 오류: ${response.status}`);
 
     const data = await response.json();
-
     if (Array.isArray(data) && data.length > 0) {
       selectedSupport.value = data[0];
       info.support_id = data[0].support_id ?? "";
-    } else if (data) {
-      selectedSupport.value = data;
-      info.support_id = data.support_id ?? "";
     } else {
-      selectedSupport.value = null;
+      selectedSupport.value = data || null;
+      if (data) info.support_id = data.support_id ?? "";
     }
-
-    console.log("selectedSupport.value =", selectedSupport.value);
-    console.log("info.support_id =", info.support_id);
   } catch (err) {
-    console.error("대상자 정보를 불러오는데 실패했습니다.", err);
+    console.error("대상자 정보 로드 실패:", err);
     selectedSupport.value = null;
   }
 };
 
-onMounted(() => {
-  info.support_id = route.query.support_id;
-});
-
-//조사지 등록 함수
-const info = reactive({
-  J_ID: "",
-  Ver_Id: "",
-  G_UserId: "",
-  support_id: "",
-  result: null,
-  reason: null,
-  created_at: null,
-  updated_at: null,
-});
-
-const isPrinted = ref(false);
-
 const surveyInfo = async (payload) => {
-  console.log("payload =", payload);
-  console.log("selectedSupport.value =", selectedSupport.value);
-  console.log("info.support_id =", info.support_id);
-
-  const supportIdFromSelected =
-    selectedSupport.value?.support_id ??
-    selectedSupport.value?.supportId ??
-    selectedSupport.value?.id ??
-    null;
-
   const finalSupportId =
-    payload?.support_id ??
-    payload?.answers?.[0]?.support_id ??
-    supportIdFromSelected ??
-    info.support_id ??
-    null;
-
-  console.log("supportIdFromSelected =", supportIdFromSelected);
-  console.log("finalSupportId =", finalSupportId);
+    payload?.support_id || selectedSupport.value?.support_id || info.support_id;
 
   if (!finalSupportId) {
     alert("지원 대상자를 먼저 선택해주세요.");
@@ -120,20 +149,21 @@ const surveyInfo = async (payload) => {
   }
 
   if (!payload?.answers || payload.answers.length === 0) {
-    alert("답변 데이터가 없습니다.");
+    alert("작성된 답변이 없습니다.");
     return;
   }
 
   const sendData = {
     ...payload,
+    G_UserId: info.G_UserId,
+    Ver_Id: info.Ver_Id,
     support_id: finalSupportId,
     answers: payload.answers.map((ans) => ({
       ...ans,
-      support_id: ans.support_id ?? finalSupportId,
+      support_id: finalSupportId,
+      G_UserId: info.G_UserId,
     })),
   };
-  console.log("최종 전송 데이터 =", sendData);
-  // sendData.answers = payload.answers; //surveyCard에 있는 answers 코드 안에 있는 예/아니오 데이터 가져옴
 
   try {
     const response = await fetch("http://localhost:3000/survey/user", {
@@ -143,43 +173,25 @@ const surveyInfo = async (payload) => {
     });
 
     const result = await response.json();
-    console.log("서버 응답 =", result);
-
     if (response.ok && result?.status === "success") {
       alert("정상적으로 등록되었습니다.");
-      console.log(`등록되었습니다. 조사지번호 : ${result.J_ID}`);
-      router.push({
-        name: "userMain",
-        params: { no: result.J_ID },
-      });
+      router.push({ name: "userMain" });
     } else {
-      isPrinted.value = true;
-      alert(result?.message || "등록에 실패했습니다.");
+      alert(result?.message || "등록 실패");
     }
   } catch (err) {
-    console.error("통신 에러:", err);
-    alert("서버 연결에 실패했습니다.");
+    console.error("전송 에러:", err);
+    alert("서버 연결 실패");
   }
 };
-//조사지 답변 함수
-// const answer = reactive({
-//   J_ID: "",
-//   Ver_Id: "",
-//   G_UserId: "",
-//   support_id: "",
-//   result: null,
-//   reason: null,
-//   created_at: null,
-//   updated_at: null,
-// });
 
-// const sPrinted = ref(false);
+onMounted(async () => {
+  await getActiveVerId();
+  await loadLatestQuestions();
 
-// const surveyResponse = async (payload) => {
-//   console.log("자식으로부터 받은 데이터:", payload);
-// };
-
-// answer.result = JSON.stringify(payload.answer);
-
-// answer.res
+  const idFromQuery = route.query.support_id;
+  if (idFromQuery) {
+    await loadSupportDetail(idFromQuery);
+  }
+});
 </script>

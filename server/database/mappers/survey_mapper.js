@@ -165,11 +165,11 @@ const Suser = async () => {
   }
 };
 
-const getQuestionsByJID = async () => {
+const getQuestionsByJID = async (id) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(surveySql.getActiveVerId);
+    let rows = await conn.query(surveySql.getQuestionsByJID, [id]);
     return rows;
   } catch (err) {
     console.log(err);

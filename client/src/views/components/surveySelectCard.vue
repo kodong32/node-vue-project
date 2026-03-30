@@ -1,35 +1,27 @@
 <script setup>
 import { onMounted, onUnmounted } from "vue";
 
-// 부모로부터 props 받기
 const props = defineProps({
   sections: Array,
   answers: Array,
   extraInputs: Object,
   extraRequest: String,
+  userName: String,
+  regDate: String,
 });
 
-// ================== 사이드바 숨김/복구 (원본 유지) ==================
 onMounted(() => {
   document.body.classList.remove("g-sidenav-show");
-  // → 일반적으로 사이드바가 보이도록 하는 클래스를 제거해서 숨김 처리
   const sidenav = document.getElementById("sidenav-main");
-  // HTML 문서에서 id가 "sidenav-main"인 요소를 가져옴 ???
   if (sidenav) sidenav.style.setProperty("display", "none", "important");
-  // sidenav 요소가 존재하면  display 속성을 "none"으로 강제 설정하여 화면에서 숨김
 });
 
 onUnmounted(() => {
   document.body.classList.add("g-sidenav-show");
-  // body 태그에 "g-sidenav-show" 클래스를 다시 추가
-  // → 컴포넌트가 제거되면 원래 상태(사이드바 보임)로 복구
   const sidenav = document.getElementById("sidenav-main");
-  // 다시 id가 "sidenav-main"인 요소를 가져옴
   if (sidenav) sidenav.style.display = "";
-  // sidenav 요소가 존재하면 display 속성을 기본값("")으로 돌려 화면에 보이도록 함
 });
 
-// ================== allSections를 ref로 감싸 반응형으로 수정 ==================
 // 기존 배열 그대로 사용하되 Vue 반응형으로 변환
 // const allSections = ref([
 //   {
@@ -128,23 +120,12 @@ onUnmounted(() => {
 
 // ================== 안전하게 답변 가져오기 함수 기존 그대로 ==================
 const getSafeAnswer = (sIdx, subIdx, qIdx) => {
-  //answers.value[sIdx][subIdx][qIdx]를 바로 쓰면,
-  // 데이터가 아직 없거나 구조가 달라서 에러가 날 수 있음.
   try {
-    //try/catch로 안전하게 처리하고, 값이 없으면 빈 문자열("") 반환
     return props.answers?.[sIdx]?.[subIdx]?.[qIdx] || "";
   } catch (e) {
     return "";
   }
 };
-
-// ================== Vue용 구조 확인용 콘솔 추가 ==================
-// onMounted(() => {
-//   console.log(
-//     "Vue용 구조로 변환한 allSections (반응형 Proxy):",
-//     allSections.value,
-//   );
-// });
 </script>
 
 <template>
@@ -156,11 +137,11 @@ const getSafeAnswer = (sIdx, subIdx, qIdx) => {
             class="d-flex align-items-center p-3 px-4 text-white header-bg position-relative"
           >
             <h5 class="mb-0 font-weight-bolder text-white">
-              홍길동님 조사지 결과
+              {{ props.userName || "대상자" }}님 조사지 결과
             </h5>
             <div class="date-center">
               <span class="text-sm font-weight-bold opacity-9"
-                >등록일 : 2026.03.12</span
+                >등록일 : {{ props.regDate || "-" }}</span
               >
             </div>
             <button
