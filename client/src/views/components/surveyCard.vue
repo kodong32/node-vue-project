@@ -107,44 +107,30 @@ const closeModal = () => {
 const emit = defineEmits(["submit-survey"]);
 
 const surveyInfo = () => {
-  // 1. 모든 질문이 '예' 또는 '아니오' 선택되었는지 확인
   for (let sIdx = 0; sIdx < allSections.length; sIdx++) {
-    // allSections 배열 반복 → 각 큰 섹션(예: 지원사유, 이용중인 복지 서비스 등)
-    // sIdx는 섹션 인덱스
     for (let subIdx = 0; subIdx < allSections[sIdx].subs.length; subIdx++) {
-      // 현재 섹션의 subs 배열 반복 → 하위 카테고리(예: 긴급 지원 필요, 중점 지원 필요)
-      // subIdx는 하위 섹션 인덱스
       for (
         let qIdx = 0;
         qIdx < allSections[sIdx].subs[subIdx].questions.length;
         qIdx++
       ) {
-        // 현재 하위 섹션의 questions 배열 반복 → 각 질문
-        // qIdx는 질문 인덱스
         const answer = answers[sIdx][subIdx][qIdx];
-        // answers 배열에서 사용자가 선택한 '예' 또는 '아니오' 값을 가져옴
         const question = allSections[sIdx].subs[subIdx].questions[qIdx];
-        // 현재 질문 객체(혹은 문자열)를 가져옴
 
-        // 예/아니오 미선택
         if (!answer) {
-          // 만약 사용자가 예/아니오를 선택하지 않았다면
           alert(
             `"${allSections[sIdx].title} > ${allSections[sIdx].subs[subIdx].subTitle}"
             질문 ${qIdx + 1}에 예/아니오를 선택해주세요.`,
           );
-          return; // 제출 막음
+          return;
         }
 
-        // '예' 선택 시 추가 입력 필수
         if (answer === "예" && question.hasExtraInput) {
-          // 현재 질문에 '예' 선택하고, 추가 입력 필드가 필요한 질문이면
           if (!extraInputs.reason.trim() || !extraInputs.date.trim()) {
-            // 사유(reason) + 필요 시기(date)가 비어있으면
             alert(
               `질문 ${qIdx + 1}에 대해 구체적 사유와 필요 시기를 입력해주세요.`,
             );
-            return; // 제출 막음
+            return;
           }
         }
       }
@@ -170,7 +156,6 @@ const surveyInfo = () => {
     }
   }
 
-  // 3. 모든 검증 통과 시 제출
   emit("submit-survey", {
     answers: flatAnswers,
     extraInputs: extraInputs,

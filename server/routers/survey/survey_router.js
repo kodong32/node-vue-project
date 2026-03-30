@@ -64,6 +64,7 @@ router.get("/support/:id", async (req, res) => {
 });
 
 router.post("user", async (req, res) => {
+  console.log("들어온 데이터:", req.body);
   let data = req.body;
   let result = await surveyService.momUser(data);
   res.send(result);

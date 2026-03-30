@@ -1,36 +1,25 @@
 <template>
   <surveyTop />
-  <!-- <div class="py-4 container-fluid"> -->
-  <!-- <sidebar /> -->
   <sidebar @select-support="loadSupportDetail" />
-  <!-- <sidebar /> -->
   <div class="row">
-    <!-- <div class="col-12">
-      <surveyCard @submit-survey="surveyInfo" />
-      자식 컴포넌트에서 surveyInfo 함수 가져와서 데이터 받음
-      !-- <surveyAnswer /> -->
-    <!-- </div> -->
     <surveyAnswer />
     <div class="col-12">
-      <!-- <SurveyCard
-        :selected-support="selectedSupport"
+      <SurveyCard
+        :selectedSupport="selectedSupport"
         @submit-survey="surveyInfo"
-      /> -->
-      <SurveyCard @submit-survey="surveyInfo" />
+      />
     </div>
   </div>
-  <!-- </div> -->
 </template>
 
 <script setup>
-import SurveyCard from "./components/surveyCard.vue"; //조사지 카드 컴포넌트 가져옴
-import Sidebar from "../examples/Sidenav/SidenavList.vue"; //사이드바 컴포넌트 가져옴
+import SurveyCard from "./components/surveyCard.vue";
+import Sidebar from "../examples/Sidenav/SidenavList.vue";
 import surveyTop from "./components/surveyHeader.vue";
 import { ref, reactive, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router"; //페이지 이동(라우팅) 위해 사용
-// import axios from "axios";
+import { useRouter, useRoute } from "vue-router";
 
-const router = useRouter(); //router 인스턴스 생성
+const router = useRouter();
 const route = useRoute();
 
 const selectedSupport = ref(null);
@@ -58,6 +47,7 @@ const loadSupportDetail = async (support_id) => {
     const data = await response.json();
 
     if (Array.isArray(data) && data.length > 0) {
+      console.log("실제 받은 데이터:", data[0]);
       selectedSupport.value = data[0];
       info.support_id = data[0].support_id ?? "";
     } else if (data) {
@@ -67,23 +57,25 @@ const loadSupportDetail = async (support_id) => {
       selectedSupport.value = null;
     }
 
-    console.log("selectedSupport.value =", selectedSupport.value);
-    console.log("info.support_id =", info.support_id);
+    // console.log("selectedSupport.value =", selectedSupport.value);
+    // console.log("info.support_id =", info.support_id);
   } catch (err) {
     console.error("대상자 정보를 불러오는데 실패했습니다.", err);
     selectedSupport.value = null;
   }
 };
 
-onMounted(() => {
-  info.support_id = route.query.support_id;
+onMounted(async () => {
+  const idFromQuery = route.query.support_id;
+  if (idFromQuery) {
+    await loadSupportDetail(idFromQuery);
+  }
 });
 
-//조사지 등록 함수
 const info = reactive({
   J_ID: "",
   Ver_Id: "",
-  G_UserId: "",
+  G_UserId: "GUSR0000",
   support_id: "",
   result: null,
   reason: null,
@@ -95,8 +87,8 @@ const isPrinted = ref(false);
 
 const surveyInfo = async (payload) => {
   console.log("payload =", payload);
-  console.log("selectedSupport.value =", selectedSupport.value);
-  console.log("info.support_id =", info.support_id);
+  // console.log("selectedSupport.value =", selectedSupport.value);
+  // console.log("info.support_id =", info.support_id);
 
   const supportIdFromSelected =
     selectedSupport.value?.support_id ??
@@ -111,8 +103,8 @@ const surveyInfo = async (payload) => {
     info.support_id ??
     null;
 
-  console.log("supportIdFromSelected =", supportIdFromSelected);
-  console.log("finalSupportId =", finalSupportId);
+  // console.log("supportIdFromSelected =", supportIdFromSelected);
+  // console.log("finalSupportId =", finalSupportId);
 
   if (!finalSupportId) {
     alert("지원 대상자를 먼저 선택해주세요.");
@@ -126,13 +118,16 @@ const surveyInfo = async (payload) => {
 
   const sendData = {
     ...payload,
+    G_UserId: info.G_UserId,
+    Ver_Id: info.Ver_Id || "FORM0004",
     support_id: finalSupportId,
     answers: payload.answers.map((ans) => ({
       ...ans,
       support_id: ans.support_id ?? finalSupportId,
+      G_UserId: info.G_UserId,
     })),
   };
-  console.log("최종 전송 데이터 =", sendData);
+  // console.log("최종 전송 데이터 =", sendData);
   // sendData.answers = payload.answers; //surveyCard에 있는 answers 코드 안에 있는 예/아니오 데이터 가져옴
 
   try {

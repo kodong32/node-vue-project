@@ -137,7 +137,7 @@ SELECT
 FROM Support_Tbl S
 LEFT JOIN DisMiddle_Tbl M 
     ON S.middle = M.j_Code
-WHERE S.G_UserId = ?;
+WHERE S.support_id = ?;
 `;
 
 //현재 활성화된 아이디만 가져오는 쿼리 <김민지, 26.03.27>

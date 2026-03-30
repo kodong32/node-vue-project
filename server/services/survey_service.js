@@ -101,6 +101,11 @@ const findInfoByNo = async (J_ID) => {
 // };
 
 const surveyInfo = async (data) => {
+  if (!data.G_UserId) {
+    console.error("G_UserId가 없습니다!");
+    return { status: "fail", message: "G_UserId 필수" };
+  }
+
   try {
     const lastJID = await surveyMapper.getLastJID();
 
@@ -112,29 +117,44 @@ const surveyInfo = async (data) => {
       newJID = "SUV" + String(num + 1).padStart(4, "0");
     }
 
-    if (!data.extraInputs?.G_UserId) {
+    const createDate = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const updateDate = createDate;
+
+    if (!data.G_UserId) {
       throw new Error("G_UserId 필수");
     }
+    if (!data.Ver_Id) {
+      throw new Error("Ver_Id 필수");
+    }
 
-    const supportId = data.answers?.[0]?.support_id ?? null;
-    if (!supportId) {
-      throw new Error("support_id 필수");
-    }
-    const activeData = await surveyMapper.getActiveVerId();
-    const activeVerId = activeData?.[0]?.Ver_Id;
-    if (!activeVerId) {
+    const getActiveVerId = async () => {
+      const rows = await surveyMapper.getActiveVerId();
+      console.log("rows:", rows);
+
+      if (Array.isArray(rows) && rows.length > 0) {
+        return rows[0].Ver_Id;
+      }
+
+      if (rows && rows.Ver_Id) {
+        return rows.Ver_Id;
+      }
+
       throw new Error("사용 중인 Ver_Id가 없습니다");
-    }
+    };
+
+    const Ver_Id = await getActiveVerId();
+
+    const now = new Date();
+    const created_at = now.toISOString().slice(0, 19).replace("T", " ");
+    const updated_at = created_at;
 
     const surveyData = [
       newJID,
-      data.extraInputs.G_UserId,
-      supportId,
-      data.extraInputs.result?.trim?.() ?? null,
-      data.extraInputs.reason ?? null,
+      data.G_UserId.trim(),
+      data.support_id || null,
+      null,
+      null,
     ];
-
-    console.log("surveyData =", surveyData);
 
     await surveyMapper.insertSurvey(surveyData);
 
@@ -151,11 +171,10 @@ const surveyInfo = async (data) => {
     }
 
     const answerString = data.answers.map((ans) => ans.answer).join(",");
-    const firstQuestionId = data.answers[0].question_id?.trim();
+    const firstQuestionId = data.answers[0].question_id;
 
     lastAnsIdNum += 1;
     const answer_id = "ANS" + String(lastAnsIdNum).padStart(4, "0");
-
     const answerData = [answer_id, newJID, firstQuestionId, answerString];
 
     await surveyMapper.insertSurveyAnswer(answerData);
@@ -190,43 +209,10 @@ const SupportById = async (id) => {
   }
 };
 
-const momUser = async () => {
-  const sUser = await surveyMapper.Suser(surveyDataObj.G_UserId);
-  console.log("sUser =", sUser);
-
-  if (!sUser || sUser.length === 0) {
-    throw new Error("GeneralUser_Tbl에 없는 G_UserId");
-  }
-
-  const surveyData = [
-    surveyDataObj.J_ID,
-    surveyDataObj.G_UserId,
-    surveyDataObj.support_id,
-    surveyDataObj.result,
-    surveyDataObj.reason,
-  ];
-
-  console.log("surveyData =", surveyData);
-
-  return await surveyMapper.insertSurvey(surveyData);
-};
-
-const getQuestionsByJID = async (id) => {
-  try {
-    const rows = await surveyMapper.QuestionsByJID(id);
-    return rows || [];
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
-};
-
 module.exports = {
   findAll,
   findInfoByNo,
   surveyInfo,
   selectItemsByJID,
   SupportById,
-  momUser,
-  getQuestionsByJID,
 };
