@@ -1,6 +1,5 @@
 <template>
   <div class="container-fluid">
-
     <div class="page-header min-height-100">
       <span class="mask bg-gradient-success opacity-6"></span>
     </div>
@@ -8,8 +7,6 @@
     <div class="card shadow-lg mt-n6">
       <div class="card-body p-3 position-relative">
         <div class="row gx-4">
-
-          
           <div class="col-auto">
             <div class="avatar avatar-xl position-relative">
               <img
@@ -20,11 +17,9 @@
             </div>
           </div>
 
-          
           <div class="col-auto my-auto">
             <div class="h-100">
               <ul class="nav nav-pills custom-top-menu" role="tablist">
-
                 <li class="nav-item">
                   <a class="px-3 py-2 nav-link active" href="javascript:;">
                     <span class="ms-1">첫 화면</span>
@@ -48,23 +43,24 @@
                     <span class="ms-1">지원 결과</span>
                   </a>
                 </li>
-
               </ul>
             </div>
           </div>
 
-          
           <div
             class="position-absolute top-50 start-50 translate-middle text-center fw-bold"
           >
-            고동현님 환영합니다
+            {{ userName }}님 환영합니다
           </div>
 
-          
-          <div class="mx-auto mt-3 col-lg-4 col-md-6 my-sm-auto ms-sm-auto me-sm-0">
+          <div
+            class="mx-auto mt-3 col-lg-4 col-md-6 my-sm-auto ms-sm-auto me-sm-0"
+          >
             <div class="nav-wrapper position-relative end-0">
-              <ul class="p-1 bg-transparent nav nav-pills nav-fill" role="tablist">
-
+              <ul
+                class="p-1 bg-transparent nav nav-pills nav-fill"
+                role="tablist"
+              >
                 <li class="nav-item">
                   <a class="px-3 py-2 mb-0 nav-link active" href="javascript:;">
                     <span class="ms-1">My Page</span>
@@ -76,11 +72,9 @@
                     <span class="ms-1">Log Out</span>
                   </a>
                 </li>
-
               </ul>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -88,5 +82,17 @@
 </template>
 
 <script setup>
+import { defineProps, computed } from "vue";
+defineProps({
+  userRole: {
+    type: String,
+    required: true,
+    default: "USER",
+  },
+});
 
+import { useAuthStore } from "@/stores/counter";
+const userAuthStore = useAuthStore();
+
+const userName = computed(() => userAuthStore.user?.name);
 </script>

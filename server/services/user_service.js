@@ -1,4 +1,6 @@
 //회원 관련 service
+const bcrypt = require("bcrypt");
+
 const userMapper = require("../database/mappers/user_mapper");
 
 const testSelect = () => {
@@ -31,12 +33,16 @@ const createUser = async (userObj) => {
       const num = parseInt(lastUserId.G_UserId.substring(4), 10);
       G_UserId = "GUSR" + String(num + 1).padStart(4, "0");
     }
+    //비밀번호 암호화(김경환 20260328)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPw = await bcrypt.hash(password, salt);
+
     let insertData = [
       G_UserId,
       institution_id,
       name,
       id,
-      password,
+      hashedPw, //암호화된 비번
       tel,
       email,
       zipCode,
@@ -73,7 +79,11 @@ const createInstiUser = async (userObj) => {
       const num = parseInt(lastInstiId.I_UserId.substring(4), 10);
       I_UserId = "IUSR" + String(num + 1).padStart(4, "0");
     }
-    let insertData = [I_UserId, institution_id, name, id, password, tel, roll];
+    //기관 비밀번호 암호화
+    const salt = await bcrypt.genSalt(10);
+    const hasgedPw = await bcrypt.hash(password, salt);
+
+    let insertData = [I_UserId, institution_id, name, id, hasgedPw, tel, roll];
     console.log(insertData);
 
     let result = await userMapper.insertInstiUser(insertData);
@@ -192,34 +202,74 @@ const getSupportList = async (supInfo) => {
 const getUserInfo = async (userId) => {
   let result = await userMapper.getUserInfo(userId);
 
-  if(!result){
+  if (!result) {
     return {
-      stats : "Failed",
-      message : "사용자 정보를 찾을 수 없습니다."
+      stats: "Failed",
+      message: "사용자 정보를 찾을 수 없습니다.",
     };
   }
 
   return {
-    status : "Success",
-    data : result,
+    status: "Success",
+    data: result,
   };
 };
 
-//로그인 정보 확인(김경환 2026.03.25)
+//로그인 정보 확인(김경환 2026.03.25)(김경환 20260330 일부 수정 및 추가)
 const confirmUser = async (id, password) => {
-  let infos = await userMapper.confirmUser(id, password);
-  if (infos.length > 0) {
-    return { success: true, user: infos[0] };
+  // let infos = await userMapper.confirmUser(id);
+  // if (!infos || infos.length === 0) {
+  //   return { success: false };
+  // }
+
+  // let pwMatch = await bcrypt.compare(password, infos[0].password);
+
+  // if (pwMatch) {
+  //   return {
+  //     success: true,
+  //     user: infos[0],
+  //   };
+  // } else {
+  //   return { success: false };
+  // }
+  //bcrypt 임시방편(암호화 여부 관계없이 로그인)
+  let user = await userMapper.confirmUser(id);
+
+  if (!user) return { success: false };
+
+  let isMatch;
+
+  // bcrypt 암호화 여부 확인
+  if (user.password.startsWith("$2b$")) {
+    isMatch = await bcrypt.compare(password, user[0].password);
   } else {
-    return { success: false };
+    // 예전 평문 계정
+    isMatch = password === user.password;
   }
+
+  if (isMatch) {
+    return { success: true, user };
+  }
+
+  return { success: false };
 };
 
-//기관
+//기관(김경환 20260330 일부 수정 및 추가)
 const confirmInstiUser = async (id, password) => {
   let infos = await userMapper.confirmInstiUser(id, password);
   if (infos.length > 0) {
     return { success: true, user: infos[0], roll: "" };
+  } else {
+    return { success: false };
+  }
+
+  let pwMatch = await bcrypt.compare(password, infos[0].password);
+
+  if (pwMatch) {
+    return {
+      success: trus,
+      user: infos[0],
+    };
   } else {
     return { success: false };
   }
@@ -256,5 +306,5 @@ module.exports = {
   confirmInstiUser,
   userIdCheck,
   instiIdCheck,
-  getUserInfo
+  getUserInfo,
 };

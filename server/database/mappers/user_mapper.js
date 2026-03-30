@@ -163,24 +163,21 @@ const supportList = async (supInfo) => {
   }
 };
 
-
 const getUserInfo = async (userId) => {
   let conn = null;
-  try{
+  try {
     conn = await pool.getConnection();
     let rows = await conn.query(userSql.getUserInfo, userId);
     console.log(rows[0]);
     return rows[0];
-
-  }catch (err) {
+  } catch (err) {
     console.log(err);
-
-  }finally {
-    if(conn){
+  } finally {
+    if (conn) {
       conn.release();
     }
   }
-}
+};
 
 //회원 로그인 확인(김경환 2026.03.25)
 const confirmUser = async (id, password) => {
@@ -190,7 +187,8 @@ const confirmUser = async (id, password) => {
     console.log(id, password);
     let result = await conn.query(userSql.confirmUser, [id, password]);
     console.log(result[0]);
-    return result;
+    // return result; //암호화 적용시 해당 주석 해제
+    return result[0]; //평문화 비번용
   } catch (err) {
     console.log(err);
   } finally {

@@ -42,6 +42,14 @@ const props = defineProps({
     required: true,
   },
 });
+
+//담당자 배정 페이지 이동 버튼(김경환 20260330)
+import { useRouter } from "vue-router";
+const router = useRouter;
+
+const goManager = () => {
+  router.push("/general/select-manager/:id");
+};
 </script>
 
 <template>
@@ -165,6 +173,7 @@ const props = defineProps({
                   <button
                     v-if="props.userRole === 'GENERAL' && !item.instiName"
                     class="badge bg-gradient-warning border-0"
+                    @click="goManager()"
                   >
                     배정
                   </button>

@@ -1,6 +1,6 @@
 <script setup>
 //일반이용자 회원가입 페이지
-import { ref, reactive, onBeforeUnmount, onBeforeMount } from "vue";
+import { ref, reactive, onBeforeUnmount, onBeforeMount, computed } from "vue";
 import { useStore } from "vuex";
 
 import ArgonInput from "@/components/ArgonInput.vue";
@@ -27,11 +27,18 @@ const multiFiles = (event) => {
   //기존 파일을 담는 배열 함수
   let tempFiles = [...files.value];
 
+  //파일 용량 제한(20MB)
+  const MAX_TOTAL_FILE_SIZE = 20 * 1024 * 1024;
+
   //각 파일들을 비교 후 첨부
-  //some(): 배열안에 특정 조건을 찾는데 사용(파일 이름)
+  //some(): 배열안에 특정 조건을 찾는데 사용(파일 이름) //파일 용량제한 추가(김경환 20260330)
   selectedFiles.forEach((newFile) => {
+    if (newFile.size > MAX_TOTAL_FILE_SIZE) {
+      alert(`첨부파일의 용량이 20MB를 초과하였습니다.`);
+      return;
+    }
     const isSameFile = tempFiles.some(
-      (file) => file.name === newFile.name && newFile.size,
+      (file) => file.name === newFile.name && file.size === newFile.size,
     );
     if (isSameFile) {
       alert(`중복된 파일입니다. 다시 확인해주세요.`);
@@ -66,8 +73,8 @@ const userInfo = reactive({
   email: "",
   zipCode: zipCode.value,
   address: `${mainAddress.value} ${detailAddress.value}`.trim(),
-  document1: "", // 나중에 수정
-  document2: "", // 나중에 수정
+  document1: null, // 나중에 수정
+  document2: null, // 나중에 수정
 });
 const isPrinted = ref(false);
 
@@ -129,30 +136,64 @@ const addUserInfo = async () => {
 //일반이용자 아이디 중복 확인 (김경환 2060327)
 const message = ref("");
 
-const idCheck = ref(false);
+// const idCheck = ref(false);
 const isDuplicate = ref(false);
 
-const checkUserId = async () => {
-  if (!userInfo.id) {
-    alert("아이디를 입력하세요");
-    return;
-  }
-  try {
-    let res = await fetch(`/api/user/checkid/${userInfo.id}`);
-    let result = await res.json();
+// const checkUserId = async () => {
+//   if (!userInfo.id) {
+//     alert("아이디를 입력하세요");
+//     return;
+//   }
+//   try {
+//     let res = await fetch(`/api/user/checkid/${userInfo.id}`);
+//     let result = await res.json();
 
-    idCheck.value = true;
-    isDuplicate.value = result.duplicate;
+//     idCheck.value = true;
+//     isDuplicate.value = result.duplicate;
 
-    if (result.duplicate) {
-      message.value = "이미 사용중인 아이디입니다.";
-    } else {
-      message.value = "사용 가능한 아이디입니다.";
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
+//     if (result.duplicate) {
+//       message.value = "이미 사용중인 아이디입니다.";
+//     } else {
+//       message.value = "사용 가능한 아이디입니다.";
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
+
+//비밀번호 확인(김경환 20260329)
+const passwordConfirm = ref("");
+
+// const signup = async () => {
+//   if (userInfo.password !== passwordConfirm.value) {
+//     alert("비밀번호가 일치하지 않습니다.");
+//     return;
+//   }
+
+//   //비밀번호 길이 확인
+//   if (userInfo.password.length < 5) {
+//     alert("5자리 이상의 비밀번호를 설정해주세요.");
+//     return;
+//   }
+
+//   //서버 전송
+//   await fetch("/api/user", {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify(userInfo),
+//   });
+// };
+
+const passwordMessage = computed(() => {
+  if (!passwordConfirm.value) return "";
+
+  return userInfo.password === passwordConfirm.value
+    ? "비밀번호 일치"
+    : "비밀번호 불일치";
+});
+
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
   store.state.showNavbar = false;
@@ -232,11 +273,11 @@ onBeforeUnmount(() => {
                     aria-label="Id"
                     v-model="userInfo.id"
                   />
-                  <argon-button
+                  <!-- <argon-button
                     class="mt-auto p-3 d-flex justify-content-center gap-3"
                     @click.prevent="checkUserId"
                     >중복확인</argon-button
-                  >
+                  > -->
                 </div>
                 <p
                   v-if="message"
@@ -256,7 +297,9 @@ onBeforeUnmount(() => {
                   type="password"
                   placeholder="비밀번호확인"
                   aria-laber="PasswordCheck"
+                  v-model="passwordConfirm"
                 />
+                <span>{{ passwordMessage }}</span>
                 <argon-input
                   id="tel"
                   type="tel"

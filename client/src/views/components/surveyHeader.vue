@@ -50,7 +50,7 @@
           <div
             class="position-absolute top-50 start-50 translate-middle text-center fw-bold"
           >
-            김호두루미님 환영합니다
+            {{ userName }}님 환영합니다
           </div>
 
           <div
@@ -81,4 +81,19 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+//로그인 이용자 이름 반영(김경환 20260330)
+import { defineProps, computed } from "vue";
+defineProps({
+  userRole: {
+    type: String,
+    required: true,
+    default: "USER",
+  },
+});
+
+import { useAuthStore } from "@/stores/counter";
+const userAuthStore = useAuthStore();
+
+const userName = computed(() => userAuthStore.user?.name);
+</script>

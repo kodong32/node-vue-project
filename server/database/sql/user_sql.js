@@ -63,8 +63,7 @@ WHERE G_userId = ?
 `;
 
 //일반이용자 정보조회
-const getUserInfo =
-`
+const getUserInfo = `
 SELECT
   g.G_UserId AS GUSERID,
   g.id,
@@ -97,14 +96,13 @@ const confirmUser = `
 SELECT G_UserId, institution_id, name, id, password, tel, email, zipCode, address, document1, document2
 FROM GeneralUser_Tbl       
 WHERE id = ?
-AND password = ?
 `;
 
 const confirmInstiUser = `
 SELECT I_UserId ,institution_id ,name, id, password, tel, roll
 FROM InstiUser_Tbl
 WHERE id = ?
-AND password = ?`;
+`;
 
 //일반회원 아이디 중복 확인용(김경환 2026.03.26)
 const userIdCheck = `

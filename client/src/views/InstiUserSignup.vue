@@ -1,6 +1,6 @@
 <script setup>
 //기관이용자 회원가입페이지
-import { ref, reactive, onBeforeUnmount, onBeforeMount } from "vue";
+import { ref, reactive, onBeforeUnmount, onBeforeMount, computed } from "vue";
 import { useStore } from "vuex";
 
 import ArgonInput from "@/components/ArgonInput.vue";
@@ -64,30 +64,41 @@ const addInstiUserInfo = async () => {
 //기관이용자 아이디 중복 확인 (김경환 2060327)
 const message = ref("");
 
-const idCheck = ref(false);
+// const idCheck = ref(false);
 const isDuplicate = ref(false);
 
-const checkUserId = async () => {
-  if (!instiUserInfo.id) {
-    alert("아이디를 입력하세요");
-    return;
-  }
-  try {
-    let res = await fetch(`/api/user/checkinstiid/${instiUserInfo.id}`);
-    let result = await res.json();
+// const checkUserId = async () => {
+//   if (!instiUserInfo.id) {
+//     alert("아이디를 입력하세요");
+//     return;
+//   }
+//   try {
+//     let res = await fetch(`/api/user/checkinstiid/${instiUserInfo.id}`);
+//     let result = await res.json();
 
-    idCheck.value = true;
-    isDuplicate.value = result.duplicate;
+//     idCheck.value = true;
+//     isDuplicate.value = result.duplicate;
 
-    if (result.duplicate) {
-      message.value = "이미 사용중인 아이디입니다.";
-    } else {
-      message.value = "사용 가능한 아이디입니다.";
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
+//     if (result.duplicate) {
+//       message.value = "이미 사용중인 아이디입니다.";
+//     } else {
+//       message.value = "사용 가능한 아이디입니다.";
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
+
+//비밀번호 확인(김경환 20260329)
+const passwordConfirm = ref("");
+
+const passwordMessage = computed(() => {
+  if (!passwordConfirm.value) return "";
+
+  return instiUserInfo.password === passwordConfirm.value
+    ? "비밀번호 일치"
+    : "비밀번호 불일치";
+});
 
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
@@ -169,11 +180,11 @@ onBeforeUnmount(() => {
                     aria-label="Id"
                     v-model="instiUserInfo.id"
                   />
-                  <argon-button
+                  <!-- <argon-button
                     class="mt-auto p-3 d-flex justify-content-center gap-3"
                     @click.prevent="checkUserId"
                     >중복확인</argon-button
-                  >
+                  > -->
                 </div>
                 <p
                   v-if="message"
@@ -193,7 +204,9 @@ onBeforeUnmount(() => {
                   type="password"
                   placeholder="비밀번호확인"
                   aria-laber="PasswordCheck"
+                  v-model="passwordConfirm"
                 />
+                <span>{{ passwordMessage }}</span>
                 <argon-input
                   id="tel"
                   type="tel"
