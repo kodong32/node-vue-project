@@ -56,11 +56,17 @@ const getSurveyListByInstUser = async (I_UserId) => {
 
 
 //suplist
-const getSupportListByInstUser = async (I_UserId) => {
+const getSupportListByInstUser = async (I_UserId, managerName, guardianName, supportName) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(planSql.getSupportListByInstUser, I_UserId);
+    let rows = await conn.query(planSql.getSupportListByInstUser,
+      [
+        I_UserId, I_UserId, I_UserId, I_UserId,
+        managerName, managerName,
+        guardianName, guardianName,
+        supportName, supportName
+      ]);
     return rows;
 
   } catch (err) {

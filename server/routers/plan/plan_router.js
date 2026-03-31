@@ -73,8 +73,12 @@ router.get(`/getSurvey`, requireInstUser, requireInstRole, async (req, res) => {
 router.get(`/list`, requireInstUser, requireInstRole, async (req, res) => {
   const loginInstUser = req.session.loginInstUser;
   const I_UserId = loginInstUser.I_UserId;
+  
+  const managerName = req.query.managerName?.trim() || null;
+  const guardianName = req.query.guardianName?.trim() || null;
+  const supportName = req.query.supportName?.trim() || null;
 
-  const result = await managerService.getSupportListByInstUser(I_UserId);
+  const result = await managerService.getSupportListByInstUser(I_UserId, managerName, guardianName, supportName);
   res.send(result);
 });
 

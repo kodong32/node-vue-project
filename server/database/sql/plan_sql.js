@@ -71,13 +71,12 @@ WHERE
 ORDER BY s.created_at DESC
 `;
 
-const getSupportListByInstUser = 
-`
-SELECT
+const getSupportListByInstUser = `
+SELECT DISTINCT
     p.supportPlan_id,
     p.J_ID,
-    p.I_UserId1,
-    p.I_UserId2,
+    p.I_UserId1 AS writer_id,
+    p.I_UserId2 AS approver_id,
     u.name AS writer_name,
     p.purpose,
     p.content,
@@ -87,11 +86,29 @@ SELECT
     p.file2,
     p.wirte_at,
     p.state,
-    p.reject_reason
+    p.reject_reason,
+    sp.support_id,
+    sp.name AS support_name,
+    gn.G_UserId,
+    gn.name AS guardian_name
 FROM Plan_Tbl p
 LEFT JOIN InstiUser_Tbl u
     ON p.I_UserId1 = u.I_UserId
-WHERE p.I_UserId1 = ?
+LEFT JOIN Survey_Tbl s
+    ON p.J_ID = s.J_ID
+LEFT JOIN Support_Tbl sp
+    ON s.support_id = sp.support_id
+LEFT JOIN GeneralUser_Tbl gn
+    ON s.G_UserId = gn.G_UserId
+WHERE (
+      p.I_UserId1 = ?
+   OR p.I_UserId2 = ?
+   OR sp.I_UserId1 = ?
+   OR sp.I_UserId2 = ?
+)
+AND ( ? IS NULL OR u.name LIKE CONCAT('%', ?, '%') )
+AND ( ? IS NULL OR gn.name LIKE CONCAT('%', ?, '%') )
+AND ( ? IS NULL OR sp.name LIKE CONCAT('%', ?, '%') )
 ORDER BY p.wirte_at DESC
 `;
 
