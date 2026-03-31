@@ -252,18 +252,19 @@ router.get(`/instiUsers/:roll`, async (req, res) => {
 //이용자 승인 및 대기(김경환 20260331)
 router.get("/wait-users", async (req, res) => {
   // 기관관리자 승인 접근
-  if (req.session.user?.roll !== "GENERAL") {
-    return res.status(403).send("권한 없음");
-  }
-  const institution_id = req.session.user.institution_id;
+  const instId = req.session.loginInstUser.institution_id;
 
-  const result = await userService.waitUser(institution_id);
+  const result = await userService.waitUser(instId);
+
   res.send(result);
 });
 
 router.patch("/approve/:id", async (req, res) => {
-  if (req.session.user.roll !== "GENERAL") {
-    return res.status(403).send("권한원음");
+  if (!req.session.loginInstUser) {
+    return res.status(401).send("로그인 필요");
+  }
+  if (req.session.loginInstUser.role !== "a002") {
+    return res.status(403).send("권한없음");
   }
 
   await userService.agreeUser(req.params.id);

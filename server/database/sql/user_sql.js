@@ -136,7 +136,8 @@ AND institution_id = ?
 const agreeUser = `
 UPDATE GeneralUser_Tbl
 SET approval = 'g001'
-WHERE G_UserId = ?`;
+WHERE G_UserId = ?
+`;
 module.exports = {
   testSelect,
   insertUser,

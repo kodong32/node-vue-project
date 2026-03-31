@@ -270,10 +270,11 @@ const getManagerList = async (roll) => {
   }
 };
 
+//기관관리자의 이용자 회원가입 승인(김경환 20260331)
 const waitUser = async (institution_id) => {
   let conn = await pool.getConnection();
   try {
-    const rows = await conn.query(userSql.waitUser, institution_id);
+    const rows = await conn.query(userSql.waitUser, [institution_id]);
     return rows;
   } catch (err) {
     console.log(err);
@@ -282,6 +283,7 @@ const waitUser = async (institution_id) => {
       conn.release();
     }
   }
+  console.log(institution_id);
 };
 
 const agreeUser = async (id) => {

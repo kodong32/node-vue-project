@@ -89,7 +89,9 @@
                   >
                 </li>
                 <li class="nav-item" v-if="userRole === 'GENERAL'">
-                  <a class="px-3 py-2 mb-0 nav-link" @click="goApproval()"
+                  <a
+                    class="px-3 py-2 mb-0 nav-link active"
+                    @click="goApproval()"
                     ><span class="ms-1">가입 승인</span></a
                   >
                 </li>

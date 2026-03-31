@@ -8,7 +8,7 @@ const waitUsers = ref([]);
 const loadWaitUsers = async () => {
   try {
     const res = await axios.get("/api/user/wait-users");
-    waitUsers.value = res.data;
+    waitUsers.value = res.data.data;
   } catch (err) {
     console.log(err);
   }
@@ -16,6 +16,7 @@ const loadWaitUsers = async () => {
 
 // 승인
 const approveUser = async (id) => {
+  if (!confirm("해당 사용자를 승인하시겠습니까?")) return;
   try {
     await axios.patch(`/api/user/approve/${id}`);
     alert("승인 완료");
@@ -44,7 +45,7 @@ onMounted(() => {
 <template>
   <div class="card">
     <div class="card-header pb-0">
-      <h6>회원가입 신청내역</h6>
+      <h6>사용자 가입 승인 관리</h6>
     </div>
     <div class="card-body px-0 pt-0 pb-2">
       <div class="table-responsive p-0">
@@ -81,14 +82,14 @@ onMounted(() => {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="waitUsers.length > 0">
             <tr v-for="user in waitUsers" :key="user.G_UserId">
-              <td>{{ user.name }}</td>
-              <td>{{ user.id }}</td>
-              <td>{{ user.tel }}</td>
-              <td>{{ user.email }}</td>
+              <td class="text-center">{{ user.name }}</td>
+              <td class="text-center">{{ user.id }}</td>
+              <td class="text-center">{{ user.tel }}</td>
+              <td class="text-center">{{ user.email }}</td>
 
-              <td>
+              <td class="text-center">
                 <button
                   class="btn btn-success btn-sm me-2"
                   @click="approveUser(user.G_UserId)"
@@ -105,9 +106,14 @@ onMounted(() => {
               </td>
             </tr>
           </tbody>
-          <div v-if="waitUsers.length === 0" class="text-center">
-            승인 대기 사용자가 없습니다.
-          </div>
+
+          <tbody v-else>
+            <tr>
+              <td colspan="5" class="text-center">
+                승인 대기 사용자가 없습니다.
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>

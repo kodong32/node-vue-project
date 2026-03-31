@@ -301,12 +301,21 @@ const getManagerList = async (roll) => {
   return info;
 };
 
+//기관관리지의 이용자 회원가입 승인(김경환 20260331)
 const waitUser = async (institution_id) => {
-  return await userMapper.waitUser(institution_id);
+  const rows = await userMapper.waitUser(institution_id);
+  return {
+    success: true,
+    data: rows,
+  };
 };
 
 const agreeUser = async (id) => {
-  return await userMapper.agreeUser(id);
+  const result = await userMapper.agreeUser(id);
+  return {
+    success: true,
+    result,
+  };
 };
 module.exports = {
   testSelect,
