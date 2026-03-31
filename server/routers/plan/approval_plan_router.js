@@ -32,7 +32,10 @@ router.get("/list", async (req, res) => {
 router.put("/approve/:planId", async (req, res) => {
   try {
     const planId = req.params.planId;
-    await service.handleApprove(planId);
+    // 🚨 [임시 하드코딩] 나중에 세션에서 실제 로그인한 관리자 ID 가져오기!
+    const adminId = "IUSR0000"; // 승인하는 관리자 ID 예시
+
+    await service.handleApprove(planId, adminId);
     res.status(200).json({ message: "승인 완료" });
   } catch (err) {
     res.status(500).json({ message: "승인 처리 실패", error: err.message });
@@ -43,8 +46,11 @@ router.put("/approve/:planId", async (req, res) => {
 router.put("/reject/:planId", async (req, res) => {
   try {
     const planId = req.params.planId;
-    const { rejectReason } = req.body; // 프론트 모달창에서 적은 사유
-    await service.handleReject(planId, rejectReason);
+    const { rejectReason } = req.body;
+    // 🚨 [임시 하드코딩] 세션 연동 전까지 쓸 임시 결재자 ID
+    const adminId = "IUSR0000";
+
+    await service.handleReject(planId, adminId, rejectReason);
     res.status(200).json({ message: "반려 완료" });
   } catch (err) {
     res.status(500).json({ message: "반려 처리 실패", error: err.message });

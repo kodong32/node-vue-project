@@ -26,16 +26,16 @@ const fetchPendingList = async (instiId, filters, page, limit) => {
 };
 
 // 승인 처리
-const handleApprove = async (supportPlanId) => {
+const handleApprove = async (supportPlanId, adminId) => {
   if (!supportPlanId) throw new Error("계획서 ID가 없습니다.");
-  return await mapper.approvePlan(supportPlanId);
+  return await mapper.approvePlan(supportPlanId, adminId);
 };
 
 // 반려 처리
-const handleReject = async (supportPlanId, rejectReason) => {
+const handleReject = async (supportPlanId, adminId, rejectReason) => {
   if (!supportPlanId) throw new Error("계획서 ID가 없습니다.");
   if (!rejectReason) throw new Error("반려 사유를 입력해야 합니다.");
-  return await mapper.rejectPlan(supportPlanId, rejectReason);
+  return await mapper.rejectPlan(supportPlanId, adminId, rejectReason);
 };
 
 module.exports = { fetchPendingList, handleApprove, handleReject };

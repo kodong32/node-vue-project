@@ -32,22 +32,26 @@ const getPendingList = async (instiId, filters, limit, offset) => {
   }
 };
 
-// 2. 승인 실행
-const approvePlan = async (supportPlanId) => {
+// 승인
+const approvePlan = async (supportPlanId, adminId) => {
   let conn = await pool.getConnection();
   try {
-    const result = await conn.query(sqls.updatePlanApprove, [supportPlanId]);
+    const result = await conn.query(sqls.updatePlanApprove, [
+      adminId,
+      supportPlanId,
+    ]);
     return result;
   } finally {
     if (conn) conn.release();
   }
 };
 
-// 3. 반려 실행
-const rejectPlan = async (supportPlanId, rejectReason) => {
+// 반려
+const rejectPlan = async (supportPlanId, adminId, rejectReason) => {
   let conn = await pool.getConnection();
   try {
     const result = await conn.query(sqls.updatePlanReject, [
+      adminId,
       rejectReason,
       supportPlanId,
     ]);

@@ -26,22 +26,21 @@ const selectPendingList = `
   JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
   LEFT JOIN InstiUser_Tbl iu ON p.I_UserId1 = iu.I_UserId
   LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
-  /* 💡 핵심: 상태가 없거나(NULL), g001(승인)/g002(반려)가 아닌 것만 조회! */
-  WHERE (p.state IS NULL OR p.state NOT IN ('g001', 'g002'))
+  WHERE p.state = 'g003'
     AND iu.institution_id = ?
 `;
 
 // 2. 승인 처리 (상태를 g001로 변경)
 const updatePlanApprove = `
   UPDATE Plan_Tbl 
-  SET state = 'g001' 
+  SET state = 'g001', I_UserId2 = ? 
   WHERE supportPlan_id = ?
 `;
 
 // 3. 반려 처리 (상태를 g002로 변경하고 반려 사유 추가)
 const updatePlanReject = `
   UPDATE Plan_Tbl 
-  SET state = 'g002', reject_reason = ? 
+  SET state = 'g002', I_UserId2 = ?, reject_reason = ?
   WHERE supportPlan_id = ?
 `;
 
