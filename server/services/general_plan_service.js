@@ -36,6 +36,12 @@ const fetchGeneralPlanList = async (filters, page, limit) => {
       genderText: genderMap[item.genderCode] || "알수없음",
       isRejected: item.state === "g002",
       isApproved: item.state === "g001",
+      stateName:
+        item.state === "g001"
+          ? "승인완료"
+          : item.state === "g002"
+            ? "반려됨"
+            : "검토중",
     };
   });
 

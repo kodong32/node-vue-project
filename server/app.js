@@ -64,8 +64,17 @@ app.use("/priority", priorityRouter);
 const generalPlanRouter = require("./routers/plan/general_plan_router.js");
 app.use("/general/plan", generalPlanRouter);
 //일반이용자지원계획서
-const userPlanRouter = require("./routers/plan/user_plan_router");
+const userPlanRouter = require("./routers/plan/user_plan_router.js");
 app.use("/user/plan", userPlanRouter);
+//관리자&담당자 지원계획서 반려 내역
+const rejectedPlanRouter = require("./routers/plan/rejected_plan_router.js");
+app.use("/rejected/plan", rejectedPlanRouter);
+//관리자 지원계획서 승인&반려
+const approvalPlanRouter = require("./routers/plan/approval_plan_router.js");
+app.use("/approval/plan", approvalPlanRouter);
+//담당자 지원결과서 등록
+const resultPlanRouter = require("./routers/plan/result_plan_router.js");
+app.use("/result/plan", resultPlanRouter);
 //기관담당자 지원계획서
 const managerPlanRouter = require("./routers/plan/plan_router.js");
 app.use("/manager/plan", managerPlanRouter);
