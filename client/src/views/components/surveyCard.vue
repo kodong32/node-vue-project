@@ -6,24 +6,20 @@ const props = defineProps({
     type: Object,
     default: null,
   },
-  // [추가] 부모(surveyRegister)로부터 관리자가 수정한 문항 데이터를 받습니다.
   sections: {
     type: Array,
     default: () => [],
   },
 });
 
-// [수정] 하드코딩된 데이터는 삭제하고, props로 받은 데이터를 사용합니다.
 const allSections = ref([]);
 const answers = ref([]);
 
-// [추가] 부모로부터 문항 데이터가 들어오면 답변 배열을 그 크기에 맞게 초기화합니다.
 watch(
   () => props.sections,
   (newSections) => {
     if (newSections && newSections.length > 0) {
       allSections.value = newSections;
-      // 문항 구조에 맞게 답변 배열 생성 (전부 빈값으로 초기화)
       answers.value = newSections.map((s) =>
         s.subs.map((sub) => sub.questions.map(() => "")),
       );
@@ -48,7 +44,6 @@ const closeModal = () => {
 
 const emit = defineEmits(["submit-survey"]);
 
-// [수정] 유효성 검사 및 데이터 전송 로직
 const surveyInfo = () => {
   for (let sIdx = 0; sIdx < allSections.value.length; sIdx++) {
     for (
@@ -83,15 +78,14 @@ const surveyInfo = () => {
     }
   }
 
-  // [수정] 서버 전송용 데이터 포맷팅 (DB 컬럼명에 맞춰 ID 전달)
   let flatAnswers = [];
   allSections.value.forEach((section, sIdx) => {
     section.subs.forEach((sub, subIdx) => {
       sub.questions.forEach((q, qIdx) => {
         flatAnswers.push({
-          question_id: q.question_id, // 서버에서 가져온 실제 ID 사용
+          question_id: q.question_id,
           answer: answers.value[sIdx][subIdx][qIdx],
-          titleCode: section.title, // 필요시 추가
+          titleCode: section.title,
         });
       });
     });
@@ -191,7 +185,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
                           아니오
                         </td>
                       </tr>
-
                       <tr
                         v-for="(q, qIdx) in sub.questions"
                         :key="qIdx"
@@ -207,7 +200,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
                           class="text-sm text-dark text-wrap py-3 ps-3 align-middle"
                         >
                           {{ q.text }}
-
                           <div v-if="q.answer_type === 'e002'" class="mt-2">
                             <textarea
                               class="form-control form-control-sm"
@@ -216,7 +208,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
                               placeholder="내용을 입력해주세요."
                             ></textarea>
                           </div>
-
                           <div
                             v-if="
                               q.hasExtraInput &&
@@ -252,7 +243,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
                             </div>
                           </div>
                         </td>
-
                         <td class="text-center border-start align-middle">
                           <input
                             v-if="q.answer_type === 'e001'"
@@ -287,13 +277,13 @@ const todayAdd = new Date().toISOString().split("T")[0];
                 class="btn btn-success px-6 py-2-5 me-3 shadow-sm"
                 @click="openModal"
               >
-                저장하기
+                저장
               </button>
               <button
                 class="btn btn-outline-secondary px-6 py-2-5 shadow-sm"
                 @click="resetCancel"
               >
-                취소하기
+                취소
               </button>
             </div>
           </div>
@@ -314,18 +304,112 @@ const todayAdd = new Date().toISOString().split("T")[0];
               >
             </div>
           </div>
+
           <div class="card-body modal-scrollable p-4 bg-white">
+            <div
+              class="alert alert-light border-radius-md mb-4 text-sm text-dark"
+            >
+              최종 제출 전 입력하신 내용을 확인해 주세요.
+              <b>(수정은 닫기 버튼을 눌러주세요)</b>
+            </div>
+
             <template v-for="(section, sIdx) in allSections" :key="'m' + sIdx">
-              <div class="section-title-box mb-3">{{ section.title }}</div>
-              <div v-for="(sub, subIdx) in section.subs" :key="'ms' + subIdx">
-                <div v-for="(q, qIdx) in sub.questions" :key="'mq' + qIdx">
-                  <p v-if="answers[sIdx][subIdx][qIdx]">
-                    질문: {{ q.text }} / 답변: {{ answers[sIdx][subIdx][qIdx] }}
-                  </p>
+              <div class="section-title-box mb-3" :class="{ 'mt-4': sIdx > 0 }">
+                <div class="d-flex align-items-center">
+                  <span class="dot-icon me-2">●</span>
+                  <h6 class="mb-0 font-weight-bolder text-dark">
+                    {{ section.title }}
+                  </h6>
                 </div>
+              </div>
+
+              <div class="table-responsive mb-4">
+                <table
+                  class="table align-items-center mb-0 custom-bordered-table"
+                >
+                  <tbody>
+                    <template
+                      v-for="(sub, subIdx) in section.subs"
+                      :key="'ms' + subIdx"
+                    >
+                      <tr class="sub-header-row bg-white">
+                        <td
+                          class="text-success font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
+                          style="width: 15%"
+                        >
+                          {{ sub.subTitle }}
+                        </td>
+                        <td
+                          class="text-dark font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
+                          colspan="3"
+                        >
+                          {{ sub.description }}
+                        </td>
+                      </tr>
+                      <tr
+                        v-for="(q, qIdx) in sub.questions"
+                        :key="'mq' + qIdx"
+                        class="question-row"
+                      >
+                        <td
+                          class="text-center text-secondary text-sm font-weight-bold border-end align-middle"
+                          style="width: 50px"
+                        >
+                          {{ qIdx + 1 }}
+                        </td>
+                        <td
+                          class="text-sm text-dark text-wrap py-3 ps-3 align-middle"
+                        >
+                          {{ q.text }}
+                          <div
+                            v-if="
+                              q.answer_type === 'e002' &&
+                              answers[sIdx][subIdx][qIdx]
+                            "
+                            class="mt-2 text-primary font-weight-bold"
+                          >
+                            [입력내용]: {{ answers[sIdx][subIdx][qIdx] }}
+                          </div>
+                          <div
+                            v-if="
+                              q.hasExtraInput &&
+                              answers[sIdx][subIdx][qIdx] === '예'
+                            "
+                            class="mt-2 text-sm text-info"
+                          >
+                            <span class="d-block"
+                              >사유: {{ extraInputs.reason || "-" }}</span
+                            >
+                            <span class="d-block"
+                              >필요시기: {{ extraInputs.date || "-" }}</span
+                            >
+                          </div>
+                        </td>
+                        <td
+                          class="text-center border-start align-middle"
+                          style="width: 160px"
+                        >
+                          <span
+                            v-if="answers[sIdx][subIdx][qIdx]"
+                            class="badge"
+                            :class="
+                              answers[sIdx][subIdx][qIdx] === '예'
+                                ? 'bg-success'
+                                : 'bg-secondary'
+                            "
+                          >
+                            {{ answers[sIdx][subIdx][qIdx] }}
+                          </span>
+                          <span v-else class="text-muted">-</span>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
               </div>
             </template>
           </div>
+
           <div
             class="modal-footer d-flex justify-content-center bg-white border-top py-3"
           >
@@ -333,7 +417,7 @@ const todayAdd = new Date().toISOString().split("T")[0];
               class="btn btn-success px-5 py-2 me-2 shadow-sm"
               @click="surveyInfo"
             >
-              최종 등록
+              등록
             </button>
             <button
               class="btn btn-outline-secondary px-5 py-2 shadow-sm"
@@ -361,8 +445,8 @@ const todayAdd = new Date().toISOString().split("T")[0];
 .date-center {
   position: absolute;
   left: 50%;
-  top: 50%; /* 부모(header-bg)의 세로 중앙으로 이동 */
-  transform: translate(-50%, -50%); /* 가로/세로 중앙 정렬 완성 */
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
 }
@@ -405,17 +489,12 @@ const todayAdd = new Date().toISOString().split("T")[0];
 .extra-info-box {
   background-color: #f8f9fa;
 }
-.comment-box {
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 15px;
-}
 .px-6 {
   padding-left: 3rem !important;
   padding-right: 3rem !important;
 }
 
-/* 수정된 모달 전용 스타일 */
+/* 모달 전용 스타일 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -431,13 +510,13 @@ const todayAdd = new Date().toISOString().split("T")[0];
 
 .modal-content-wrapper {
   width: 95%;
-  max-width: 900px; /* 메인 카드 너비와 유사하게 조정 */
+  max-width: 1000px; /* 테이블 레이아웃을 위해 폭을 조금 더 넓힘 */
   background-color: #fff;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 90vh; /* 화면을 벗어나지 않게 */
+  max-height: 90vh;
   position: relative;
   z-index: 1060;
 }
@@ -445,15 +524,6 @@ const todayAdd = new Date().toISOString().split("T")[0];
 .modal-scrollable {
   overflow-y: auto;
   flex: 1;
-}
-
-/* 선택된 항목 표시용 녹색 점 (라디오 버튼 스타일) */
-.selected-dot {
-  width: 18px;
-  height: 18px;
-  background-color: #5dbe8a;
-  border-radius: 50%;
-  border: 2px solid #5dbe8a;
 }
 
 .modal-footer {
@@ -469,5 +539,21 @@ const todayAdd = new Date().toISOString().split("T")[0];
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* 뱃지 스타일 보강 */
+.badge {
+  padding: 0.5em 0.8em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+}
+.bg-success {
+  background-color: #5dbe8a !important;
+  color: white;
+}
+.bg-secondary {
+  background-color: #abb3bb !important;
+  color: white;
 }
 </style>

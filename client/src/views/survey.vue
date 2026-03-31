@@ -60,6 +60,7 @@ const getActiveVerId = async () => {
   }
 };
 
+// 🔹 설문 문항 불러오기
 const loadLatestQuestions = async () => {
   if (!Ver_Id.value) {
     console.warn("Ver_Id 없음 → 문항 로드 중단");

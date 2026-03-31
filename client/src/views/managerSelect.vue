@@ -19,7 +19,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import SelectCard from "./components/surveySelectCard.vue";
+import SelectCard from "./components/managerSelectCard.vue";
 import surveyTop from "./components/surveyHeader.vue";
 import { useRoute } from "vue-router";
 

@@ -73,14 +73,17 @@ router.post("user", async (req, res) => {
 router.get("/getQuestionsByJID/:id", async (req, res) => {
   let { id } = req.params;
   let result = await surveyService.getQuestionsByJID(id);
-
+  console.log("문항 조회 결과:", result);
   res.json(result || []);
 });
 
 router.get("/getActiveVerId", async (req, res) => {
-  const result = await surveyService.getActiveVerId();
-  console.log(result);
-  res.send(result);
+  try {
+    const Ver_Id = await surveyService.getActiveVerId();
+    res.json({ Ver_Id: Ver_Id || "FORM0004" });
+  } catch (err) {
+    console.error("getActiveVerId 서버 에러:", err);
+    res.json({ Ver_Id: "FORM0004" });
+  }
 });
-
 module.exports = router;

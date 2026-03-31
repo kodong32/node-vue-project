@@ -143,6 +143,7 @@ const getActiveVerId = async () => {
   try {
     conn = await pool.getConnection();
     let rows = await conn.query(surveySql.getActiveVerId);
+    console.log("mapper rows", rows);
     return rows;
   } catch (err) {
     console.log(err);
