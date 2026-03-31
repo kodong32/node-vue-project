@@ -51,4 +51,13 @@ const createPlanResult = async (data) => {
   }
 };
 
-module.exports = { getApprovedPlans, createPlanResult };
+const getMaxResultId = async () => {
+  let conn = await pool.getConnection();
+  try {
+    return await conn.query(sqls.selectMaxResultId);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+module.exports = { getApprovedPlans, createPlanResult, getMaxResultId };

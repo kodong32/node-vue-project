@@ -31,10 +31,22 @@ const fetchApprovedPlansForModal = async (managerId, filters, page, limit) => {
 
 // 2. 등록
 const savePlanResult = async (data) => {
-  // 💡 실무에서는 여기서 result_report ID를 자동 생성하는 로직을 넣습니다.
-  // (예: uuid를 쓰거나 DB에서 마지막 번호를 조회해서 생성)
-  // 지금은 프론트에서 넘어온 시간을 조합해서 임시 ID를 만들어볼게.
-  data.result_report = `REST${Date.now().toString().slice(-4)}`;
+  // 💡 정식 자동 채번(Auto Increment) 로직
+  const maxIdRow = await mapper.getMaxResultId();
+
+  let nextId = "REST0000"; // 기본값 (아무 데이터도 없을 때)
+
+  if (maxIdRow && maxIdRow.length > 0 && maxIdRow[0].maxId) {
+    const currentMaxId = maxIdRow[0].maxId; // 예: "REST0000" 또는 "REST0838"
+    // "REST" 글자를 빈칸으로 바꾸고 숫자만 빼내서 숫자로 변환
+    const currentNum = parseInt(currentMaxId.replace("REST", ""));
+    const nextNum = currentNum + 1; // +1 증가!
+    // 다시 4자리로 맞추고 "REST" 붙이기 (padStart로 0 채우기)
+    nextId = `REST${String(nextNum).padStart(4, "0")}`;
+  }
+
+  // 생성된 순차 ID를 데이터에 쏙 넣기!
+  data.result_report = nextId;
 
   await mapper.createPlanResult(data);
   return { success: true, id: data.result_report };

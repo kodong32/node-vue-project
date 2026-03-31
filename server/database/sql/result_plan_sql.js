@@ -33,13 +33,19 @@ const selectApprovedPlansForModal = `
 // 💡 2. 결과서 저장 (INSERT) - 상태는 'g003'(검토대기), 승인자(I_UserId2)는 우선 NULL
 const insertPlanResult = `
   INSERT INTO PlanResult_Tbl (
-    result_report, supportPlan_id, I_UserId1, result, content, file1, file2, created_at, state
+    result_report, supportPlan_id, I_UserId, result, content, file1, file2, created_at, state
   ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, NOW(), 'g003'
   )
 `;
 
+// 가장 큰 ID(마지막 번호) 조회
+const selectMaxResultId = `
+  SELECT MAX(result_report) AS maxId FROM PlanResult_Tbl
+`;
+
 module.exports = {
   selectApprovedPlansForModal,
   insertPlanResult,
+  selectMaxResultId,
 };

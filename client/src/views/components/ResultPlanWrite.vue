@@ -22,8 +22,16 @@ const searchFilters = ref({
 const resultTitle = ref("");
 const resultContent = ref("");
 // 파일 처리는 추후 폼데이터(FormData)로 확장 가능하도록 일단 빈 문자열로 둠
-const file1 = ref("");
-const file2 = ref("");
+const file1 = ref(null);
+const file2 = ref(null);
+
+// 💡 파일 선택 시 작동하는 함수
+const handleFile1 = (event) => {
+  file1.value = event.target.files[0];
+};
+const handleFile2 = (event) => {
+  file2.value = event.target.files[0];
+};
 
 // 2. 모달창 데이터 불러오기 (승인된 계획서만!)
 const fetchApprovedPlans = async () => {
@@ -75,15 +83,15 @@ const submitResult = async () => {
       supportPlan_id: selectedPlan.value.supportPlan_id,
       result: resultTitle.value,
       content: resultContent.value,
-      file1: file1.value,
-      file2: file2.value,
+      file1: file1.value ? file1.value.name : "",
+      file2: file2.value ? file2.value.name : "",
     });
 
     alert("지원결과서가 성공적으로 등록(승인 요청)되었습니다.");
     router.push("/manager/result/plan"); // 💡 작성 완료 후 결과서 조회 페이지로 이동!
-  } catch (error) {
+  } catch (err) {
     alert("결과서 등록 중 오류가 발생했습니다.");
-    console.error(error);
+    console.error(err);
   }
 };
 
@@ -193,6 +201,29 @@ onMounted(() => {
                   v-model="resultContent"
                   placeholder="목표에 맞는 구체적인 지원 결과를 적어주세요."
                 ></textarea>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <label class="form-label text-sm font-weight-bold"
+                    ><i class="fas fa-file-upload me-1"></i>첨부파일 1</label
+                  >
+                  <input
+                    type="file"
+                    class="form-control form-control-sm"
+                    @change="handleFile1"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-sm font-weight-bold"
+                    ><i class="fas fa-file-upload me-1"></i>첨부파일 2</label
+                  >
+                  <input
+                    type="file"
+                    class="form-control form-control-sm"
+                    @change="handleFile2"
+                  />
+                </div>
               </div>
 
               <div class="d-flex justify-content-end">
