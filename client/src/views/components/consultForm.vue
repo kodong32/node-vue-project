@@ -1,374 +1,414 @@
 <template>
-  <div class="container-fluid min-w-900 pb-5 bg-light min-vh-100">
-    <div class="page-header min-height-100 border-radius-xl mt-4">
-      <span class="mask bg-gradient-success opacity-6"></span>
-    </div>
-
-    <div class="card shadow-lg mt-n6 mx-3 mb-5">
-      <div class="card-body p-3">
-        <div
-          class="d-flex align-items-center justify-content-between flex-row flex-nowrap w-100"
-        >
-          <div class="d-flex align-items-center">
-            <h3 class="mb-0 fw-bold me-4" style="font-size: 1.1rem">
-              발달장애인 지원 프로그램
-            </h3>
-            <ul
-              class="nav nav-pills custom-horizontal-menu flex-row flex-nowrap"
-            >
-              <li class="nav-item">
-                <RouterLink
-                  class="px-3 py-2 nav-link d-flex align-items-center"
-                  :to="{ name: 'managerMain' }"
-                  active-class="active"
-                >
-                  <span class="me-1">🏠</span>
-                  <span class="text-nowrap">첫 화면</span>
-                </RouterLink>
-              </li>
-              <li class="nav-item ms-2">
-                <RouterLink
-                  class="px-3 py-2 nav-link d-flex align-items-center"
-                  :to="{ name: 'userSurveyAdd' }"
-                  active-class="active"
-                >
-                  <span class="me-1">📄</span>
-                  <span class="text-nowrap">조사지신청</span>
-                </RouterLink>
-              </li>
-            </ul>
-          </div>
-          <div class="text-center fw-bold color-primary flex-grow-1">
-            예담지원센터, 미나리님!
-          </div>
-          <div class="d-flex gap-3 align-items-center text-nowrap">
-            <span class="fw-bold text-sm cursor-pointer text-dark-hover"
-              >마이페이지</span
-            >
-            <span class="text-secondary opacity-5">|</span>
-            <span class="fw-bold text-sm cursor-pointer text-dark-hover"
-              >로그아웃</span
-            >
+  <div class="page-wrapper min-vh-100 pb-5">
+    <header class="header-nav mx-4 mt-3 p-3 shadow-sm bg-white">
+      <div
+        class="d-flex justify-content-between align-items-center max-w-7xl mx-auto"
+      >
+        <div class="d-flex align-items-center gap-4">
+          <h2 class="brand-text m-0">발달장애인 지원 프로그램</h2>
+          <div class="nav-links d-flex gap-2">
+            <button class="btn-nav active">🏠 첫 화면</button>
+            <button class="btn-nav">📄 조사지신청</button>
           </div>
         </div>
+        <div class="user-meta">
+          <span class="me-3">예담지원센터, <strong>박담당</strong> 님!</span>
+          <span class="auth-link">Mypage</span>
+          <span class="divider">|</span>
+          <span class="auth-link">Logout</span>
+        </div>
       </div>
-    </div>
+    </header>
 
-    <main
-      class="max-w-6xl mx-auto bg-white p-6 border border-gray-300 shadow-sm"
-    >
-      <div class="text-center mb-5">
-        <h2 class="text-3xl font-bold inline-flex items-center gap-2">
-          📄 상담 기록
-        </h2>
+    <main class="content-container mx-auto mt-4 shadow-sm bg-white">
+      <div class="content-header p-4 border-bottom text-center">
+        <h1 class="main-title m-0">상담 기록</h1>
       </div>
 
-      <div class="mb-5">
-        <h4 class="text-lg font-bold mb-2">기본정보</h4>
-        <table class="w-full border-collapse border-2 border-dark text-center">
-          <tbody>
-            <tr>
-              <th
-                class="border border-gray-400 bg-gray-100 p-2 w-32 text-sm relative"
+      <div class="p-5">
+        <section class="mb-5">
+          <h4 class="section-title mb-4">기본 정보</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>상담 / 작성일자</label>
+              <div class="d-flex gap-2">
+                <input
+                  type="date"
+                  v-model="form.consultDate"
+                  class="form-input"
+                />
+                <input
+                  type="date"
+                  v-model="form.writeDate"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="info-item">
+              <label>상담 시간 (시작/종료)</label>
+              <div class="d-flex gap-2">
+                <input
+                  type="text"
+                  v-model="form.startTime"
+                  placeholder="00:00:00"
+                  class="form-input text-center"
+                />
+                <input
+                  type="text"
+                  v-model="form.endTime"
+                  placeholder="00:00:00"
+                  class="form-input text-center"
+                />
+              </div>
+            </div>
+            <div class="info-item">
+              <label>장애 유형</label>
+              <select
+                v-model="form.disabilityType"
+                class="form-input custom-select"
               >
-                <span
-                  class="absolute -left-2 -top-2 bg-red-600 text-white w-5 h-5 flex items-center justify-center text-xs font-bold rounded-sm"
-                  >1</span
+                <option value="">유형 선택</option>
+                <option
+                  v-for="item in disabilityTypes"
+                  :key="item.code"
+                  :value="item.code"
                 >
-                상담일자 /<br />작성일자
-              </th>
-              <td class="border border-gray-400 p-1 w-48">
-                <input
-                  type="date"
-                  v-model="form.consultDate"
-                  class="custom-input"
-                />
-                <input
-                  type="date"
-                  v-model="form.consultDate"
-                  class="custom-input"
-                />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 w-32 text-sm">
-                시작시간 /<br />종료시간
-              </th>
-              <td class="border border-gray-400 p-1 w-48">
-                <input
-                  type="text"
-                  v-model="form.timeRange"
-                  class="custom-input"
-                  placeholder="00:00~00:00"
-                />
-                <input
-                  type="text"
-                  v-model="form.timeRange"
-                  class="custom-input"
-                  placeholder="00:00~00:00"
-                />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 w-32 text-sm">
-                장애유형
-              </th>
-              <td class="border border-gray-400 p-1 w-48">
-                <input
-                  type="text"
-                  v-model="form.disabilityType"
-                  class="custom-input"
-                />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 w-32 text-sm">
-                상담장소
-              </th>
-              <td class="border border-gray-400 p-1">
-                <input
-                  type="text"
-                  v-model="form.location"
-                  class="custom-input"
-                />
-              </td>
-            </tr>
-            <tr>
-              <th class="border border-gray-400 bg-gray-100 p-2 text-sm">
-                지원대상자 /<br />보호자
-              </th>
-              <td class="border border-gray-400 p-1">
-                <input
-                  type="text"
-                  v-model="form.targetName"
-                  class="custom-input"
-                />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 text-sm">
-                상담방법
-              </th>
-              <td class="border border-gray-400 p-1">
-                <input type="text" v-model="form.method" class="custom-input" />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 text-sm">
-                지원자<br />회원번호
-              </th>
-              <td class="border border-gray-400 p-1">
-                <input
-                  type="text"
-                  v-model="form.memberId"
-                  class="custom-input"
-                />
-              </td>
-              <th class="border border-gray-400 bg-gray-100 p-2 text-sm">
-                담 당 자
-              </th>
-              <td class="border border-gray-400 p-1">
-                <input
-                  type="text"
-                  v-model="form.manager"
-                  class="custom-input"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                  {{ item.description }}
+                </option>
+              </select>
+            </div>
+            <div class="info-item">
+              <label>상담 장소</label>
+              <input
+                type="text"
+                v-model="form.location"
+                class="form-input"
+                placeholder="장소 입력"
+              />
+            </div>
+            <div class="info-item">
+              <label>지원대상자</label>
+              <select
+                @change="handleUserChange"
+                class="form-input custom-select"
+              >
+                <option value="">대상자 선택</option>
+                <option
+                  v-for="user in userList"
+                  :key="user.I_UserId"
+                  :value="user.I_UserId"
+                >
+                  {{ user.user_name }}
+                </option>
+              </select>
+            </div>
+            <div class="info-item">
+              <label>보호자명</label>
+              <input
+                type="text"
+                v-model="form.guardianName"
+                class="form-input bg-light"
+                placeholder="대상자를 선택하면 자동 입력됩니다"
+                readonly
+              />
+            </div>
 
-      <div class="border-2 border-dark">
-        <div
-          class="bg-gray-100 p-2 border-b border-gray-400 text-sm font-bold px-3"
-        >
-          상담기록
-        </div>
-        <div
-          v-for="(section, index) in detailSections"
-          :key="index"
-          class="border-b border-gray-400 last:border-b-0"
-        >
-          <div class="p-3 font-bold text-lg bg-white text-blue-800">
-            {{ section.title }}
+            <div class="info-item">
+              <label>상담 방법</label>
+              <input
+                type="text"
+                v-model="form.method"
+                class="form-input"
+                placeholder="방법 입력"
+              />
+            </div>
+            <div class="info-item">
+              <label>지원자 회원번호</label>
+              <input
+                type="text"
+                v-model="form.memberId"
+                class="form-input bg-light"
+                readonly
+              />
+            </div>
+            <div class="info-item">
+              <label>담당자</label>
+              <input
+                type="text"
+                v-model="form.manager"
+                class="form-input fw-bold bg-light"
+                readonly
+              />
+            </div>
           </div>
-          <div class="px-3 pb-3">
+        </section>
+
+        <section class="record-area mt-5">
+          <h4 class="section-title mb-4">상담 기록 상세</h4>
+          <div
+            v-for="(item, idx) in sections"
+            :key="idx"
+            class="record-card mb-4"
+          >
+            <div class="record-label">{{ item.title }}</div>
             <textarea
-              v-model="form.details[section.key]"
-              rows="6"
-              class="custom-textarea"
-              placeholder="내용을 상세히 입력하세요."
+              v-model="form.details[item.key]"
+              class="record-textarea"
+              rows="5"
+              placeholder="상세 내용을 입력해 주세요."
             ></textarea>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <footer class="mt-12 flex flex-row justify-center items-center gap-12">
-        <div class="button-wrapper">
-          <button @click="goBack" class="btn-round">이전</button>
-        </div>
-        <div class="button-wrapper">
-          <button @click="submitForm" class="btn-round">등록</button>
-        </div>
-        <div class="button-wrapper">
-          <button @click="cancelForm" class="btn-round">취소</button>
-        </div>
-      </footer>
+        <footer class="d-flex justify-content-center gap-3 mt-5 pt-4">
+          <button class="btn-action btn-prev">이전</button>
+          <button class="btn-action btn-submit">등록</button>
+          <button class="btn-action btn-cancel">취소</button>
+        </footer>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
 
-const router = useRouter();
 const form = ref({
   consultDate: "",
-  timeRange: "",
+  writeDate: "",
+  startTime: "",
+  endTime: "",
   disabilityType: "",
   location: "",
   targetName: "",
+  guardianName: "",
   method: "",
   memberId: "",
-  manager: "미나리",
+  manager: "",
   details: {
-    basicInfo: "",
-    mainContent: "",
-    serviceNeed: "",
-    finalOpinion: "",
+    basic: "",
+    content: "",
+    needs: "",
+    opinion: "",
   },
 });
 
-const detailSections = [
-  { title: "1. 기본 정보", key: "basicInfo" },
-  { title: "2. 주요 상담 내용", key: "mainContent" },
-  { title: "3. 서비스 욕구 및 지원 필요성", key: "serviceNeed" },
-  { title: "4. 담당자 종합 의견", key: "finalOpinion" },
+const sections = [
+  { title: "기본 정보 요약", key: "basic" },
+  { title: "주요 상담 내용", key: "content" },
+  { title: "서비스 욕구 및 지원 필요성", key: "needs" },
+  { title: "담당자 종합 의견", key: "opinion" },
 ];
 
-const goBack = () => router.go(-1);
-const submitForm = () => {
-  if (!form.value.consultDate || !form.value.targetName)
-    return alert("필수 정보를 입력해주세요.");
-  alert("정상적으로 등록되었습니다.");
-  router.push({ name: "managerMain" });
+const disabilityTypes = ref([]);
+const userList = ref([]);
+
+const handleUserChange = (event) => {
+  const selectedId = event.target.value;
+  const user = userList.value.find((u) => u.I_UserId === selectedId);
+
+  if (user) {
+    form.value.memberId = user.I_UserId; // 회원번호 자동입력
+    form.value.targetName = user.user_name; // 대상자 이름 저장
+    form.value.guardianName = user.support_name; // 보호자명 자동입력 (필드명 확인 필요)
+  }
 };
-const cancelForm = () => {
-  if (confirm("작성 중인 내용이 사라집니다. 취소하시겠습니까?")) router.go(-1);
+
+const fetchDisabilityTypes = async () => {
+  try {
+    const response = await fetch(
+      "http://localhost:3000/consult/disability-types",
+    );
+    if (!response.ok) throw new Error("네트워크 응답 에러");
+    const data = await response.json();
+    disabilityTypes.value = data;
+    console.log(data);
+  } catch (error) {
+    console.error("데이터 로드 실패:", error);
+  }
 };
+
+const fetchUsers = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/consult/user");
+    if (!response.ok) throw new Error("사용자 로드 에러");
+    const data = await response.json();
+
+    userList.value = data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+onMounted(() => {
+  fetchDisabilityTypes();
+  fetchUsers();
+});
 </script>
 
 <style scoped>
-/* 입력 필드 공통 */
-.custom-input {
-  width: 100%;
-  border: 1px solid #ced4da;
-  padding: 8px;
-  font-size: 0.9rem;
-  outline: none;
-  border-radius: 2px;
-  transition: all 0.2s;
+/* [기존 레이아웃 스타일 유지] */
+.page-wrapper {
+  background-color: #f8fafc;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    sans-serif;
 }
-
-.custom-input:focus,
-.custom-textarea:focus {
-  border-color: #5a8a65;
-  background-color: #f8faf8;
-  box-shadow: 0 0 0 2px rgba(90, 138, 101, 0.1);
+.header-nav {
+  border-radius: 12px;
 }
-
-.custom-textarea {
-  width: 100%;
-  border: 1px solid #ced4da;
-  padding: 12px;
-  font-size: 1rem; /* 텍스트 영역 글씨 크기 살짝 키움 */
-  outline: none;
-  resize: none;
-  border-radius: 4px;
-  transition: all 0.2s;
+.brand-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.5px;
 }
-
-/* 버튼 관련 스타일 */
-.button-wrapper {
-  position: relative;
-  display: inline-block;
+.btn-nav {
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 6px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.2s;
 }
-.btn-round {
-  background-color: #5a8a65;
+.btn-nav.active {
+  background: #4a7253;
   color: white;
-  padding: 10px 50px;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 1.1rem;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+}
+.content-container {
+  max-width: 1000px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.main-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  position: relative;
+  padding-left: 15px;
+}
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  background: #4a7253;
+  border-radius: 2px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 40px;
+  background: #fdfdfd;
+  padding: 25px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.info-item label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  border-radius: 8px;
   transition: all 0.2s;
 }
-
-.btn-round:hover {
-  background-color: #4a7253;
-  transform: translateY(-1px);
+.form-input:focus {
+  outline: none;
+  border-color: #4a7253;
+  box-shadow: 0 0 0 3px rgba(74, 114, 83, 0.1);
 }
 
-/* 버튼 중앙 정렬을 위한 래퍼 */
-.button-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.record-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
 }
-
-/* 표 스타일 강조 */
-.border-2 {
-  border-width: 2px !important;
+.record-label {
+  background: #f8fafc;
+  padding: 12px 20px;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
 }
-.border-dark {
-  border-color: #333 !important;
-}
-
-/* 유틸리티 */
-.text-lg {
-  font-size: 1.2rem !important;
-}
-
-/* [추가/수정됨] 보내주신 이미지 스타일 전용 CSS */
-.button-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 이미지 배지 디테일 수정 (빨간색 번호표) */
-.image-badge {
-  position: absolute;
-  /* 버튼 왼쪽 상단 모서리 외부에 위치하도록 조정 */
-  left: -5px;
-  top: -10px;
-  background-color: #ff0000; /* 완전한 빨간색 */
-  color: #ffffff;
-  width: 26px; /* 이미지 크기와 비슷하게 확대 */
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px; /* 이미지 속 번호 크기 */
-  font-weight: 900; /* 아주 굵게 */
-  border-radius: 2px; /* 살짝 둥근 사각형 */
-  z-index: 10;
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* 이미지의 엠보싱 느낌 살짝 추가 */
-}
-
-/* 이미지 속 버튼 스타일 구현 */
-.btn-image-style {
-  background-color: #4a7253; /* 이미지 속 짙은 초록색 */
-  color: #ffffff;
-  padding: 10px 45px; /* 이미지 비율 맞춤 */
-  border-radius: 50px; /* 완전 라운드 */
-  font-weight: bold;
-  font-size: 1.15rem; /* 이미지 속 글씨 크기 */
+.record-textarea {
+  width: 100%;
   border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15); /* 하단 그림자 */
-  transition: all 0.15s;
+  padding: 20px;
+  font-size: 1rem;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
 }
 
-.btn-image-style:hover {
-  background-color: #3f6046; /* 살짝 더 어두운 호버색 */
-  transform: translateY(-1px);
+/* [수정된 버튼 스타일] */
+.btn-action {
+  padding: 12px 45px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid transparent; /* 기본 테두리 설정 */
+}
+.btn-prev {
+  background-color: #4a7253;
+  border-color: #3d5e44;
+  color: white;
+}
+.btn-prev:hover {
+  background-color: #3d5e44;
+  border-color: #2d4633;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
+}
+.btn-submit {
+  background-color: #4a7253;
+  border-color: #3d5e44;
+  color: white;
+}
+.btn-submit:hover {
+  background-color: #3d5e44;
+  border-color: #2d4633;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 114, 83, 0.2);
+}
+
+.btn-cancel {
+  background-color: #4a7253;
+  border-color: #3d5e44;
+  color: white;
+}
+.btn-cancel:hover {
+  background-color: #3d5e44;
+  border-color: #2d4633;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(225, 112, 85, 0.2);
+}
+
+.auth-link {
+  cursor: pointer;
+  transition: 0.2s;
+}
+.divider {
+  margin: 0 12px;
+  color: #e2e8f0;
 }
 </style>

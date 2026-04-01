@@ -16,4 +16,17 @@ const consultList = async () => {
   }
 };
 
-module.exports = { consultList };
+const description = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(consultSql.description);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+module.exports = { consultList, description };

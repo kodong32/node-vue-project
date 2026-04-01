@@ -7,4 +7,10 @@ const findAll = async () => {
   return list;
 };
 
-module.exports = { findAll };
+//폼 장애유형 선택
+const description = async () => {
+  let major = await consultMapper.description();
+  return major;
+};
+
+module.exports = { findAll, description };

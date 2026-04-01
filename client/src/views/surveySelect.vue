@@ -35,6 +35,7 @@ const targetRegDate = ref("");
 onMounted(async () => {
   try {
     const J_ID = Object.keys(route.query)[0];
+
     // console.log("보내는 J_ID 값:", J_ID);
     const response = await fetch(`http://localhost:3000/survey/user/${J_ID}`);
 

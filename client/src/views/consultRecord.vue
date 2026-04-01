@@ -8,21 +8,29 @@
       <div class="filter-row">
         <div class="input-item">
           <label>기관담당자 :</label>
-          <select v-model="filters.type" class="form-select">
-            <option value="all">전체</option>
-            <option value="minari">미나리</option>
-            <option value="gosari">고사리</option>
-            <option value="si">시금치</option>
+          <select class="form-select" v-model="filters.manager">
+            <option value="">전체</option>
+            <option
+              v-for="manager in managerList"
+              :key="manager.id"
+              :value="manager.id"
+            >
+              {{ manager.name }}
+            </option>
           </select>
         </div>
 
         <div class="input-item">
           <label>상담유형 :</label>
-          <select v-model="filters.type" class="form-select">
+          <select class="form-select" v-model="filters.type">
             <option value="all">전체</option>
-            <option value="phone">전화상담</option>
-            <option value="face">센터방문</option>
-            <option value="face">가정방문</option>
+            <option
+              v-for="(method, index) in consultList"
+              :key="index"
+              :value="method"
+            >
+              {{ method }}
+            </option>
           </select>
         </div>
 
@@ -31,14 +39,14 @@
           <div class="date-group">
             <input
               type="date"
-              v-model="filters.startDate"
               class="form-input date"
+              v-model="filters.startDate"
             />
             <span class="date-separator">~</span>
             <input
               type="date"
-              v-model="filters.endDate"
               class="form-input date"
+              v-model="filters.endDate"
             />
           </div>
         </div>
@@ -50,7 +58,7 @@
             placeholder="지원대상자 이름 검색"
             class="form-input search-input"
           />
-          <button class="btn-search">검색</button>
+          <button class="btn-search" @click="applyFilter">검색</button>
         </div>
       </div>
     </section>
@@ -70,18 +78,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in paginatedList" :key="item.id">
-            <td>{{ item.id }}</td>
-            <td class="fw-bold">{{ item.targetName }}</td>
-            <td class="text-secondary">{{ item.date }}</td>
-            <td>{{ item.type }}</td>
-            <td>{{ item.location }}</td>
-            <td class="content-cell text-start">{{ item.content }}</td>
+          <tr
+            v-for="(info, index) in filteredConsults"
+            :key="info.counsult_id"
+            v-on:click="goToDetail(info.counsult_id)"
+          >
+            <td>{{ index + 1 }}</td>
+            <td class="fw-bold">{{ info.user_name }}</td>
+            <td class="text-secondary">{{ dateFormat(info.counsult_date) }}</td>
+            <td>{{ info.counsult_method }}</td>
+            <td>{{ info.counsult_loc }}</td>
+            <td class="content-cell text-start">{{ info.counsult_content }}</td>
             <td class="manager-cell">
-              <div>정 : {{ item.managerMain }}</div>
-              <div class="text-muted">부 : {{ item.managerSub }}</div>
+              <div>정 : {{ info.name }}</div>
+              <div class="text-muted">부 : {{ info.name }}</div>
             </td>
-            6
+
             <td>
               <div class="action-buttons">
                 <button class="btn-outline-edit">수정</button>
@@ -131,76 +143,92 @@
 </template>
 
 <script setup>
-import consultTop from "./components/consult.vue";
-import { ref, computed } from "vue";
+import { ref, onBeforeMount, computed } from "vue";
+import { useRouter } from "vue-router";
 
-// 검색 필터 데이터
+const consults = ref([]);
+const router = useRouter();
+const managerList = ref([]);
+const consultList = ref([]);
+
+// // 검색 필터 데이터
 const filters = ref({
   manager: "",
   type: "all",
-  startDate: "2026-02-01",
-  endDate: "2026-03-17",
+  startDate: "",
+  endDate: "",
   userName: "",
 });
 
-const consultationList = ref([
-  {
-    id: 7,
-    targetName: "홍길동",
-    date: "2026.03.16. am 11:00",
-    type: "전화상담",
-    location: "센터",
-    content:
-      "초기 상담 및 가계도 작성. 모야모야병 진단 시기 및 현재 치료 상태 확인...",
-    managerMain: "미나리",
-    managerSub: "노란색",
-  },
-  {
-    id: 6,
-    targetName: "호빵맨",
-    date: "2026.02.23. am 10:00",
-    type: "대면상담",
-    location: "센터",
-    content:
-      "돌발 행동 시 대처 방안(ABC 분석) 교육. 상담 과정에서의 변화 피드백...",
-    managerMain: "시금치",
-    managerSub: "주황색",
-  },
-]);
+const consultAll = async () => {
+  let list = await fetch("http://localhost:3000/consult/user")
+    .then((resp) => resp.json())
+    .catch((err) => console.log(err));
 
-//페이징
-const currentPage = ref(1);
-const itemsPerPage = 10;
-const pageGroupSize = 5;
+  consults.value = list;
 
-const paginatedList = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return consultationList.value.slice(start, end);
-});
+  const unique = [
+    ...new Map(
+      list.map((c) => [c.I_UserId, { id: c.I_UserId, name: c.name }]),
+    ).values(),
+  ];
+  managerList.value = unique;
 
-const totalPages = computed(() => {
-  const total = Math.ceil(consultationList.value.length / itemsPerPage);
-  return total > 0 ? total : 1;
-});
-
-const changePage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
+  const uniqueMethods = [...new Set(list.map((c) => c.counsult_method))];
+  consultList.value = uniqueMethods;
 };
 
-const displayedPages = computed(() => {
-  const startPage =
-    Math.floor((currentPage.value - 1) / pageGroupSize) * pageGroupSize + 1;
-  const endPage = Math.min(startPage + pageGroupSize - 1, totalPages.value);
-
-  const pages = [];
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-  }
-  return pages;
+onBeforeMount(async () => {
+  await consultAll();
 });
+
+const goToDetail = (counsultId) => {
+  router.push({ name: "consultList", params: { no: counsultId } });
+};
+
+const dateFormat = (dateVal) => {
+  let newDate = new Date(dateVal);
+
+  let year = newDate.getFullYear();
+  let month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+  let day = ("0" + newDate.getDate()).slice(-2);
+  let hours = ("0" + newDate.getHours()).slice(-2);
+  let minutes = ("0" + newDate.getMinutes()).slice(-2);
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+const filteredConsults = computed(() => {
+  return consults.value.filter((c) => {
+    // 1. 기관담당자 필터
+    if (filters.value.manager && c.I_UserId !== filters.value.manager)
+      return false;
+    // 2. 상담유형 필터
+    if (
+      filters.value.type !== "all" &&
+      c.counsult_method !== filters.value.type
+    )
+      return false;
+    // 3. 기간 필터: 시작일과 종료일이 '둘 다' 있을 때만 검사
+    if (filters.value.startDate && filters.value.endDate) {
+      const consultDate = new Date(c.counsult_date);
+      const start = new Date(filters.value.startDate);
+      const end = new Date(filters.value.endDate);
+      end.setHours(23, 59, 59);
+      if (consultDate < start || consultDate > end) return false;
+    }
+
+    // 4. 이름 검색 필터
+    if (filters.value.userName && !c.user_name.includes(filters.value.userName))
+      return false;
+
+    return true;
+  });
+});
+
+const applyFilter = () => {
+  console.log("검색 필터 적용:", filters.value);
+};
 </script>
 
 <style scoped>
