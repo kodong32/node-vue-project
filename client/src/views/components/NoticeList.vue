@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
+// import { useRouter } from "vue-router";
 import axios from "axios";
 
-const router = useRouter();
+// const router = useRouter();
 
 // 💡 1. 사용자 권한 임시 하드코딩 (나중에는 Vuex나 localStorage에서 가져와야 해!)
 // 테스트할 때 이 값을 "일반이용자", "기관담당자", "기관관리자", "시스템관리자" 로 바꿔보면서 테스트해봐!

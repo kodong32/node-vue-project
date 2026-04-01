@@ -17,6 +17,7 @@ import RejectedList from "./rejectedList_router";
 import ApprovalPlan from "./approval_plan_router";
 import ResultPlanWrite from "./result_plan_router";
 import ApprovalResult from "./approval_result_router";
+import Notice from "./notice_router";
 
 const routes = [
   {
@@ -40,6 +41,7 @@ const routes = [
   ...ApprovalPlan,
   ...ResultPlanWrite,
   ...ApprovalResult,
+  ...Notice,
 ];
 
 const router = createRouter({
