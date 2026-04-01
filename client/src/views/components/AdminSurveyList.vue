@@ -52,8 +52,12 @@ onBeforeMount(() => {
 
 <template>
   <div class="card">
-    <div class="card-header pb-0">
-      <h6>조사지 버전 목록</h6>
+    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">조사지 버전 목록</h6>
+
+      <RouterLink to="/admin/surveyinsert" class="btn btn-sm bg-gradient-success mb-0">
+        조사지등록
+      </RouterLink>
     </div>
     <div class="card-body px-0 pt-0 pb-2">
       <div class="table-responsive p-0">
@@ -118,12 +122,7 @@ onBeforeMount(() => {
                 >
                   사용중
                 </span>
-                <span
-                  v-else
-                  class="badge badge-sm bg-gradient-secondary"
-                >
-                  미사용
-                </span>
+                <span v-else class="badge badge-sm bg-gradient-secondary"> 미사용 </span>
               </td>
 
               <td class="align-middle text-center">
@@ -140,10 +139,7 @@ onBeforeMount(() => {
                   현재 사용중
                 </span>
 
-                <span
-                  v-else
-                  class="text-secondary text-xs font-weight-bold"
-                >
+                <span v-else class="text-secondary text-xs font-weight-bold">
                   {{ formatDate(item.end_at) }}
                 </span>
               </td>

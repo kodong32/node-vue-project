@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { Modal } from "bootstrap";
+import { useRouter } from "vue-router";
 import managerPlanCardList from "./components/managerPlanCardList.vue";
 import RoleHeader from "./components/RoleHeader.vue";
+
+const router = useRouter();
 
 const planList = ref([]);
 const filterType = ref("all"); // all / approved / rejected / pending
@@ -83,6 +86,10 @@ const showSearchModal = () => {
   }
 };
 
+const goInsertPlan = () => {
+  router.push("/manager/insertplan");
+};
+
 const applySearch = () => {
   getPlanList();
   if (searchModalInstance) {
@@ -129,9 +136,15 @@ onMounted(() => {
         </button>
       </div>
 
-      <button class="search-action-btn btn btn-sm mb-0" @click="showSearchModal">
-        <i class="fas fa-search me-2"></i>상세 검색
-      </button>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button class="write-action-btn btn btn-sm mb-0" @click="goInsertPlan">
+          <i class="fas fa-pen me-2"></i>작성
+        </button>
+
+        <button class="search-action-btn btn btn-sm mb-0" @click="showSearchModal">
+          <i class="fas fa-search me-2"></i>상세 검색
+        </button>
+      </div>
     </div>
 
     <managerPlanCardList :planList="filteredPlanList" userRole="manager" />
@@ -253,10 +266,8 @@ onMounted(() => {
   color: #212529;
 }
 
-.search-action-btn {
-  background: #ffffff;
-  color: #344767;
-  border: 1px solid rgba(52, 71, 103, 0.18);
+.search-action-btn,
+.write-action-btn {
   border-radius: 999px;
   padding: 0.55rem 1rem;
   font-weight: 700;
@@ -264,10 +275,29 @@ onMounted(() => {
   transition: all 0.2s ease;
 }
 
+.search-action-btn {
+  background: #ffffff;
+  color: #344767;
+  border: 1px solid rgba(52, 71, 103, 0.18);
+}
+
 .search-action-btn:hover {
   background: #344767;
   color: #ffffff;
   border-color: #344767;
+  transform: translateY(-1px);
+}
+
+.write-action-btn {
+  background: #5e72e4;
+  color: #ffffff;
+  border: 1px solid #5e72e4;
+}
+
+.write-action-btn:hover {
+  background: #324cdd;
+  color: #ffffff;
+  border-color: #324cdd;
   transform: translateY(-1px);
 }
 </style>

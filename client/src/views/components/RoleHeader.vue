@@ -1,116 +1,3 @@
-<!---------------
-<template>
-  <div class="container-fluid">
-    <div class="page-header min-height-100">
-      <span class="mask bg-gradient-success opacity-6"></span>
-    </div>
-
-    <div class="card shadow-lg mt-n6">
-      <div class="card-body p-3 position-relative">
-        <div class="row gx-4">
-          <div class="col-auto">
-            <div class="avatar avatar-xl position-relative">
-              <img
-                src="@/assets/img/team-1.jpg"
-                alt="profile_image"
-                class="shadow-sm w-100 border-radius-lg"
-              />
-            </div>
-          </div>
-
-          <div class="col-auto my-auto">
-            <div class="h-100">
-              <ul class="nav nav-pills custom-top-menu" role="tablist">
-                <li class="nav-item">
-                  <a class="px-3 py-2 nav-link active" href="javascript:;"
-                    ><span class="ms-1">첫화면</span></a
-                  >
-                </li>
-
-                <li class="nav-item">
-                  <a class="px-3 py-2 nav-link" href="javascript:;"
-                    ><span class="ms-1">공지사항</span></a
-                  >
-                </li>
-
-                <template v-if="userRole === 'GENERAL'">
-                  <li class="nav-item">
-                    <a class="px-3 py-2 nav-link" href="javascript:;"
-                      ><span class="ms-1">담당자관리</span></a
-                    >
-                  </li>
-                </template>
-
-                <template
-                  v-if="userRole === 'MANAGER' || userRole === 'GENERAL'"
-                >
-                  <li class="nav-item">
-                    <a class="px-3 py-2 nav-link" href="javascript:;"
-                      ><span class="ms-1">지원계획서</span></a
-                    >
-                  </li>
-                  <li class="nav-item">
-                    <a class="px-3 py-2 nav-link" href="javascript:;"
-                      ><span class="ms-1">지원결과서</span></a
-                    >
-                  </li>
-                  <li class="nav-item">
-                    <a class="px-3 py-2 nav-link" href="javascript:;"
-                      ><span class="ms-1">상담기록</span></a
-                    >
-                  </li>
-                </template>
-
-                <li class="nav-item">
-                  <a class="px-3 py-2 nav-link" href="javascript:;"
-                    ><span class="ms-1">히스토리</span></a
-                  >
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div
-            class="position-absolute top-50 start-50 translate-middle text-center fw-bold"
-          >
-            {{ instiName }}님 환영합니다 ({{ getRoleName(userRole) }})
-          </div>
-
-          <div
-            class="mx-auto mt-3 col-lg-4 col-md-6 my-sm-auto ms-sm-auto me-sm-0"
-          >
-            <div class="nav-wrapper position-relative end-0">
-              <ul
-                class="p-1 bg-transparent nav nav-pills nav-fill"
-                role="tablist"
-              >
-                <li class="nav-item">
-                  <a class="px-3 py-2 mb-0 nav-link active" href="javascript:;"
-                    ><span class="ms-1">My Page</span></a
-                  >
-                </li>
-                <li class="nav-item" v-if="userRole === 'GENERAL'">
-                  <a
-                    class="px-3 py-2 mb-0 nav-link active"
-                    @click="goApproval()"
-                    ><span class="ms-1">가입 승인</span></a
-                  >
-                </li>
-
-                <li class="nav-item">
-                  <a class="px-3 py-2 mb-0 nav-link" href="javascript:;"
-                    ><span class="ms-1">Log Out</span></a
-                  >
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
------------------------------>
 <template>
   <div class="container-fluid">
     <div class="page-header min-height-100">
@@ -132,49 +19,83 @@
 
             <div class="header-menu-wrap">
               <ul class="nav nav-pills custom-top-menu flex-nowrap">
+                <!-- 첫화면 -->
                 <li class="nav-item">
-                  <a class="px-3 py-2 nav-link active">
+                  <button
+                    type="button"
+                    class="px-3 py-2 nav-link active border-0 bg-transparent"
+                    @click="goHome"
+                  >
                     <span class="ms-1">첫화면</span>
-                  </a>
+                  </button>
                 </li>
 
+                <!-- 공지사항 -->
                 <li class="nav-item">
-                  <a class="px-3 py-2 nav-link">
+                  <button
+                    type="button"
+                    class="px-3 py-2 nav-link border-0 bg-transparent"
+                    @click="goNotice"
+                  >
                     <span class="ms-1">공지사항</span>
-                  </a>
+                  </button>
                 </li>
 
-                <template v-if="userRole === ROLE.ADMIN">
+                <!-- 기관 담당자 전용 메뉴 -->
+                <template v-if="userRole === ROLE.MANAGER">
                   <li class="nav-item">
-                    <a class="px-3 py-2 nav-link">
-                      <span class="ms-1">담당자관리</span>
-                    </a>
-                  </li>
-                </template>
-
-                <template v-if="userRole === ROLE.ADMIN || userRole === ROLE.MANAGER">
-                  <li class="nav-item">
-                    <a class="px-3 py-2 nav-link">
+                    <button
+                      type="button"
+                      class="px-3 py-2 nav-link border-0 bg-transparent"
+                      @click="goPlan"
+                    >
                       <span class="ms-1">지원계획서</span>
-                    </a>
+                    </button>
                   </li>
+
                   <li class="nav-item">
-                    <a class="px-3 py-2 nav-link">
-                      <span class="ms-1">지원결과서</span>
-                    </a>
+                    <button
+                      type="button"
+                      class="px-3 py-2 nav-link border-0 bg-transparent"
+                      @click="goResult"
+                    >
+                      <span class="ms-1">지원 결과서</span>
+                    </button>
                   </li>
+
                   <li class="nav-item">
-                    <a class="px-3 py-2 nav-link">
+                    <button
+                      type="button"
+                      class="px-3 py-2 nav-link border-0 bg-transparent"
+                      @click="goConsult"
+                    >
                       <span class="ms-1">상담기록</span>
-                    </a>
+                    </button>
+                  </li>
+
+                  <li class="nav-item">
+                    <button
+                      type="button"
+                      class="px-3 py-2 nav-link border-0 bg-transparent"
+                      @click="goHistory"
+                    >
+                      <span class="ms-1">히스토리</span>
+                    </button>
                   </li>
                 </template>
 
-                <li class="nav-item" v-if="isLogin">
-                  <a class="px-3 py-2 nav-link">
-                    <span class="ms-1">히스토리</span>
-                  </a>
-                </li>
+                <!-- 일반 사용자 전용 메뉴 -->
+                <template v-else-if="userRole === ROLE.USER">
+                  <li class="nav-item">
+                    <button
+                      type="button"
+                      class="px-3 py-2 nav-link border-0 bg-transparent"
+                      @click="goHistory"
+                    >
+                      <span class="ms-1">히스토리</span>
+                    </button>
+                  </li>
+                </template>
               </ul>
             </div>
           </div>
@@ -188,18 +109,29 @@
           <div class="header-right">
             <div class="nav-wrapper position-relative end-0">
               <ul class="p-1 bg-transparent nav nav-pills nav-fill flex-nowrap">
+                <!-- My Page -->
                 <li class="nav-item" v-if="isLogin">
-                  <a class="px-3 py-2 mb-0 nav-link active">
+                  <button
+                    type="button"
+                    class="px-3 py-2 mb-0 nav-link active border-0 bg-transparent"
+                    @click="goMyPage"
+                  >
                     <span class="ms-1">My Page</span>
-                  </a>
+                  </button>
                 </li>
 
+                <!-- 가입 승인 -->
                 <li class="nav-item" v-if="userRole === ROLE.ADMIN">
-                  <a class="px-3 py-2 mb-0 nav-link active" @click="goApproval">
+                  <button
+                    type="button"
+                    class="px-3 py-2 mb-0 nav-link border-0 bg-transparent"
+                    @click="goApproval"
+                  >
                     <span class="ms-1">가입 승인</span>
-                  </a>
+                  </button>
                 </li>
 
+                <!-- 로그아웃 -->
                 <li class="nav-item" v-if="isLogin">
                   <button
                     type="button"
@@ -217,25 +149,25 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-/* 🔥 ROLE 상수 */
 const ROLE = {
-  ADMIN: "a002", // 기관관리자
-  MANAGER: "a003", // 기관담당자
-  USER: "a004", // 일반이용자
+  ADMIN: "a002",
+  MANAGER: "a003",
+  USER: "a004",
 };
 
 const isLogin = ref(false);
 const userType = ref("");
 const userName = ref("");
 const userRole = ref("");
+const loginId = ref("");
 
-/* 역할 이름 변환 */
 const getRoleName = (role) => {
   const roleNames = {
     a002: "기관 관리자",
@@ -245,13 +177,19 @@ const getRoleName = (role) => {
   return roleNames[role] || "";
 };
 
-/* 환영문 */
 const welcomeText = computed(() => {
   if (!isLogin.value) return "";
   return `${userName.value}님 환영합니다 (${getRoleName(userRole.value)})`;
 });
 
-/* 로그인 사용자 조회 */
+const resetLoginState = () => {
+  isLogin.value = false;
+  userType.value = "";
+  userName.value = "";
+  userRole.value = "";
+  loginId.value = "";
+};
+
 const getLoginUser = async () => {
   try {
     const result = await fetch("/api/user/auth/me", {
@@ -261,23 +199,80 @@ const getLoginUser = async () => {
 
     if (result.success && result.isLogin && result.user) {
       isLogin.value = true;
-      userType.value = result.userType;
-      userName.value = result.user.name;
-      userRole.value = result.user.role;
+      userType.value = result.userType || "";
+      userName.value = result.user.name || "";
+      userRole.value = result.user.role || "";
+      loginId.value = result.user.loginId || "";
     } else {
-      isLogin.value = false;
-      userType.value = "";
-      userName.value = "";
-      userRole.value = "";
+      resetLoginState();
     }
-    console.log("result.userType :", result.userType);
-    console.log("result.user.role :", result.user.role);
   } catch (err) {
     console.log(err);
+    resetLoginState();
   }
 };
 
-/* 페이지 이동 */
+const goHome = () => {
+  if (userType.value === "INST") {
+    router.push("/manager");
+    return;
+  }
+
+  if (userType.value === "USER") {
+    router.push("/user");
+    return;
+  }
+
+  router.push("/");
+};
+
+const goNotice = () => {
+  // 공지사항 주소 정해지면 수정
+  // router.push("/notice");
+};
+
+const goPlan = () => {
+  router.push("/manager/planlist");
+};
+
+const goResult = () => {
+  router.push("/manager/result");
+};
+
+const goConsult = () => {
+  router.push("/manager/consult");
+};
+
+const goHistory = () => {
+  if (userType.value === "INST") {
+    // 기관 히스토리 주소 정해지면 수정
+    // router.push("/manager/history");
+    return;
+  }
+
+  if (userType.value === "USER") {
+    // 일반 사용자 히스토리 주소 정해지면 수정
+    // router.push("/user/history");
+    return;
+  }
+};
+
+const goMyPage = () => {
+  if (!loginId.value) {
+    alert("로그인 아이디 없음");
+    return;
+  }
+
+  if (userType.value === "INST") {
+    router.push(`/manager/${loginId.value}/mypage`);
+    return;
+  }
+
+  if (userType.value === "USER") {
+    router.push(`/${loginId.value}/mypage/support`);
+  }
+};
+
 const goApproval = () => {
   router.push("/general/approval");
 };
@@ -288,25 +283,22 @@ const getLogoutUrl = () => {
   return "";
 };
 
-/* 로그아웃 */
 const logout = async () => {
   try {
-    const logoutUrl = getLogoutUrl();
-    if (!logoutUrl) {
+    const url = getLogoutUrl();
+
+    if (!url) {
       alert("로그인 정보가 없습니다.");
       return;
     }
 
-    const result = await fetch(logoutUrl, {
+    const result = await fetch(url, {
       method: "POST",
       credentials: "include",
     }).then((res) => res.json());
 
     if (result.status === "Success" || result.status === "success") {
-      isLogin.value = false;
-      userType.value = "";
-      userName.value = "";
-      userRole.value = "";
+      resetLoginState();
       router.push("/user/login");
     } else {
       alert("로그아웃 실패");

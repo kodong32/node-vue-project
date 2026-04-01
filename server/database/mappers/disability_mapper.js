@@ -40,6 +40,36 @@ const getMidList = async (bCodes) => {
   }
 };
 
+const getMajorName = async (bCode) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(disSql.getMajorName, [bCode]);
+    return rows[0] || null;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const getMiddleName = async (jCode) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(disSql.getMiddleName, [jCode]);
+    return rows[0] || null;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
 module.exports = {
-  getDisList, getMidList
+  getDisList, getMidList, getMajorName, getMiddleName
 };

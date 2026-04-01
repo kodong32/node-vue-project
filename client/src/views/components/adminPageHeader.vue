@@ -1,21 +1,26 @@
 <script setup>
-import { RouterLink } from "vue-router";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+/* 🔥 관리자 이름 (나중에 세션으로 교체 가능) */
+const adminName = ref("admin");
+
+const welcomeText = computed(() => {
+  return `${adminName.value}님 환영합니다`;
+});
 
 const logout = async () => {
   try {
     const result = await fetch("/api/admin/logout", {
       method: "POST",
-      credentials: "include", 
+      credentials: "include",
     }).then((res) => res.json());
 
     if (result.status === "Success") {
       alert("로그아웃 완료");
-
       router.push("/admin/login");
-
     } else {
       alert("로그아웃 실패");
     }
@@ -33,63 +38,81 @@ const logout = async () => {
     </div>
 
     <div class="card shadow-lg mt-n6">
-      <div class="card-body p-3 position-relative">
-        <div class="row gx-4">
-          <div class="col-auto">
-            <div class="avatar avatar-xl position-relative">
+      <div class="card-body p-3">
+        <div class="row align-items-center">
+
+          <!-- 왼쪽 (프로필 + 메뉴) -->
+          <div class="col-auto d-flex align-items-center gap-3">
+
+            <!-- 프로필 -->
+            <div class="avatar avatar-xl">
               <img
                 src="@/assets/img/team-1.jpg"
                 alt="profile_image"
                 class="shadow-sm w-100 border-radius-lg"
               />
             </div>
+
+            <!-- 메뉴 -->
+            <ul class="nav nav-pills custom-top-menu flex-nowrap">
+
+              <li class="nav-item">
+                <router-link class="px-3 py-2 nav-link" to="/admin">
+                  첫화면
+                </router-link>
+              </li>
+
+              <li class="nav-item">
+                <router-link class="px-3 py-2 nav-link" to="/admin/institution">
+                  기관관리자
+                </router-link>
+              </li>
+
+              <li class="nav-item">
+                <router-link class="px-3 py-2 nav-link" to="/admin/manager">
+                  기관담당자
+                </router-link>
+              </li>
+
+              <li class="nav-item">
+                <router-link class="px-3 py-2 nav-link" to="/admin/surveylist">
+                  조사지현황
+                </router-link>
+              </li>
+
+              <li class="nav-item">
+                <router-link class="px-3 py-2 nav-link" to="/admin/notice">
+                  공지사항
+                </router-link>
+              </li>
+
+            </ul>
           </div>
 
-          <div class="col-auto my-auto">
-            <div class="h-100">
-              <ul class="nav nav-pills custom-top-menu" role="tablist">
-                <li class="nav-item">
-                  <router-link
-                    class="px-3 py-2 nav-link"
-                    :to="{ name: 'adminSurveyInsert' }"
-                    active-class="active"
-                  >
-                    조사지 버전등록
-                  </router-link>
-                </li>
-
-                <li class="nav-item">
-                  <router-link
-                    class="px-3 py-2 nav-link"
-                    :to="{ name: 'adminSurveyList' }"
-                    active-class="active"
-                  >
-                    조사지 버전조회
-                  </router-link>
-                </li>
-              </ul>
-            </div>
+          <!-- 🔥 가운데 (이제 안겹침) -->
+          <div class="col text-center fw-bold">
+            {{ welcomeText }}
           </div>
 
-          <div
-            class="position-absolute top-50 start-50 translate-middle text-center fw-bold"
-          >
-            admin 님 환영합니다
+          <!-- 오른쪽 (로그아웃) -->
+          <div class="col-auto">
+            <button
+              type="button"
+              class="px-3 py-2 nav-link border-0 bg-transparent"
+              @click="logout"
+            >
+              Log Out
+            </button>
           </div>
 
-          <div class="mx-auto mt-3 col-lg-4 col-md-6 my-sm-auto ms-sm-auto me-sm-0">
-            <div class="nav-wrapper position-relative end-0">
-              <ul class="p-1 bg-transparent nav nav-pills nav-fill" role="tablist">
-                <li class="nav-item">
-                  <a class="px-3 py-2 mb-0 nav-link" href="javascript:;" @click="logout()">
-                    <span class="ms-1">Log Out</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.nav-link {
+  cursor: pointer;
+}
+</style>

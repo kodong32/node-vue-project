@@ -168,7 +168,6 @@ const getUserInfo = async (userId) => {
   try {
     conn = await pool.getConnection();
     let rows = await conn.query(userSql.getUserInfo, userId);
-    console.log(rows[0]);
     return rows[0];
   } catch (err) {
     console.log(err);
@@ -178,6 +177,73 @@ const getUserInfo = async (userId) => {
     }
   }
 };
+
+
+//일반이용자 정보수정
+const updateUserInfo = async (params) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const result = await conn.query(userSql.updateUserInfo, params);
+
+    return result;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//일반이용자 비밀번호 변경 관련
+const getUserPasswordByGUserId = async (userId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.getUserPasswordByGUserId, [userId]);
+    return rows[0];
+
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+const updatePassword = async (params) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const result = await conn.query(userSql.updatePassword, params);
+
+    return result;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//기관검색
+const searchInstitutions = async (params) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.searchInstitutions, params);
+    return rows;
+
+  }catch (err) {
+    console.log(err);
+    throw err;
+  }finally {
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
 
 //회원 로그인 확인(김경환 2026.03.25)
 const confirmUser = async (id, password) => {
@@ -299,6 +365,100 @@ const agreeUser = async (id) => {
     }
   }
 };
+
+
+
+//기관담당자 마이페이지
+const getInstInfo = async (instId) => {
+  let conn = null;
+  try{
+    conn = await pool.getConnection();
+    let rows = await conn.query(userSql.getInstInfo, instId);
+    return rows[0];
+
+  }catch (err) {
+    console.log(err);
+    throw err;
+  }finally {
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
+const getSupporterList = async (instId) => {
+  let conn = null;
+  try{
+    conn = await pool.getConnection();
+    let rows = await conn.query(userSql.getSupporterList, [instId,instId,instId]);
+    return rows;
+
+  }catch (err) {
+    console.log(err);
+    throw err;
+  }finally {
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
+// 현재 비밀번호 확인용
+const getInstiUserPassword = async (I_UserId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.getInstiUserPassword, [I_UserId]);
+    return rows[0] || null;
+  } catch (err) {
+    console.log("getInstiUserPassword mapper error :", err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+// 비밀번호 변경
+const updateInstiUserPassword = async (newPassword, I_UserId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const result = await conn.query(userSql.updateInstiUserPassword, [
+      newPassword,
+      I_UserId,
+    ]);
+    return result;
+  } catch (err) {
+    console.log("updateInstiUserPassword mapper error :", err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+
+const updateInstiUserInfo = async (data) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+
+    const result = await conn.query(userSql.updateInstiUserInfo, [
+      data.name,
+      data.tel,
+      data.I_UserId,
+    ]);
+
+    return result;
+  } catch (err) {
+    console.log("updateInstiUserInfo mapper error :", err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+
+
 module.exports = {
   testSelect,
   insertUser,
@@ -319,4 +479,13 @@ module.exports = {
   getManagerList,
   waitUser,
   agreeUser,
+  updateUserInfo,
+  getUserPasswordByGUserId,
+  updatePassword,
+  searchInstitutions,
+  getInstInfo,
+  getSupporterList,
+  getInstiUserPassword,
+  updateInstiUserPassword,
+  updateInstiUserInfo,
 };

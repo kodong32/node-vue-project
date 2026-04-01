@@ -71,11 +71,60 @@ SELECT
   g.tel,
   g.email,
   g.address,
-  i.institution_name AS institution
+  i.institution_name AS institution,
+  i.institution_id
 FROM GeneralUser_Tbl g
 LEFT JOIN Institution_Tbl i
   ON g.institution_id = i.institution_id
 WHERE g.id = ?
+`;
+
+//일반이용자 정보 업데이트
+const updateUserInfo = `
+UPDATE GeneralUser_Tbl
+SET
+  institution_id = ?,
+  name = ?,
+  id = ?,
+  tel = ?,
+  email = ?,
+  zipCode = ?,
+  address = ?,
+  document1 = ?,
+  document2 = ?
+WHERE G_UserId = ?
+`;
+
+
+const getUserPasswordByGUserId = `
+SELECT G_UserId, password
+FROM GeneralUser_Tbl
+WHERE G_UserId = ?
+`;
+
+const updatePassword = `
+UPDATE GeneralUser_Tbl
+SET password = ?
+WHERE G_UserId = ?
+`;
+
+
+//기관검색
+const searchInstitutions =
+`
+SELECT
+  institution_id,
+  institution_name,
+  zipCode,
+  address,
+  tel,
+  email
+FROM Institution_Tbl
+WHERE state = 'b001'
+  AND (? = '' OR address LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR address LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR institution_name LIKE CONCAT('%', ?, '%'))
+ORDER BY institution_name ASC
 `;
 
 //지원대상자 정보 업데이트
@@ -138,6 +187,90 @@ UPDATE GeneralUser_Tbl
 SET approval = 'g001'
 WHERE G_UserId = ?
 `;
+
+
+//기관 담당자 마이페이지
+const getInstInfo =
+`
+SELECT
+  iu.I_UserId,
+  iu.id,
+  iu.name,
+  iu.tel,
+  iu.institution_id,
+  it.institution_name AS institution
+FROM InstiUser_Tbl iu
+LEFT JOIN Institution_Tbl it
+  ON iu.institution_id = it.institution_id
+WHERE iu.I_UserId = ?
+`;
+
+const getSupporterList =
+`
+SELECT
+  s.support_id,
+  s.G_UserId,
+  s.I_UserId1,
+  s.I_UserId2,
+  s.name AS support_name,
+  s.born,
+  s.gender,
+  s.relation,
+  s.zipCode AS support_zipCode,
+  s.address AS support_address,
+  s.major,
+  s.middle,
+  s.sub,
+
+  g.name AS guardian_name,
+  g.id AS guardian_id,
+  g.tel AS guardian_tel,
+  g.email AS guardian_email,
+  g.zipCode AS guardian_zipCode,
+  g.address AS guardian_address,
+  g.institution_id AS guardian_institution_id,
+  g.approval AS guardian_approval,
+
+  CASE
+    WHEN s.I_UserId1 = ? THEN '정담당'
+    WHEN s.I_UserId2 = ? THEN '부담당'
+    ELSE ''
+  END AS chargeType
+
+FROM InstiUser_Tbl i
+LEFT JOIN Support_Tbl s
+  ON i.I_UserId = s.I_UserId1
+  OR i.I_UserId = s.I_UserId2
+LEFT JOIN GeneralUser_Tbl g
+  ON s.G_UserId = g.G_UserId
+WHERE i.I_UserId = ?
+  AND s.support_id IS NOT NULL
+ORDER BY s.name ASC;
+`;
+
+
+//기관 담당자 비밀번호 변경
+const getInstiUserPassword = `
+SELECT I_UserId, password
+FROM InstiUser_Tbl
+WHERE I_UserId = ?
+`;
+
+const updateInstiUserPassword = `
+UPDATE InstiUser_Tbl
+SET password = ?
+WHERE I_UserId = ?
+`;
+
+//기관 담당자 정보수정
+const updateInstiUserInfo = `
+UPDATE InstiUser_Tbl
+SET name = ?,
+    tel = ?
+WHERE I_UserId = ?
+`;
+
+
 module.exports = {
   testSelect,
   insertUser,
@@ -158,4 +291,13 @@ module.exports = {
   getManagerList,
   waitUser,
   agreeUser,
+  updateUserInfo,
+  getUserPasswordByGUserId,
+  updatePassword,
+  searchInstitutions,
+  getInstInfo,
+  getSupporterList,
+  getInstiUserPassword,
+  updateInstiUserPassword,
+  updateInstiUserInfo,
 };

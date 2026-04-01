@@ -11,9 +11,17 @@ const getMidList = async (bCodes) => {
   return list;
 };
 
+const getMajorName = async (bCode) => {
+  let info = await disMapper.getMajorName(bCode);
+  return info;
+};
 
+const getMiddleName = async (jCode) => {
+  let info = await disMapper.getMiddleName(jCode);
+  return info;
+};
 
 module.exports = {
-  getDisList, getMidList
+  getDisList, getMidList, getMajorName, getMiddleName
 };
 

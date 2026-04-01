@@ -2,6 +2,7 @@
 const bcrypt = require("bcrypt");
 
 const userMapper = require("../database/mappers/user_mapper");
+const disabilityService = require("./disability_service");
 
 const testSelect = () => {
   let list = userMapper.testSelect();
@@ -215,6 +216,119 @@ const getUserInfo = async (userId) => {
   };
 };
 
+//일반이용자 본인정보수정
+const updateUserInfo = async (userId, updateInfo) => {
+  const {
+    institution_id,
+    name,
+    id,
+    tel,
+    email,
+    zipCode,
+    address,
+    document1,
+    document2,
+  } = updateInfo;
+
+  const params = [
+    institution_id,
+    name,
+    id,
+    tel,
+    email,
+    zipCode,
+    address,
+    document1,
+    document2,
+    userId,
+  ];
+
+  const result = await userMapper.updateUserInfo(params);
+
+  if (!result || result.affectedRows < 1) {
+    return {
+      status: "Failed",
+      message: "사용자 정보 수정 실패",
+    };
+  }
+
+  return {
+    status: "Success",
+  };
+};
+
+//일반사용자 비밀번호 변경
+const changePassword = async (userId, passwordInfo) => {
+  const { currentPassword, newPassword, newPasswordConfirm } = passwordInfo;
+
+  if (!currentPassword || !newPassword || !newPasswordConfirm) {
+    return {
+      status: "Failed",
+      message: "비밀번호를 모두 입력하세요.",
+    };
+  }
+
+  if (newPassword !== newPasswordConfirm) {
+    return {
+      status: "Failed",
+      message: "새 비밀번호 확인이 일치하지 않습니다.",
+    };
+  }
+
+  const user = await userMapper.getUserPasswordByGUserId(userId);
+
+  if (!user) {
+    return {
+      status: "Failed",
+      message: "사용자 정보를 찾을 수 없습니다.",
+    };
+  }
+
+  console.log("currentPassword :", currentPassword);
+  console.log("newPassword :", newPassword);
+  console.log("newPasswordConfirm :", newPasswordConfirm);
+  console.log("user :", user);
+  console.log("user.password :", user?.password);
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isMatch) {
+    return {
+      status: "Failed",
+      message: "현재 비밀번호가 일치하지 않습니다.",
+    };
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPw = await bcrypt.hash(newPassword, salt);
+
+  const result = await userMapper.updatePassword([hashedPw, userId]);
+
+  if (!result || result.affectedRows < 1) {
+    return {
+      status: "Failed",
+      message: "비밀번호 변경 실패",
+    };
+  }
+
+  return {
+    status: "Success",
+    message: "비밀번호 변경 완료",
+  };
+};
+
+
+//일반이용자 기관검색
+const searchInstitutions = async (searchInfo) => {
+  const { sido, sigungu, keyword } = searchInfo;
+
+  const result = await userMapper.searchInstitutions([sido || "", sido || "", sigungu || "", sigungu || "", keyword || "", keyword || "",]);
+  return {
+    status: "Success",
+    data: result,
+  };
+};
+
 //로그인 정보 확인(김경환 2026.03.25)(김경환 20260330 일부 수정 및 추가) //
 const confirmUser = async (id, password) => {
   // let infos = await userMapper.confirmUser(id);
@@ -317,6 +431,171 @@ const agreeUser = async (id) => {
     result,
   };
 };
+
+
+//기관 담당자 마이페이지
+const getInstInfo = async (instId) => {
+  const result = await userMapper.getInstInfo(instId);
+  if (!result) {
+    return {
+      status: "Failed",
+      message: "사용자 정보를 찾을 수 없습니다.",
+    };
+  }
+  return {
+    status: "Success",
+    data: result,
+  };
+};
+
+
+const getSupporterList = async (instId) => {
+  let list = await userMapper.getSupporterList(instId);
+
+  const result = await Promise.all(
+    (list || []).map(async (item) => {
+      let major_name = "";
+      let middle_name = "";
+
+      if (item.major) {
+        const majorInfo = await disabilityService.getMajorName(item.major);
+        major_name = majorInfo?.description || "";
+      }
+
+      if (item.middle) {
+        const middleInfo = await disabilityService.getMiddleName(item.middle);
+        middle_name = middleInfo?.description || "";
+      }
+
+      return {
+        ...item,
+        major_name,
+        middle_name,
+      };
+    })
+  );
+
+  return {
+    status: "Success",
+    data: result,
+  };
+};
+
+
+// 기관 담당자 비밀번호 변경
+const changeInstiUserPassword = async (I_UserId, body) => {
+  try {
+    const { currentPassword, newPassword, newPasswordConfirm } = body;
+
+    if (!I_UserId) {
+      return { status: "Failed", message: "로그인 정보 없음" };
+    }
+
+    if (!currentPassword || !newPassword || !newPasswordConfirm) {
+      return { status: "Failed", message: "값 누락" };
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      return { status: "Failed", message: "비밀번호 확인 불일치" };
+    }
+
+    const userInfo = await userMapper.getInstiUserPassword(I_UserId);
+
+    if (!userInfo) {
+      return { status: "Failed", message: "사용자 없음" };
+    }
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      userInfo.password
+    );
+
+    if (!isMatch) {
+      return {
+        status: "Failed",
+        message: "현재 비밀번호가 틀렸습니다.",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const result = await userMapper.updateInstiUserPassword(
+      hashedPassword,
+      I_UserId
+    );
+
+    if (result.affectedRows > 0) {
+      return {
+        status: "Success",
+        message: "비밀번호 변경 완료",
+      };
+    }
+
+    return {
+      status: "Failed",
+      message: "변경 실패",
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      status: "Failed",
+      message: "서버 오류",
+    };
+  }
+};
+
+
+const updateInstiUserInfo = async (I_UserId, body) => {
+  try {
+    const { name, tel } = body;
+
+    if (!I_UserId) {
+      return {
+        status: "Failed",
+        message: "로그인 정보가 없습니다.",
+      };
+    }
+
+    if (!name || !String(name).trim()) {
+      return {
+        status: "Failed",
+        message: "이름을 입력하세요.",
+      };
+    }
+
+    if (!tel || !String(tel).trim()) {
+      return {
+        status: "Failed",
+        message: "연락처를 입력하세요.",
+      };
+    }
+
+    const result = await userMapper.updateInstiUserInfo({
+      I_UserId,
+      name: String(name).trim(),
+      tel: String(tel).trim(),
+    });
+
+    if (result.affectedRows > 0) {
+      return {
+        status: "Success",
+        message: "담당자 정보가 수정되었습니다.",
+      };
+    }
+
+    return {
+      status: "Failed",
+      message: "수정된 정보가 없습니다.",
+    };
+  } catch (err) {
+    console.log("updateInstiUserInfo service error :", err);
+    return {
+      status: "Failed",
+      message: "담당자 정보 수정 중 오류가 발생했습니다.",
+    };
+  }
+};
+
 module.exports = {
   testSelect,
   createUser,
@@ -333,4 +612,11 @@ module.exports = {
   getManagerList,
   waitUser,
   agreeUser,
+  updateUserInfo,
+  changePassword,
+  searchInstitutions,
+  getInstInfo,
+  getSupporterList,
+  changeInstiUserPassword,
+  updateInstiUserInfo,
 };

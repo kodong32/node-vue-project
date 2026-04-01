@@ -1,6 +1,8 @@
 //회원 관련 router
 const express = require("express");
 const router = express.Router();
+const uploadUser = require("../../middlewares/uploadFile_SignIn.js");
+
 
 const userService = require("../../services/user_service.js");
 
@@ -9,6 +11,9 @@ const {
   requireSameUser,
   requireSameGUser,
 } = require("../../middlewares/generalUserMiddleware.js");
+
+const { requireInstUser, requireInstRole } = require("../../middlewares/instiUserMiddleware.js");
+
 
 router.get(`/test`, async (req, res) => {
   let result = await userService.testSelect();
@@ -73,6 +78,38 @@ router.get(
   },
 );
 
+//일반사용자 마이페이지 본인정보 수정
+router.put(`/info`, requireUser, uploadUser.fields([{ name: "document1", maxCount: 1 }, { name: "document2", maxCount: 1 }]), async (req, res) => {
+  const G_UserId = req.session.user.G_UserId;
+  const body = req.body;
+  const files = req.files;
+
+  body.document1 = files?.document1 ? files.document1[0].filename : body.document1 || null;
+  body.document2 = files?.document2 ? files.document2[0].filename : body.document2 || null;
+
+  const result = await userService.updateUserInfo(G_UserId, body);
+
+  res.send(result);
+});
+
+//일반사용자 비밀번호 변경
+router.put(`/password`, requireUser, async (req, res) => {
+  const G_UserId = req.session.user.G_UserId;
+  console.log(G_UserId);
+  const result = await userService.changePassword(G_UserId, req.body);
+
+  res.send(result);
+});
+
+
+//일반사용자 마이페이지 기관검색
+router.get(`/institutions`, requireUser, async (req, res) => {
+  const { sido, sigungu, keyword } = req.query;
+  const result = await userService.searchInstitutions({ sido, sigungu, keyword });
+
+  res.send(result);
+});
+
 //로그인확인(김경환 2026.03.25)
 router.post(`/login`, async (req, res) => {
   let body = req.body;
@@ -88,7 +125,7 @@ router.post(`/login`, async (req, res) => {
       id: result.user.id,
       tel: result.user.tel,
       email: result.user.email,
-      role : "a004"
+      role: "a004"
     };
   }
   console.log("session user :", req.session.user);
@@ -115,7 +152,6 @@ router.get("/session-check", (req, res) => {
 //기관
 router.post(`/ilogin`, async (req, res) => {
   let body = req.body;
-  console.log(body);
   let result = await userService.confirmInstiUser(body.id, body.password);
 
   //session 추가 26.03.27 고동현 추가
@@ -174,27 +210,6 @@ router.post(`/logout`, async (req, res) => {
   }
 });
 
-// router.get(`/userme`, async (req, res) => {
-//   try {
-//     console.log("session:", req.session);
-//     if (!req.session.loginUser) {
-//       return res.json({
-//         status: "fail",
-//         message: "로그인 안됨",
-//       });
-//     }
-//     res.json({
-//       status: "success",
-//       user: req.seesion.loginUser,
-//     });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({
-//       status: "error",
-//       message: "서버 오류",
-//     });
-//   }
-// });
 
 // //기관
 router.post(`/ilogout`, async (req, res) => {
@@ -221,27 +236,6 @@ router.post(`/ilogout`, async (req, res) => {
   }
 });
 
-// router.get(`/insitime`, async (req, res) => {
-//   try {
-//     console.log("session:", req.session);
-//     if (!req.session.loginUser) {
-//       return res.json({
-//         status: "fail",
-//         message: "로그인 안됨",
-//       });
-//     }
-//     res.json({
-//       status: "success",
-//       user: req.seesion.loginUser,
-//     });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({
-//       status: "error",
-//       message: "서버 오류",
-//     });
-//   }
-// });
 
 //기관담당자 조회(김경환 20260331)
 router.get(`/instiUsers/:roll`, async (req, res) => {
@@ -329,4 +323,40 @@ router.get("/auth/me", (req, res) => {
     });
   }
 });
+
+
+//기관담당자 마이페이지 
+router.get(`/instiUsersinfo`, requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.I_UserId; //PK값임
+
+  const result = await userService.getInstInfo(instId);
+  res.send(result);
+});
+
+//기관담당자 담당 지원대상자List
+router.get(`/instiSupportList`, requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.I_UserId;
+  const result = await userService.getSupporterList(instId);
+
+  res.send(result);
+
+});
+
+//기관담당자 비밀번호 변경
+router.put(`/instiUsersPassword`, requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.I_UserId; //PK값임
+  const result = await userService.changeInstiUserPassword(instId, req.body);
+
+  res.send(result);
+});
+
+router.put("/instiUsersinfo", requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.I_UserId; //PK값임
+  const result = await userService.updateInstiUserInfo(instId, req.body);
+
+  res.send(result);
+});
+
+
+
 module.exports = router;
