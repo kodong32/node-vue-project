@@ -37,7 +37,7 @@ LEFT JOIN SurveyUserAnswer_Tbl a
     ON q.question_id = a.question_id 
     AND a.J_ID = m.J_ID
 WHERE m.J_ID = ?
-ORDER BY q.titleCode, q.question_no ASC;
+ORDER BY q.titleCode, q.question_no ASC
 `;
 
 //조사지 답변 조회 <김민지, 260326 추가>

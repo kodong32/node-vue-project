@@ -32,7 +32,7 @@ router.get("/list", async (req, res) => {
 router.put("/approve/:resultId", async (req, res) => {
   try {
     const resultId = req.params.resultId;
-    const adminId = "IUSR0000"; // 🚨 승인 관리자 임시 하드코딩
+    const adminId = "IUSR0001"; // 🚨 승인 관리자 임시 하드코딩
 
     await service.handleApprove(resultId, adminId);
     res.status(200).json({ message: "지원결과서 승인 완료" });
@@ -46,7 +46,7 @@ router.put("/reject/:resultId", async (req, res) => {
   try {
     const resultId = req.params.resultId;
     const { rejectReason } = req.body;
-    const adminId = "IUSR0000"; // 🚨 반려 관리자 임시 하드코딩
+    const adminId = "IUSR0001"; // 🚨 반려 관리자 임시 하드코딩
 
     await service.handleReject(resultId, adminId, rejectReason);
     res.status(200).json({ message: "지원결과서 반려 완료" });

@@ -11,6 +11,7 @@ router.get("/user", async (req, res) => {
 
 //조사지 건별조회 <김민지, 브라우저에 응답 결과 전달 26.03.23 추가>
 router.get("/user/:no", async (req, res) => {
+  console.log(req.params.no);
   let target = req.params.no;
   console.log("건별조회", target);
   let result = await surveyService.findInfoByNo(target);

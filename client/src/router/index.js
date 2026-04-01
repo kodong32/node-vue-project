@@ -16,6 +16,7 @@ import GeneralPlan from "./general_plan_router";
 import RejectedList from "./rejectedList_router";
 import ApprovalPlan from "./approval_plan_router";
 import ResultPlanWrite from "./result_plan_router";
+import ApprovalResult from "./approval_result_router";
 
 const routes = [
   {
@@ -38,6 +39,7 @@ const routes = [
   ...RejectedList,
   ...ApprovalPlan,
   ...ResultPlanWrite,
+  ...ApprovalResult,
 ];
 
 const router = createRouter({
@@ -93,7 +95,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   //기관 회원 route check
-  if (to.path.startsWith("/manager") ) {
+  if (to.path.startsWith("/manager")) {
     try {
       const response = await axios.get("/api/user/isession-check");
       const result = response.data;
