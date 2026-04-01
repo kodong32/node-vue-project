@@ -44,7 +44,8 @@ const props = defineProps({
 });
 
 const goManager = () => {
-  router.push("/general/select-manager/:id");
+  //하드코딩상태
+  router.push("/general/select-manager/SUV0057");
 };
 </script>
 

@@ -73,8 +73,8 @@ const userInfo = reactive({
   email: "",
   zipCode: zipCode.value,
   address: `${mainAddress.value} ${detailAddress.value}`.trim(),
-  document1: null, // 나중에 수정
-  document2: null, // 나중에 수정
+  document1: "", // 나중에 수정
+  document2: "", // 나중에 수정
 });
 const isPrinted = ref(false);
 
