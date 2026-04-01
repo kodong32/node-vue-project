@@ -124,7 +124,7 @@
           <div class="header-left">
             <div class="avatar avatar-xl position-relative flex-shrink-0">
               <img
-                src="@/assets/img/team-1.jpg"
+                src="@/assets/img/2조로고.png"
                 alt="profile_image"
                 class="shadow-sm w-100 border-radius-lg"
               />
@@ -152,7 +152,9 @@
                   </li>
                 </template>
 
-                <template v-if="userRole === ROLE.ADMIN || userRole === ROLE.MANAGER">
+                <template
+                  v-if="userRole === ROLE.ADMIN || userRole === ROLE.MANAGER"
+                >
                   <li class="nav-item">
                     <a class="px-3 py-2 nav-link">
                       <span class="ms-1">지원계획서</span>

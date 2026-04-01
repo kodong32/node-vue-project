@@ -45,6 +45,9 @@ app.listen(port, () => {
 //기능별 라우터모듈
 const userRouter = require("./routers/user/user_router");
 app.use("/user", userRouter);
+//상담기록
+const consultRouter = require("./routers/consult/consult_router.js");
+app.use("/consult", consultRouter);
 //조사지 등록 라우터모듈 (김민지 26.03.23 추가)
 const surveyRouter = require("./routers/survey/survey_router");
 app.use("/survey", surveyRouter);
@@ -78,9 +81,6 @@ app.use("/result/plan", resultPlanRouter);
 //기관담당자 지원계획서
 const managerPlanRouter = require("./routers/plan/plan_router.js");
 app.use("/manager/plan", managerPlanRouter);
-//상담기록
-const consultRouter = require("./routers/consult/consult_router.js");
-app.use("/consult", consultRouter);
 //기관관리자 지원결과서 승인&반려
 const approvalResultRouter = require("./routers/plan/approval_result_router.js");
 app.use("/approval/result", approvalResultRouter);

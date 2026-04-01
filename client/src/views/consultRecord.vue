@@ -1,5 +1,5 @@
 <template>
-  <consultTop />
+  <RoleHeader />
   <div class="consultation-container">
     <div class="table-title-box">
       <h5 class="table-title">📄 상담 기록 리스트</h5>
@@ -79,16 +79,21 @@
         </thead>
         <tbody>
           <tr
-            v-for="(info, index) in filteredConsults"
+            v-for="(info, index) in paginatedConsults"
             :key="info.counsult_id"
             v-on:click="goToDetail(info.counsult_id)"
           >
-            <td>{{ index + 1 }}</td>
+            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td class="fw-bold">{{ info.user_name }}</td>
             <td class="text-secondary">{{ dateFormat(info.counsult_date) }}</td>
             <td>{{ info.counsult_method }}</td>
             <td>{{ info.counsult_loc }}</td>
-            <td class="content-cell text-start">{{ info.counsult_content }}</td>
+            <td>
+              [기본요약]: {{ info.counsult_content }}<br />
+              [상담내용]: {{ info.counsult_content2 }}<br />
+              [서비스욕구]: {{ info.counsult_content3 }}<br />
+              [종합의견]: {{ info.counsult_content4 }}
+            </td>
             <td class="manager-cell">
               <div>정 : {{ info.name }}</div>
               <div class="text-muted">부 : {{ info.name }}</div>
@@ -144,12 +149,17 @@
 
 <script setup>
 import { ref, onBeforeMount, computed } from "vue";
+import RoleHeader from "./components/RoleHeader.vue";
 import { useRouter } from "vue-router";
 
 const consults = ref([]);
 const router = useRouter();
 const managerList = ref([]);
 const consultList = ref([]);
+
+// 페이지 갯수 제한
+const currentPage = ref(1);
+const pageSize = 10;
 
 // // 검색 필터 데이터
 const filters = ref({
@@ -160,6 +170,7 @@ const filters = ref({
   userName: "",
 });
 
+//전체 데이터 가져오기
 const consultAll = async () => {
   let list = await fetch("http://localhost:3000/consult/user")
     .then((resp) => resp.json())
@@ -182,10 +193,12 @@ onBeforeMount(async () => {
   await consultAll();
 });
 
+//건별조회 가능한 함수
 const goToDetail = (counsultId) => {
   router.push({ name: "consultList", params: { no: counsultId } });
 };
 
+//날짜 형식
 const dateFormat = (dateVal) => {
   let newDate = new Date(dateVal);
 
@@ -198,18 +211,18 @@ const dateFormat = (dateVal) => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
+//필터처리
 const filteredConsults = computed(() => {
   return consults.value.filter((c) => {
-    // 1. 기관담당자 필터
     if (filters.value.manager && c.I_UserId !== filters.value.manager)
       return false;
-    // 2. 상담유형 필터
+
     if (
       filters.value.type !== "all" &&
       c.counsult_method !== filters.value.type
     )
       return false;
-    // 3. 기간 필터: 시작일과 종료일이 '둘 다' 있을 때만 검사
+
     if (filters.value.startDate && filters.value.endDate) {
       const consultDate = new Date(c.counsult_date);
       const start = new Date(filters.value.startDate);
@@ -218,7 +231,6 @@ const filteredConsults = computed(() => {
       if (consultDate < start || consultDate > end) return false;
     }
 
-    // 4. 이름 검색 필터
     if (filters.value.userName && !c.user_name.includes(filters.value.userName))
       return false;
 
@@ -226,8 +238,33 @@ const filteredConsults = computed(() => {
   });
 });
 
+//전체 페이지 수
+const totalPages = computed(() => {
+  return Math.ceil(filteredConsults.value.length / pageSize);
+});
+
+//현재 페이지 데이터
+const paginatedConsults = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  const end = start + pageSize;
+  return filteredConsults.value.slice(start, end);
+});
+
+//페이지 번호 리스트
+const displayedPages = computed(() => {
+  return Array.from({ length: totalPages.value }, (_, i) => i + 1);
+});
+
+//페이지 변경
+const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
 const applyFilter = () => {
   console.log("검색 필터 적용:", filters.value);
+
+  currentPage.value = 1;
 };
 </script>
 
@@ -425,5 +462,15 @@ const applyFilter = () => {
   color: white;
   border-radius: 4px;
   font-weight: bold;
+}
+
+.content-cell {
+  line-height: 1.2;
+  font-size: 0.8rem;
+}
+
+.content-cell div {
+  margin: 0;
+  padding: 0;
 }
 </style>
