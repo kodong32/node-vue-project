@@ -107,6 +107,34 @@ const resetSearch = () => {
   }
 };
 
+const handleEdit = (item) => {
+  console.log("수정:", item);
+  router.push({
+    path: "/manager/editplan",
+    query: { id: item.supportPlan_id },
+  });
+};
+
+const handleDelete = async (id) => {
+  if (!confirm("삭제하시겠습니까?")) return;
+
+  try {
+    const result = await fetch(`/api/manager/plan/delete/${id}`, {
+      method: "DELETE",
+    }).then((res) => res.json());
+
+    if (result.status === "Success") {
+      alert("삭제 완료");
+      await getPlanList();
+    } else {
+      alert("삭제 실패");
+    }
+  } catch (err) {
+    console.log(err);
+    alert("서버 오류");
+  }
+};
+
 onMounted(() => {
   getPlanList();
 
@@ -147,7 +175,12 @@ onMounted(() => {
       </div>
     </div>
 
-    <managerPlanCardList :planList="filteredPlanList" userRole="manager" />
+    <managerPlanCardList
+      :planList="filteredPlanList"
+      userRole="manager"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
   </div>
 
   <div

@@ -97,4 +97,27 @@ const getSupportListByInstUser = async (I_UserId, managerName, guardianName, sup
     };
   }
 };
-module.exports = { insertPlan, getSurveyListByInstUser, getSupportListByInstUser };
+
+const deletePlan = async (supportPlan_Id) => {
+  try {
+    const result = await planMapper.deletePlan(supportPlan_Id);
+    if (result.affectedRows > 0) {
+      return {
+        status: "Success",
+        message: "삭제 완료",
+      };
+    } else {
+      return {
+        status: "Failed",
+        message: "삭제할 데이터가 없습니다.",
+      };
+    }
+  } catch (err) {
+    console.log(err);
+    return {
+      status: "Failed",
+      message: "삭제 중 오류 발생",
+    };
+  }
+}
+module.exports = { insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan };

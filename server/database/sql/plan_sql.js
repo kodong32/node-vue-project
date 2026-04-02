@@ -112,4 +112,9 @@ AND ( ? IS NULL OR sp.name LIKE CONCAT('%', ?, '%') )
 ORDER BY p.wirte_at DESC
 `;
 
-module.exports = {getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser};
+const deletePlan = `
+DELETE FROM Plan_Tbl
+WHERE supportPlan_id = ?
+`;
+
+module.exports = {getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan};

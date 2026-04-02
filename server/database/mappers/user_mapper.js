@@ -260,6 +260,24 @@ const confirmUser = async (id, password) => {
   }
 };
 
+//일반회원 탈퇴
+const withdrawUser = async (G_UserId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+
+    const result = await conn.query(userSql.withdrawUser, [G_UserId]);
+    return result;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
 //기관
 const confirmInstiUser = async (id, password) => {
   let conn = null;
@@ -457,18 +475,95 @@ const updateInstiUserInfo = async (data) => {
 
 const getInstInfoById = async (iUserId) => {
   let conn = null;
-  try{
+  try {
     conn = await pool.getConnection();
     const rows = await conn.query(userSql.getInstInfoById, iUserId);
 
     return rows;
 
-  }catch (err) {
+  } catch (err) {
     console.log(err);
     throw err;
-    
-  }finally {
-    if(conn){
+
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const checkInstitutionAdmin = async (iUserId, InstId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.checkInstitutionAdmin, [iUserId, InstId]);
+
+    return rows;
+
+  } catch (err) {
+    console.log(err);
+    throw err;
+
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const updateInstInfo = async (updateInfo) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const result = await conn.query(userSql.updateInstInfo, updateInfo);
+    return result;
+
+  } catch (err) {
+    console.log(err);
+    throw err;
+
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+
+//기관 내 담당자 조회
+const getManagerListByInstitution = async (instId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.getManagerListByInstitution, instId);
+
+    return rows;
+
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+//기관 내 담당자가 배정받은 지원대상자정보
+const getAssignedSupportListByManager = async (iUserId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.getAssignedSupportListByManager, [
+      iUserId,
+      iUserId,
+    ]);
+    return rows;
+  } catch (err) {
+    console.log("getAssignedSupportListByManager mapper error :", err);
+    throw err;
+  } finally {
+    if (conn) {
       conn.release();
     }
   }
@@ -570,4 +665,9 @@ module.exports = {
   waitInstiUser,
   agreeInstiUser,
   getSupportInstitutionByJid,
+  checkInstitutionAdmin,
+  updateInstInfo,
+  getManagerListByInstitution,
+  getAssignedSupportListByManager,
+  withdrawUser,
 };

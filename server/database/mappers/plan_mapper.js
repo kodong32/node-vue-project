@@ -78,4 +78,22 @@ const getSupportListByInstUser = async (I_UserId, managerName, guardianName, sup
   }
 };
 
-module.exports = { getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser };
+
+const deletePlan = async(supportPlan_Id) => {
+  let conn = null;
+  try{
+    conn = await pool.getConnection();
+    const result = await conn.query(planSql.deletePlan, supportPlan_Id);
+    return result;
+
+  }catch(err){
+    console.log(err);
+    throw err;
+  
+  }finally{
+    if(conn){
+      conn.release();
+    }
+  }
+};
+module.exports = { getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan };

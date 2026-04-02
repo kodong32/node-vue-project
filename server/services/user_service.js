@@ -374,6 +374,31 @@ const confirmUser = async (id, password) => {
   return { success: false };
 };
 
+//일반회원 탈퇴
+const withdrawUser = async (G_UserId) => {
+  try {
+    const result = await userMapper.withdrawUser(G_UserId);
+
+    if (result.affectedRows > 0) {
+      return {
+        status: "Success",
+        message: "회원 탈퇴 처리 완료",
+      };
+    } else {
+      return {
+        status: "Failed",
+        message: "대상 회원이 없습니다.",
+      };
+    }
+  } catch (err) {
+    console.log(err);
+    return {
+      status: "Failed",
+      message: "회원 탈퇴 처리 실패",
+    };
+  }
+};
+
 //기관(김경환 20260330 일부 수정 및 추가)
 const confirmInstiUser = async (id, password) => {
   let infos = await userMapper.confirmInstiUser(id, password);
@@ -597,25 +622,118 @@ const updateInstiUserInfo = async (I_UserId, body) => {
 
 
 const getInstInfoById = async (iUserId) => {
-  try{
+  try {
     const rows = await userMapper.getInstInfoById(iUserId);
 
-    if(rows && rows.length > 0 ){
+    if (rows && rows.length > 0) {
       return {
-        status : "Success",
-        data : rows[0],
+        status: "Success",
+        data: rows[0],
       };
     }
 
     return {
-      status : "Failed",
-      message : "기관 정보를 찾을 수 없습니다.",
-      data : null,
+      status: "Failed",
+      message: "기관 정보를 찾을 수 없습니다.",
+      data: null,
     };
 
-  }catch (err) {
+  } catch (err) {
     console.log(err);
   }
+};
+
+//기관 정보수정
+const updateInstInfo = async (instId, info) => {
+  try {
+    const {
+      institution_id,
+      institution_name,
+      institution_tel,
+      institution_zipCode,
+      institution_address,
+      institution_email,
+    } = info;
+
+    if (!institution_name || !String(institution_name).trim()) {
+      return {
+        status: "Failed",
+        message: "기관명을 입력하세요.",
+      };
+    }
+
+    if (!institution_tel || !String(institution_tel).trim()) {
+      return {
+        status: "Failed",
+        message: "기관 연락처를 입력하세요.",
+      };
+    }
+
+    if (!institution_zipCode || !String(institution_zipCode).trim()) {
+      return {
+        status: "Failed",
+        message: "우편번호를 입력하세요.",
+      };
+    }
+
+    if (!institution_address || !String(institution_address).trim()) {
+      return {
+        status: "Failed",
+        message: "주소를 입력하세요.",
+      };
+    }
+
+    // 로그인한 기관 관리자가 이 기관 소속인지 확인
+    const authInfo = await userMapper.checkInstitutionAdmin(instId, institution_id);
+
+    if (!authInfo || authInfo.length === 0) {
+      return {
+        status: "Failed",
+        message: "해당 기관 정보를 수정할 권한이 없습니다.",
+      };
+    }
+
+    const updateInfo = [institution_name, institution_tel, institution_zipCode, institution_address, institution_email, institution_id];
+    const result = await userMapper.updateInstInfo(updateInfo);
+
+    if (result.affectedRows > 0) {
+      return {
+        status: "Success",
+        message: "기관 정보가 수정되었습니다.",
+      };
+    }
+
+    return {
+      status: "Failed",
+      message: "수정된 정보가 없습니다.",
+    };
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+//기관 내 담당자 조회
+const getManagerListByInstitution = async (instId) => {
+  const rows = await userMapper.getManagerListByInstitution(instId);
+
+  return {
+    status: "Success",
+    data: rows || [],
+  }
+
+};
+
+//기관 내 담당자가 배정받은 지원대상자정보
+const getAssignedSupportListByManager = async (loginIUserId, institutionId, targetIUserId) => {
+
+  const rows = await userMapper.getAssignedSupportListByManager(targetIUserId);
+
+  return {
+    status: "Success",
+    data: rows || [],
+  };
 };
 
 //기관관리자의 이용자의 담당자 선택(김경환 20260401)
@@ -673,4 +791,8 @@ module.exports = {
   waitInstiUser,
   agreeInstiUser,
   getSupportInstitutionByJid,
+  updateInstInfo,
+  getManagerListByInstitution,
+  getAssignedSupportListByManager,
+  withdrawUser,
 };

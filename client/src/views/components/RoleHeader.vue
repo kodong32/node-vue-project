@@ -189,6 +189,8 @@ const userType = ref("");
 const userName = ref("");
 const userRole = ref("");
 const loginId = ref("");
+const institutionId = ref("");
+const userId = ref("");
 
 const getRoleName = (role) => {
   const roleNames = {
@@ -210,6 +212,8 @@ const resetLoginState = () => {
   userName.value = "";
   userRole.value = "";
   loginId.value = "";
+  institutionId.value = "";
+  userId.value = "";
 };
 
 const getLoginUser = async () => {
@@ -219,12 +223,17 @@ const getLoginUser = async () => {
       credentials: "include",
     }).then((res) => res.json());
 
+    console.log("auth/me result :", result);
+
     if (result.success && result.isLogin && result.user) {
       isLogin.value = true;
       userType.value = result.userType || "";
       userName.value = result.user.name || "";
-      userRole.value = result.user.role || "";
+      userRole.value = result.user.role || result.user.roll || "";
       loginId.value = result.user.loginId || "";
+      institutionId.value =
+        result.user.institutionId || result.user.institution_id || "";
+      userId.value = result.user.userId || "";
     } else {
       resetLoginState();
     }
@@ -276,7 +285,17 @@ const goResult = () => {
 };
 
 const goManager = () => {
-  router.push("/general/manager");
+  if (!institutionId.value) {
+    alert("기관 정보가 없습니다.");
+    return;
+  }
+
+  router.push({
+    path: "/general/managerInfo",
+    query: {
+      institutionId: institutionId.value,
+    },
+  });
 };
 
 const goConsult = () => {

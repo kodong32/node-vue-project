@@ -148,6 +148,15 @@ router.post(`/login`, async (req, res) => {
   res.send(result);
 });
 
+
+//일반회원 탈퇴
+router.put("/withdraw", async (req, res) => {
+    const { G_UserId } = req.body;
+    const result = await userService.withdrawUser(G_UserId);
+
+    res.send(result);
+});
+
 //Router Gaurd에서 일반이용자 로그인 여부 확인을 위한 session Check Api 26.03.27 고동현추가
 router.get("/session-check", (req, res) => {
   if (req.session.user) {
@@ -378,22 +387,51 @@ router.put("/instiUsersinfo", requireInstRole, async (req, res) => {
   res.send(result);
 });
 
-router.post("/assign", async (req, res) => {
-  const { I_UserId1, I_UserId2, support_id } = req.body;
-
-  await userService.updateManager(I_UserId1, I_UserId2, support_id);
-
 //해당기관 가져오기
 router.get(`/institutionInfo`, requireInstRole, async (req, res) => {
-  const iUserId = req.session.loginInstUser.I_UserId; 
+  const iUserId = req.session.loginInstUser.I_UserId;
   const result = await userService.getInstInfoById(iUserId);
 
   res.send(result);
 });
 
+//기관정보 수정
+router.put(`/insti/update`, requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.I_UserId;
+  const body = req.body;
+
+  const result = await userService.updateInstInfo(instId, body);
+  res.send(result);
+});
+
+//기관 내 담당자 확인
+router.get(`/managerlist`, requireInstRole, async (req, res) => {
+  const institutionId = req.query.institutionId;
+  const result = await userService.getManagerListByInstitution(institutionId);
+
+  res.send(result);
+});
+
+// 담당자 배정현황 조회
+router.get("/manager/assignedSupport", requireInstRole, async (req, res) => {
+  const loginIUserId = req.session.loginInstUser.I_UserId;
+  const institutionId = req.query.institutionId;
+  const targetIUserId = req.query.iUserId;
+
+  const result = await userService.getAssignedSupportListByManager(loginIUserId, institutionId, targetIUserId);
+
+  res.send(result);
+});
+
+
+router.post("/assign", async (req, res) => {
+  const { I_UserId1, I_UserId2, support_id } = req.body;
+
+  await userService.updateManager(I_UserId1, I_UserId2, support_id);
 
   res.send({ success: true });
 });
+
 
 router.get("/wait-insti-users", async (req, res) => {
   // 기관관리자 승인 접근
