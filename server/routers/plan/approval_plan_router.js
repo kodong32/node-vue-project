@@ -8,7 +8,7 @@ router.get("/list", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const instiId = "IUSR0001"; // 🚨 임시 하드코딩 (관리자 소속 기관)
+    const instiId = "INST0000"; // 🚨 임시 하드코딩 (관리자 소속 기관)
 
     const filters = {
       managerName: req.query.managerName || "",

@@ -89,7 +89,7 @@ const submitResult = async () => {
     });
 
     alert("지원결과서가 성공적으로 등록(승인 요청)되었습니다.");
-    router.push("/manager/result/plan"); // 💡 작성 완료 후 결과서 조회 페이지로 이동!
+    router.push("/manager/result/list"); // 💡 작성 완료 후 결과서 조회 페이지로 이동!
   } catch (err) {
     alert("결과서 등록 중 오류가 발생했습니다.");
     console.error(err);
