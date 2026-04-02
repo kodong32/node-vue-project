@@ -1,13 +1,10 @@
 <!-- D:\node-vue-project\client\src\views\components\ApprovalResultList.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
-// import { useRouter } from "vue-router";
 import axios from "axios";
 import ApprovalResultCardList from "@/views/components/ApprovalResultCardList.vue";
 import { Modal } from "bootstrap";
 import RoleHeader from "./RoleHeader.vue";
-
-// const router = useRouter();
 
 const resultList = ref([]);
 const searchFilters = ref({
@@ -16,17 +13,32 @@ const searchFilters = ref({
   supportName: "",
 });
 
+// 🌟 헤더용 이름 바구니
+const currentUserName = ref("");
+
 let searchModalInstance = null;
 let rejectModalInstance = null;
 
 const targetResultId = ref("");
 const rejectReasonText = ref("");
 
-// 1. 대기 목록 불러오기 (결과서 API)
+// 🌟 세션 확인 (이름 가져오기)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 1. 대기 목록 불러오기 (프록시 적용)
 const fetchPendingResults = async () => {
   try {
     const response = await axios.get(
-      "http://localhost:3000/approval/result/list",
+      "/api/approval/result/list", // 👈 /api 적용
       {
         params: { page: 1, limit: 10, ...searchFilters.value },
       },
@@ -37,16 +49,14 @@ const fetchPendingResults = async () => {
   }
 };
 
-// 2. 승인 처리 로직
+// 💡 2. 승인 처리 로직 (프록시 적용)
 const handleApprove = async (resultId) => {
   if (!confirm("이 지원결과서를 승인하시겠습니까?")) return;
 
   try {
-    await axios.put(
-      `http://localhost:3000/approval/result/approve/${resultId}`,
-    );
+    await axios.put(`/api/approval/result/approve/${resultId}`); // 👈 /api 적용
     alert("승인이 완료되었습니다.");
-    fetchPendingResults(); // 승인 후 목록 새로고침 (혹은 다른 페이지로 이동)
+    fetchPendingResults();
   } catch (error) {
     alert("승인 처리 중 오류가 발생했습니다.");
     console.error(error);
@@ -60,7 +70,7 @@ const openRejectModal = (resultId) => {
   if (rejectModalInstance) rejectModalInstance.show();
 };
 
-// 4. 반려 처리 로직
+// 💡 4. 반려 처리 로직 (프록시 적용)
 const submitReject = async () => {
   if (!rejectReasonText.value.trim()) {
     alert("반려 사유를 입력해주세요.");
@@ -69,21 +79,19 @@ const submitReject = async () => {
 
   try {
     await axios.put(
-      `http://localhost:3000/approval/result/reject/${targetResultId.value}`,
-      {
-        rejectReason: rejectReasonText.value,
-      },
+      `/api/approval/result/reject/${targetResultId.value}`, // 👈 /api 적용
+      { rejectReason: rejectReasonText.value },
     );
     alert("반려 처리가 완료되었습니다.");
     if (rejectModalInstance) rejectModalInstance.hide();
-    fetchPendingResults(); // 반려 후 목록 새로고침
+    fetchPendingResults();
   } catch (error) {
     alert("반려 처리 중 오류가 발생했습니다.");
     console.error(error);
   }
 };
 
-// 검색 로직
+// 검색 로직 (기존과 동일)
 const showSearchModal = () => {
   if (searchModalInstance) searchModalInstance.show();
 };
@@ -97,8 +105,11 @@ const resetSearch = () => {
   if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 세션부터 확인하고 리스트 불러오기
+  await checkSession();
   fetchPendingResults();
+
   const searchEl = document.getElementById("searchModal");
   if (searchEl) searchModalInstance = new Modal(searchEl);
   const rejectEl = document.getElementById("rejectModal");
