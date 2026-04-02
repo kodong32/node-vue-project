@@ -7,22 +7,18 @@ import axios from "axios";
 const route = useRoute();
 const router = useRouter();
 
-// 💡 1. 사용자 권한 및 소속 기관 하드코딩 (테스트용)
-const currentUserRole = ref("시스템관리자"); // '시스템관리자' 또는 '기관관리자'로 바꿔가며 테스트!
-const currentInstiId = ref("INST0000"); // 기관 관리자일 경우 소속된 기관 ID
+// 💡 1. 빈 바구니 준비
+const currentUserRole = ref("");
+const currentInstiId = ref("");
 
-// 💡 2. 작성(Write) 모드인지 수정(Edit) 모드인지 판별
 const isEditMode = computed(() => !!route.params.noticeId);
 
-// 💡 3. 폼 데이터 상태 관리
 const formData = ref({
   title: "",
   content: "",
-  noticeDate: "", // 공개 종료 기한
-  importantMark: "N", // 'Y' or 'N'
-  noticeType:
-    currentUserRole.value === "시스템관리자" ? "ALL" : currentInstiId.value,
-  // 첨부파일 (현재는 파일 이름 텍스트만 저장)
+  noticeDate: "",
+  importantMark: "N",
+  noticeType: "ALL", // 기본값
   file1: "",
   file2: "",
   file3: "",
@@ -30,16 +26,40 @@ const formData = ref({
   file5: "",
 });
 
-// 시스템 관리자용 기관 목록 (실제로는 DB에서 불러와야 함)
 const instiOptions = ref([
   { value: "ALL", text: "전체 (시스템 공지)" },
   { value: "INST0000", text: "대구발달장애센터" },
   { value: "INST0001", text: "서울발달장애센터" },
 ]);
 
-// 💡 4. 수정 모드일 때 기존 데이터 불러오기
+// 🌟 2. 세션 확인 함수 추가
+const checkSession = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/user/auth/me", {
+      withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
+    });
+    if (response.data.isLogin) {
+      const user = response.data.user;
+      if (user.role === "a001") currentUserRole.value = "시스템관리자";
+      else if (user.role === "a002") currentUserRole.value = "기관관리자";
+
+      currentInstiId.value = user.institutionId || "";
+
+      // 작성 모드일 때 기관 관리자라면 기본값을 본인 기관으로 세팅
+      if (!isEditMode.value) {
+        formData.value.noticeType =
+          currentUserRole.value === "시스템관리자"
+            ? "ALL"
+            : currentInstiId.value;
+      }
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
 const fetchNoticeData = async () => {
-  if (!isEditMode.value) return; // 작성 모드면 패스!
+  if (!isEditMode.value) return;
 
   try {
     const response = await axios.get(
@@ -47,7 +67,6 @@ const fetchNoticeData = async () => {
     );
     const data = response.data;
 
-    // 불러온 데이터를 폼에 채워 넣기
     formData.value = {
       title: data.title,
       content: data.content,
@@ -61,8 +80,7 @@ const fetchNoticeData = async () => {
       file5: data.file5 || "",
     };
   } catch (error) {
-    console.error("공지사항 정보를 불러오는 중 오류 발생:", error);
-    alert("데이터를 불러올 수 없습니다.");
+    console.error("정보를 불러오는 중 오류 발생:", error);
     router.push("/notice/list");
   }
 };
@@ -79,27 +97,20 @@ const handleFileUpload = (event, fieldName) => {
   uploadFiles.value[fieldName] = event.target.files[0];
 };
 
-// 💡 5. 저장 (등록 또는 수정) 실행
 const submitForm = async () => {
   if (!formData.value.title.trim()) return alert("제목을 입력해주세요.");
   if (!formData.value.content.trim()) return alert("본문 내용을 입력해주세요.");
   if (!formData.value.noticeDate)
     return alert("공개 종료 기한을 선택해주세요.");
 
-  // 🌟 FormData 객체 생성 (파일 전송을 위한 필수 작업!)
   const form = new FormData();
   form.append("title", formData.value.title);
   form.append("content", formData.value.content);
   form.append("noticeDate", formData.value.noticeDate);
   form.append("importantMark", formData.value.importantMark);
   form.append("noticeType", formData.value.noticeType);
-  form.append(
-    "writerType",
-    currentUserRole.value === "시스템관리자" ? "a001" : "a002",
-  );
-  form.append("writerId", "IUSR0001");
+  // 🌟 writerType과 writerId는 백엔드가 세션에서 알아서 꺼내므로 여기서 전송 X!
 
-  // 파일이 존재하면 append!
   if (uploadFiles.value.file1) form.append("file1", uploadFiles.value.file1);
   if (uploadFiles.value.file2) form.append("file2", uploadFiles.value.file2);
   if (uploadFiles.value.file3) form.append("file3", uploadFiles.value.file3);
@@ -108,7 +119,6 @@ const submitForm = async () => {
 
   try {
     if (isEditMode.value) {
-      // 수정 (PUT) - 헤더에 multipart/form-data 필수!
       await axios.put(
         `http://localhost:3000/notice/${route.params.noticeId}`,
         form,
@@ -119,7 +129,6 @@ const submitForm = async () => {
       alert("성공적으로 수정되었습니다!");
       router.push(`/notice/detail/${route.params.noticeId}`);
     } else {
-      // 등록 (POST)
       await axios.post("http://localhost:3000/notice/write", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -137,6 +146,8 @@ const goBack = () => {
 };
 
 onMounted(() => {
+  // 🌟 세션과 데이터 모두 준비!
+  checkSession();
   fetchNoticeData();
 });
 </script>

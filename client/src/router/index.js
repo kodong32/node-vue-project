@@ -141,6 +141,29 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  if (to.path.startsWith("/notice")) {
+    try {
+      // 팀장님이 만든 통합 세션 확인 API 호출
+      const response = await axios.get("/api/user/auth/me", {
+        withCredentials: true, // 여기서도 쿠키 전송 필수!
+      });
+
+      const result = response.data;
+
+      // 로그인을 안 했으면 무조건 쫓아냄
+      if (!result.isLogin) {
+        alert("공지사항을 보려면 로그인이 필요합니다.");
+        return next("/user/login"); // 로그인 페이지로 이동
+      }
+
+      // 로그인을 했다면, 권한 따지지 않고 무조건 통과!
+      // (글쓰기/수정 권한은 화면단 Vue 파일에서 버튼을 숨기는 방식으로 통제함)
+    } catch (err) {
+      console.log("공지사항 가드 오류", err);
+      return next("/user/login");
+    }
+  }
+
   next();
 });
 

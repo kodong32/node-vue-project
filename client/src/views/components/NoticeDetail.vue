@@ -7,21 +7,19 @@ import axios from "axios";
 const route = useRoute();
 const router = useRouter();
 
-// 💡 1. 사용자 권한 하드코딩 (NoticeList.vue와 동일하게 세팅)
-const currentUserRole = ref("시스템관리자");
+// 💡 1. 빈 바구니 준비
+const currentUserRole = ref("");
 
-// 상태 관리
 const notice = ref(null);
 
-// 💡 2. 상세 데이터 불러오기
 const fetchNoticeDetail = async () => {
   const noticeId = route.params.noticeId;
   if (!noticeId) return;
 
   try {
-    const response = await axios.get(
-      `http://localhost:3000/notice/${noticeId}`,
-    );
+    const response = await axios.get("http://localhost:3000/user/auth/me", {
+      withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
+    });
     notice.value = response.data;
   } catch (error) {
     console.error("상세 정보를 불러오는 중 오류 발생:", error);
@@ -30,7 +28,22 @@ const fetchNoticeDetail = async () => {
   }
 };
 
-// 💡 3. 삭제 기능 (권한이 있는 사람만)
+// 🌟 2. 세션 확인 함수 추가
+const checkSession = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/user/auth/me");
+    if (response.data.isLogin) {
+      const user = response.data.user;
+      if (user.role === "a001") currentUserRole.value = "시스템관리자";
+      else if (user.role === "a002") currentUserRole.value = "기관관리자";
+      else if (user.role === "a003") currentUserRole.value = "기관담당자";
+      else currentUserRole.value = "일반이용자";
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
 const deleteNotice = async () => {
   if (!confirm("정말 이 공지사항을 삭제하시겠습니까?")) return;
 
@@ -53,8 +66,6 @@ const goToEdit = () => {
   router.push(`/notice/edit/${route.params.noticeId}`);
 };
 
-// 💡 4. 수정/삭제 버튼 노출 권한 계산
-// (시스템 관리자이거나, 작성자 본인일 때만 노출하는 로직이 들어가야 함! 지금은 관리자면 무조건 보이게 임시 설정)
 const canEdit = computed(() => {
   return (
     currentUserRole.value === "시스템관리자" ||
@@ -62,7 +73,6 @@ const canEdit = computed(() => {
   );
 });
 
-// 💡 5. 첨부파일이 하나라도 있는지 확인
 const hasFiles = computed(() => {
   if (!notice.value) return false;
   return (
@@ -75,6 +85,8 @@ const hasFiles = computed(() => {
 });
 
 onMounted(() => {
+  // 🌟 세션부터 확인하고 상세 정보를 가져옴
+  checkSession();
   fetchNoticeDetail();
 });
 </script>

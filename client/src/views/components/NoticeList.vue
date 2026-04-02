@@ -1,40 +1,34 @@
 <!-- D:\node-vue-project\client\src\views\components\NoticeList.vue -->
 <script setup>
 import { ref, onMounted, computed } from "vue";
-// import { useRouter } from "vue-router";
 import axios from "axios";
 
-// const router = useRouter();
+// 💡 1. 빈 바구니 준비 (하드코딩 제거)
+const currentUserRole = ref("");
+const currentInstiId = ref("");
 
-// 💡 1. 사용자 권한 임시 하드코딩 (나중에는 Vuex나 localStorage에서 가져와야 해!)
-// 테스트할 때 이 값을 "일반이용자", "기관담당자", "기관관리자", "시스템관리자" 로 바꿔보면서 테스트해봐!
-const currentUserRole = ref("시스템관리자");
-const currentInstiId = ref("INST0000"); // 기관 소속일 경우 기관 ID
-
-// 💡 2. 상태 관리 변수들
 const noticeList = ref([]);
 const totalCount = ref(0);
 const currentPage = ref(1);
 const limit = ref(10);
 const topNotice = ref(null);
 
-// 검색 및 필터 조건
 const filters = ref({
   sort: "최신순",
-  tab: "전체", // 전체, 시스템, 기관
-  category: "제목", // 제목, 내용, 제목+내용
+  tab: "전체",
+  category: "제목",
   keyword: "",
 });
 
-// 💡 3. 데이터 불러오기 함수
+// 💡 2. 데이터 불러오기 함수 (기존과 동일)
 const fetchNoticeList = async () => {
   try {
     const response = await axios.get("http://localhost:3000/notice/list", {
       params: {
         page: currentPage.value,
         limit: limit.value,
-        role: currentUserRole.value,
-        instiId: currentInstiId.value,
+        role: currentUserRole.value, // 세션에서 받아온 진짜 권한 전송!
+        instiId: currentInstiId.value, // 세션에서 받아온 진짜 기관ID 전송!
         sort: filters.value.sort,
         tab: filters.value.tab,
         category: filters.value.category,
@@ -49,7 +43,34 @@ const fetchNoticeList = async () => {
   }
 };
 
-// 💡 4. 필터 초기화
+// 🌟 3. 세션 확인 및 진짜 정보 세팅 함수 (새로 추가!)
+const checkSessionAndFetch = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/user/auth/me", {
+      withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
+    });
+    if (response.data.isLogin) {
+      const user = response.data.user;
+
+      // 공통코드 변환
+      if (user.role === "a001") currentUserRole.value = "시스템관리자";
+      else if (user.role === "a002") currentUserRole.value = "기관관리자";
+      else if (user.role === "a003") currentUserRole.value = "기관담당자";
+      else currentUserRole.value = "일반이용자";
+
+      currentInstiId.value = user.institutionId || "";
+
+      // 내 신분증을 발급받은 후 목록을 부른다!
+      fetchNoticeList();
+    } else {
+      alert("로그인이 필요합니다.");
+      // router.push("/login"); // 실제 환경에선 로그인 페이지로 이동
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
 const resetFilters = () => {
   filters.value = {
     sort: "최신순",
@@ -61,24 +82,20 @@ const resetFilters = () => {
   fetchNoticeList();
 };
 
-// 검색 실행
 const applySearch = () => {
   currentPage.value = 1;
   fetchNoticeList();
 };
 
-// 페이지 변경
 const changePage = (page) => {
   currentPage.value = page;
   fetchNoticeList();
 };
 
-// 총 페이지 수 계산
 const totalPages = computed(() => {
   return Math.ceil(totalCount.value / limit.value) || 1;
 });
 
-// 권한에 따른 글쓰기 버튼 노출 여부
 const canWrite = computed(() => {
   return (
     currentUserRole.value === "시스템관리자" ||
@@ -86,9 +103,9 @@ const canWrite = computed(() => {
   );
 });
 
-// 화면이 켜질 때 데이터 1회 로드
 onMounted(() => {
-  fetchNoticeList();
+  // 🌟 화면 켜지면 제일 먼저 세션 확인부터 시작!
+  checkSessionAndFetch();
 });
 </script>
 
