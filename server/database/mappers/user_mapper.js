@@ -469,6 +469,12 @@ const getInstInfoById = async (iUserId) => {
     
   }finally {
     if(conn){
+      conn.release();
+    }
+  }
+};
+
+
 //기관관리자의 담당자선택(김경환 20260401)
 const updateManager = async (instiId1, instiId2, supportId) => {
   let conn = await pool.getConnection();

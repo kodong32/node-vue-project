@@ -1,7 +1,7 @@
 //회원 관련 service
 const bcrypt = require("bcrypt");
 
-const userMapper = require("../database/mappers/user_mapper");
+const userMapper = require("../database/mappers/user_mapper.js");
 const disabilityService = require("./disability_service");
 
 const testSelect = () => {
