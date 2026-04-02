@@ -179,9 +179,9 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const ROLE = {
-  ADMIN: "a002",   // 기관 관리자
+  ADMIN: "a002", // 기관 관리자
   MANAGER: "a003", // 기관 담당자
-  USER: "a004",    // 일반 이용자
+  USER: "a004", // 일반 이용자
 };
 
 const isLogin = ref(false);
@@ -263,12 +263,12 @@ const goHome = () => {
 };
 
 const goNotice = () => {
-  // router.push("/notice");
+  router.push("/notice/list");
 };
 
 const goPlan = () => {
   if (userRole.value === ROLE.ADMIN) {
-    router.push("/general/planlist");
+    router.push("/general/plan");
     return;
   }
 
@@ -277,11 +277,11 @@ const goPlan = () => {
 
 const goResult = () => {
   if (userRole.value === ROLE.ADMIN) {
-    router.push("/general/result");
+    router.push("/general/result/list");
     return;
   }
 
-  router.push("/manager/result");
+  router.push("/manager/result/list");
 };
 
 const goManager = () => {
