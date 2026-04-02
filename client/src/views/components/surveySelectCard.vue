@@ -1,283 +1,403 @@
-<script setup>
-import { computed } from "vue";
-
-const props = defineProps({
-  userName: String,
-  regDate: String,
-  sections: {
-    type: Array,
-    default: () => [],
-  },
-  answers: Array,
-});
-
-const flatAnswers = computed(() => {
-  if (!props.answers?.length) return [];
-
-  const merged = props.answers.flat(2).filter(Boolean).join(",");
-  // answers가 2중 이상 배열일 수 있기 때문에 2단계까지 평탄화(flatten)
-  //props.answers = [[["A1"], ["A2"]],
-  //                [["B1"], ["B2"]]];
-  //props.answers.flat(2) → ["A1", "A2", "B1", "B2"]
-  return merged ? merged.split(",") : []; //빈 값 제거 + 평탄화 + 1차원 배열
-});
-
-const getAnswer = (sIdx, subIdx, qIdx) => {
-  let index = 0;
-
-  for (let i = 0; i < sIdx; i++) {
-    props.sections[i].subs?.forEach((sub) => {
-      index += sub.questions?.length || 0;
-    });
-  }
-
-  for (let j = 0; j < subIdx; j++) {
-    index += props.sections[sIdx].subs[j].questions?.length || 0;
-  }
-
-  index += qIdx; //질문위치
-
-  return flatAnswers.value[index] || "";
-};
-
-const displayDate = computed(() => {
-  if (!props.regDate) return "-";
-  const date = new Date(props.regDate);
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-});
-</script>
-
 <template>
   <div class="py-4 container-fluid survey-view-page">
     <div class="row justify-content-center">
       <div class="col-12 col-lg-11">
-        <div class="survey-header-container shadow-sm mb-0">
+        <div class="survey-header-container mb-4">
           <div
-            class="d-flex align-items-center p-3 px-4 text-white header-bg position-relative"
+            class="d-flex align-items-center p-3 px-4 text-white header-bg shadow-sm"
           >
             <h5 class="mb-0 font-weight-bolder text-white">
-              {{ userName || "대상자" }}님 조사지 결과
+              <i class="ni ni-paper-diploma me-2"></i>
+              {{ userName }}님 설문 결과 조회
             </h5>
-
-            <div class="date-center">
-              <span class="text-sm font-weight-bold opacity-9">
-                등록일 : {{ displayDate }}
-              </span>
+            <div class="ms-auto text-sm font-weight-bold">
+              등록일 : {{ dateFormat(createdAt) }}
             </div>
-
-            <button
-              class="btn-close btn-close-white ms-auto"
-              @click="$router.back()"
-            ></button>
           </div>
         </div>
 
-        <div class="card shadow-lg border-radius-top-none mb-5">
-          <div class="card-body p-4 pt-5">
-            <template v-for="(section, sIdx) in sections" :key="sIdx">
-              <div class="section-title-box mb-3" :class="{ 'mt-5': sIdx > 0 }">
-                <div class="d-flex align-items-center">
-                  <span class="dot-icon me-2">●</span>
-                  <h6 class="mb-0 font-weight-bolder text-dark">
-                    {{ section.title }}
-                  </h6>
-                </div>
-              </div>
+        <template v-for="(section, sIdx) in groupedSections" :key="sIdx">
+          <div class="section-container mb-5">
+            <div class="section-title-wrapper d-flex align-items-center mb-2">
+              <span class="dot-icon me-2">●</span>
+              <h6 class="mb-0 font-weight-bolder text-dark">
+                {{ section.titleName }}
+              </h6>
+            </div>
 
-              <div class="table-responsive mb-4">
-                <table
-                  class="table align-items-center mb-0 custom-bordered-table"
-                >
-                  <thead>
-                    <tr class="bg-gray-100">
-                      <th
-                        class="text-center text-secondary text-xxs"
-                        style="width: 60px"
-                      >
-                        번호
+            <div class="table-responsive shadow-sm border-top-custom">
+              <table class="survey-main-table w-100">
+                <colgroup>
+                  <col style="width: 50px" />
+                  <col />
+                  <col style="width: 70px" />
+                  <col style="width: 70px" />
+                </colgroup>
+
+                <template v-for="(sub, subIdx) in section.subs" :key="subIdx">
+                  <thead class="sub-group-header">
+                    <tr>
+                      <th colspan="2" class="text-start ps-3 py-2">
+                        <span class="sub-title-text">{{ sub.subTitle }}</span>
+                        <span
+                          class="sub-desc-text ms-3 text-xs text-secondary font-weight-normal"
+                        >
+                          {{ sub.description }}
+                        </span>
                       </th>
-                      <th class="text-start text-secondary text-xxs ps-4">
-                        조사 문항
-                      </th>
-                      <th
-                        class="text-center text-secondary text-xxs"
-                        style="width: 80px"
-                      >
-                        예
-                      </th>
-                      <th
-                        class="text-center text-secondary text-xxs"
-                        style="width: 80px"
-                      >
-                        아니오
-                      </th>
+                      <th class="text-center text-sm border-start">예</th>
+                      <th class="text-center text-sm border-start">아니오</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    <template
-                      v-for="(sub, subIdx) in section.subs"
-                      :key="subIdx"
+                    <tr
+                      v-for="(q, qIdx) in sub.questions"
+                      :key="qIdx"
+                      class="question-row"
                     >
-                      <tr class="sub-header-row bg-white">
-                        <td class="text-center bg-gray-100">
-                          {{ section.title }}
-                        </td>
-                        <td class="ps-4">
-                          {{ sub.description || "상세 내역 확인" }}
-                        </td>
-                        <td colspan="2" class="bg-gray-100"></td>
-                      </tr>
-
-                      <tr v-for="(q, qIdx) in sub.questions" :key="qIdx">
-                        <td class="text-center">{{ qIdx + 1 }}</td>
-
-                        <td class="ps-4">
-                          <div>{{ typeof q === "string" ? q : q.text }}</div>
-
-                          <div v-if="q.hasExtraInput === false" class="mt-2">
-                            <textarea
-                              class="form-control bg-light"
-                              rows="2"
-                              :value="getAnswer(sIdx, subIdx, qIdx)"
-                              readonly
-                            ></textarea>
-                          </div>
-                        </td>
-
-                        <td class="text-center">
-                          <div
-                            class="result-box mx-auto"
-                            :class="{
-                              'active-check':
-                                getAnswer(sIdx, subIdx, qIdx) === '예',
-                            }"
-                          >
-                            <span v-if="getAnswer(sIdx, subIdx, qIdx) === '예'"
-                              >✔</span
-                            >
-                          </div>
-                        </td>
-
-                        <td class="text-center">
-                          <div
-                            class="result-box mx-auto"
-                            :class="{
-                              'active-check':
-                                getAnswer(sIdx, subIdx, qIdx) === '아니오',
-                            }"
-                          >
-                            <span
-                              v-if="getAnswer(sIdx, subIdx, qIdx) === '아니오'"
-                              >✔</span
-                            >
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
+                      <td class="text-center question-no border-end">
+                        {{ q.question_no }}
+                      </td>
+                      <td class="ps-3 py-3 text-start border-end">
+                        <div class="text-sm font-weight-bold text-dark">
+                          {{ q.question_text }}
+                        </div>
+                      </td>
+                      <td class="text-center border-end align-middle">
+                        <div
+                          class="check-box-square mx-auto"
+                          :class="{ 'is-checked': q.answer === '예' }"
+                        >
+                          <i
+                            v-if="q.answer === '예'"
+                            class="fa fa-check text-xs"
+                          ></i>
+                        </div>
+                      </td>
+                      <td class="text-center align-middle">
+                        <div
+                          class="check-box-square mx-auto"
+                          :class="{ 'is-checked': q.answer === '아니오' }"
+                        >
+                          <i
+                            v-if="q.answer === '아니오'"
+                            class="fa fa-check text-xs"
+                          ></i>
+                        </div>
+                      </td>
+                    </tr>
                   </tbody>
-                </table>
-              </div>
-            </template>
-
-            <div class="d-flex justify-content-center mt-5 mb-4">
-              <button
-                class="btn btn-list-back px-7 py-2-5 shadow-sm"
-                @click="$router.back()"
-              >
-                목록으로
-              </button>
+                </template>
+              </table>
             </div>
           </div>
+        </template>
+
+        <div class="d-flex justify-content-center mt-5 mb-5">
+          <RouterLink to="/user" class="btn btn-dark px-6 shadow-sm"
+            >목록으로 돌아가기</RouterLink
+          >
         </div>
       </div>
     </div>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const surveyData = ref([]); // 서버에서 받아온 문항 데이터
+const userName = ref("");
+const createdAt = ref("");
+const allTitles = ref([]);
+
+//타이틀 매핑 -> 서버 데이터를 (Section > Sub > Question)로 변환
+const getTitleByCode = (code) => {
+  if (!code || allTitles.value.length === 0) return null;
+
+  const cleanCode = String(code).trim().toUpperCase();
+  const found = allTitles.value.find(
+    (t) => String(t.titleCode).trim().toUpperCase() === cleanCode,
+  );
+
+  return found || null;
+};
+//데이터 대 -> 중 구조로 변환
+const groupedSections = computed(() => {
+  const sections = [];
+
+  surveyData.value.forEach((item) => {
+    const currentTitleInfo = getTitleByCode(item.titleCode);
+
+    const parentCode = currentTitleInfo?.parentCode || item.titleCode;
+    const parentInfo = getTitleByCode(parentCode);
+
+    //대분류
+    let section = sections.find((s) => s.titleCode === parentCode);
+    if (!section) {
+      section = {
+        titleCode: parentCode,
+        titleName: parentInfo ? parentInfo.title : "기타 항목",
+        subs: [],
+      };
+      sections.push(section);
+    }
+
+    //중분류
+    const subTitleName = currentTitleInfo
+      ? currentTitleInfo.title
+      : "기본 항목";
+    let sub = section.subs.find((s) => s.subTitle === subTitleName);
+    if (!sub) {
+      sub = {
+        subTitle: subTitleName,
+        description: "",
+        questions: [],
+      };
+      section.subs.push(sub);
+    }
+
+    sub.questions.push(item);
+  });
+
+  return sections;
+});
+
+//타이틀 정보
+const fetchTitles = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/survey/title");
+    if (!response.ok) throw new Error("타이틀 로드 실패");
+    allTitles.value = await response.json();
+    console.log("타이틀:", allTitles.value);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+//조사지 건별조회 데이터 가져오기
+const getSurveyDetail = async (id) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/survey/surveySelect/${id}`,
+    );
+    const data = await response.json();
+    surveyData.value = data;
+    if (data.length > 0) {
+      userName.value = data[0].userName;
+      createdAt.value = data[0].created_at;
+    }
+  } catch (error) {
+    console.error("데이터 로드 실패:", error);
+  }
+};
+
+//조사지 답변 데이터
+const fetchAnswers = async (id) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/survey/answerSelect/${id}`,
+    );
+    if (!response.ok) throw new Error("답변 로드 실패");
+    const answerData = await response.json();
+    console.log("답변데이터:", answerData);
+
+    surveyData.value.forEach((q, idx) => {
+      if (answerData.length > 0 && answerData[0].answer) {
+        const ansArray = answerData[0].answer.split(",");
+        q.answer = ansArray[idx];
+      }
+      // console.log(surveyData.value.map((q) => q.question_no + ":" + q.answer));
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+onMounted(async () => {
+  await fetchTitles();
+
+  const id = route.params.id;
+  if (id) {
+    await getSurveyDetail(id);
+    await fetchAnswers(id);
+  }
+});
+
+//날짜 형식
+const dateFormat = (dateVal) => {
+  if (!dateVal) return "-";
+
+  let newDate = new Date(dateVal);
+  let year = newDate.getFullYear();
+  let month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+  let day = ("0" + newDate.getDate()).slice(-2);
+
+  return `${year}-${month}-${day}`;
+};
+</script>
+
 <style scoped>
-/* 조회 페이지 스타일 (등록 페이지와 100% 동일하게 유지) */
+.survey-main-table th,
+.survey-main-table td {
+  border: 1px solid #dee2e6; /* 위/아래/좌/우 모두 선 */
+  padding: 8px 10px;
+}
+
+.survey-main-table td:nth-child(3),
+.survey-main-table td:nth-child(4) {
+  text-align: center;
+}
+
 .survey-view-page {
   font-family: "Noto Sans KR", sans-serif;
-  color: #333;
+  background-color: #f8f9fa;
 }
+
 .header-bg {
   background-color: #5dbe8a !important;
   border-radius: 12px 12px 0 0;
+  height: 60px;
 }
+
 .date-center {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
+
 .border-radius-top-none {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
+
+.status-box {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #adb5bd;
+  background: #f1f3f5;
+  border: 1px solid #e9ecef;
+}
+
 .dot-icon {
-  color: #49d38a;
-  font-size: 0.9rem;
+  color: #2dce89;
+  font-size: 14px;
 }
+
 .section-title-box {
-  border-bottom: 2px solid #ebf1f5;
-  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
 }
+
 .custom-bordered-table {
   border: 1px solid #dee2e6;
   border-collapse: collapse;
-  width: 100%;
 }
+
+.bg-light-green {
+  background-color: #f0f9f4 !important;
+}
+
 .sub-header-row {
-  border-top: 2px solid #333;
+  border-top: 2px solid #495057;
 }
-.border-bottom-dark {
-  border-bottom: 1px solid #333 !important;
+
+.sub-header {
+  background-color: #f8fafd;
+  border-bottom: 1px solid #e9ecef;
 }
-.question-row {
-  border-bottom: 1px solid #dee2e6;
+
+.selected-indicator {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #e9ecef;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.result-box {
+
+.selected-indicator.active {
+  border-color: #2dce89;
+}
+
+.inner-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #2dce89;
+  border-radius: 50%;
+}
+
+.sub-header-row td {
+  border-top: 1px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.border-dark-strong {
+  border: 1px solid #dee2e6 !important;
+}
+
+.btn-list-back {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: all 0.2s;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid #c1c9d0;
-  border-radius: 4px;
-  background-color: #fff;
-  color: transparent;
 }
-.active-check {
-  background-color: #8e99a7 !important;
-  border-color: #8e99a7 !important;
-  color: white !important;
-  font-size: 14px;
-}
-.bg-info-soft {
-  background-color: #e8f9fd;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-}
-.btn-list-back {
-  background-color: #7a89a0;
+
+.btn-list-back:hover {
+  background-color: #5a6268;
   color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  padding: 0.7rem 4rem;
+  transform: translateY(-1px);
 }
+
 .text-wrap {
   word-break: keep-all;
   line-height: 1.6;
 }
-.border-end {
-  border-right: 1px solid #dee2e6 !important;
-}
+
 .border-start {
   border-left: 1px solid #dee2e6 !important;
+}
+
+.survey-main-table {
+  background-color: #fff;
+  border: 1px solid #333;
+  border-collapse: collapse;
+}
+
+.check-box-square i {
+  color: #fff; /* 체크 표시 흰색 */
+  font-size: 12px;
+}
+
+.check-box-square {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #888;
+  border-radius: 50%; /* 동그라미 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.check-box-square.is-checked {
+  background-color: #2dce89; /* 선택 시 녹색 배경 */
+  border-color: #2dce89;
 }
 </style>

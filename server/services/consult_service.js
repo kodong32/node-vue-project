@@ -80,7 +80,6 @@ const consultDetail = async (counsultId) => {
 
   const row = result[0];
 
-  // 🔹 수정: Router에서 처리하던 중분류 변환을 Service로 이동
   if (row.dis_middle_raw) {
     const middleCodes = row.dis_middle_raw.split(",").map((c) => c.trim());
     const middleDescs = await getMiddleDescriptions(middleCodes);
@@ -93,11 +92,6 @@ const consultDetail = async (counsultId) => {
 
   return [row];
 };
-
-// const consultDetail = async (info) => {
-//   let detail = await consultMapper.consultDetail(info);
-//   return detail;
-// };
 
 module.exports = {
   findAll,
