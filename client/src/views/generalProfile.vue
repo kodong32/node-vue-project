@@ -108,7 +108,9 @@ const getInstitutionInfo = async () => {
     credentials: "include",
   }).then((res) => res.json());
 
-  if (result.status === "Success" || result.status === "Succeess") {
+  console.log(result);
+
+  if (result.status === "Success") {
     const data = result.data || {};
 
     institutionInfo.institution_id = data.institution_id || "";
@@ -149,6 +151,43 @@ const cancelEdit = () => {
   else if (currentMode.value === "editInstitutionInfo") currentMode.value = "institutionInfo";
   else currentMode.value = "home";
 };
+
+//기관 정보 수정 저장
+// 기관 정보 수정 저장
+const saveInstitutionInfo = async (formData) => {
+  try {
+    const payload = {
+      institution_id: formData.institution_id,
+      institution_name: formData.institution_name,
+      institution_tel: formData.institution_tel,
+      institution_zipCode: formData.institution_zipCode,
+      institution_address: formData.institution_address,
+      institution_email: formData.institution_email,
+    };
+
+    const result = await fetch("/api/user/insti/update", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    }).then((res) => res.json());
+
+    console.log("기관정보 수정 결과 :", result);
+
+    if (result.status === "Success") {
+      alert("기관 정보가 수정되었습니다.");
+      await getInstitutionInfo();
+      currentMode.value = "institutionInfo";
+    } else {
+      alert(result.message || "기관 정보 수정 실패");
+    }
+  } catch (err) {
+    console.log("saveInstitutionInfo error :", err);
+    alert("기관 정보 수정 중 오류가 발생했습니다.");
+  }
+};
 </script>
 
 <template>
@@ -157,7 +196,6 @@ const cancelEdit = () => {
 
     <div class="container-fluid py-4">
       <div class="row g-0 general-layout">
-
         <!-- 좌측 -->
         <div class="col-xl-2 col-lg-3 col-md-12">
           <GeneralInfoCard
@@ -170,7 +208,7 @@ const cancelEdit = () => {
           />
         </div>
 
-        <!-- ✅ 첫화면 (둘 다) -->
+        <!-- 첫화면 -->
         <template v-if="currentMode === 'home'">
           <div class="col-xl-5 col-lg-5 col-md-12">
             <GeneralInfoView :info="generalInfo" />
@@ -180,42 +218,42 @@ const cancelEdit = () => {
           </div>
         </template>
 
-        <!-- ✅ 내 정보 보기 (관리자만) -->
+        <!-- 내 정보 보기 -->
         <template v-else-if="currentMode === 'myInfo'">
           <div class="col-xl-10 col-lg-9 col-md-12">
             <GeneralInfoView :info="generalInfo" />
           </div>
         </template>
 
-        <!-- ✅ 내 정보 수정 -->
+        <!-- 내 정보 수정 -->
         <template v-else-if="currentMode === 'editMyInfo'">
           <div class="col-xl-10 col-lg-9 col-md-12">
             <GeneralEditForm
               :data="generalEditInfo"
-              @cancel="cancelEdit"
-              @home ="openHome"
-            />
-          </div>
-        </template>
-
-        <!-- ✅ 기관 정보 보기 -->
-        <template v-else-if="currentMode === 'institutionInfo'">
-          <div class="col-xl-10 col-lg-9 col-md-12">
-            <InstitutionInfoView :info="institutionInfo" />
-          </div>
-        </template>
-
-        <!-- ✅ 기관 정보 수정 -->
-        <template v-else-if="currentMode === 'editInstitutionInfo'">
-          <div class="col-xl-10 col-lg-9 col-md-12">
-            <InstitutionEditForm
-              :data="institutionEditInfo"
               @cancel="cancelEdit"
               @home="openHome"
             />
           </div>
         </template>
 
+        <!-- 기관 정보 보기 -->
+        <template v-else-if="currentMode === 'institutionInfo'">
+          <div class="col-xl-10 col-lg-9 col-md-12">
+            <InstitutionInfoView :info="institutionInfo" />
+          </div>
+        </template>
+
+        <!-- 기관 정보 수정 -->
+        <template v-else-if="currentMode === 'editInstitutionInfo'">
+          <div class="col-xl-10 col-lg-9 col-md-12">
+            <InstitutionEditForm
+              :data="institutionEditInfo"
+              @save="saveInstitutionInfo"
+              @cancel="cancelEdit"
+              @home="openHome"
+            />
+          </div>
+        </template>
       </div>
     </div>
   </main>

@@ -82,4 +82,12 @@ router.get(`/list`, requireInstUser, requireInstRole, async (req, res) => {
   res.send(result);
 });
 
+//지원계획서 삭제
+router.delete("/plan/delete/:id", async(req,res) => {
+  const supportPlan_Id = req.params.id;
+  const result = await managerService.deletePlan(supportPlan_Id);
+
+  res.send(result);
+});
+
 module.exports = router;

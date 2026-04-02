@@ -67,33 +67,62 @@ const fetchNoticeData = async () => {
   }
 };
 
+const uploadFiles = ref({
+  file1: null,
+  file2: null,
+  file3: null,
+  file4: null,
+  file5: null,
+});
+
+const handleFileUpload = (event, fieldName) => {
+  uploadFiles.value[fieldName] = event.target.files[0];
+};
+
 // 💡 5. 저장 (등록 또는 수정) 실행
 const submitForm = async () => {
-  // 유효성 검사 (빈칸 방지)
   if (!formData.value.title.trim()) return alert("제목을 입력해주세요.");
   if (!formData.value.content.trim()) return alert("본문 내용을 입력해주세요.");
   if (!formData.value.noticeDate)
     return alert("공개 종료 기한을 선택해주세요.");
 
-  // 백엔드로 보낼 데이터 세팅
-  const payload = {
-    ...formData.value,
-    writerType: currentUserRole.value === "시스템관리자" ? "a001" : "a002",
-    writerId: "IUSR0001", // 실제로는 로그인 세션에서 가져온 내 ID
-  };
+  // 🌟 FormData 객체 생성 (파일 전송을 위한 필수 작업!)
+  const form = new FormData();
+  form.append("title", formData.value.title);
+  form.append("content", formData.value.content);
+  form.append("noticeDate", formData.value.noticeDate);
+  form.append("importantMark", formData.value.importantMark);
+  form.append("noticeType", formData.value.noticeType);
+  form.append(
+    "writerType",
+    currentUserRole.value === "시스템관리자" ? "a001" : "a002",
+  );
+  form.append("writerId", "IUSR0001");
+
+  // 파일이 존재하면 append!
+  if (uploadFiles.value.file1) form.append("file1", uploadFiles.value.file1);
+  if (uploadFiles.value.file2) form.append("file2", uploadFiles.value.file2);
+  if (uploadFiles.value.file3) form.append("file3", uploadFiles.value.file3);
+  if (uploadFiles.value.file4) form.append("file4", uploadFiles.value.file4);
+  if (uploadFiles.value.file5) form.append("file5", uploadFiles.value.file5);
 
   try {
     if (isEditMode.value) {
-      // 수정 (PUT)
+      // 수정 (PUT) - 헤더에 multipart/form-data 필수!
       await axios.put(
         `http://localhost:3000/notice/${route.params.noticeId}`,
-        payload,
+        form,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
       );
       alert("성공적으로 수정되었습니다!");
       router.push(`/notice/detail/${route.params.noticeId}`);
     } else {
-      // 신규 등록 (POST)
-      await axios.post("http://localhost:3000/notice/write", payload);
+      // 등록 (POST)
+      await axios.post("http://localhost:3000/notice/write", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert("성공적으로 등록되었습니다!");
       router.push("/notice/list");
     }
@@ -224,49 +253,40 @@ onMounted(() => {
               <div class="row mt-2">
                 <div class="col-md-6 mb-2">
                   <input
-                    type="text"
+                    type="file"
                     class="form-control form-control-sm"
-                    placeholder="첨부파일 1 이름 (임시)"
-                    v-model="formData.file1"
+                    @change="handleFileUpload($event, 'file1')"
                   />
                 </div>
                 <div class="col-md-6 mb-2">
                   <input
-                    type="text"
+                    type="file"
                     class="form-control form-control-sm"
-                    placeholder="첨부파일 2 이름 (임시)"
-                    v-model="formData.file2"
+                    @change="handleFileUpload($event, 'file2')"
                   />
                 </div>
                 <div class="col-md-6 mb-2">
                   <input
-                    type="text"
+                    type="file"
                     class="form-control form-control-sm"
-                    placeholder="첨부파일 3 이름 (임시)"
-                    v-model="formData.file3"
+                    @change="handleFileUpload($event, 'file3')"
                   />
                 </div>
                 <div class="col-md-6 mb-2">
                   <input
-                    type="text"
+                    type="file"
                     class="form-control form-control-sm"
-                    placeholder="첨부파일 4 이름 (임시)"
-                    v-model="formData.file4"
+                    @change="handleFileUpload($event, 'file4')"
                   />
                 </div>
                 <div class="col-md-6">
                   <input
-                    type="text"
+                    type="file"
                     class="form-control form-control-sm"
-                    placeholder="첨부파일 5 이름 (임시)"
-                    v-model="formData.file5"
+                    @change="handleFileUpload($event, 'file5')"
                   />
                 </div>
               </div>
-              <small class="text-muted text-xs mt-2 d-block"
-                >* 현재는 테스트용 텍스트 입력창입니다. 추후 네이버 클라우드
-                파일 업로더로 교체됩니다.</small
-              >
             </div>
 
             <div class="d-flex justify-content-center gap-3 mt-5">

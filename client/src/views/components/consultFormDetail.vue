@@ -3,7 +3,7 @@
 
   <main class="content-container mx-auto mt-4 shadow-sm bg-white">
     <div class="content-header p-4 border-bottom text-center">
-      <h1 class="main-title m-0">상담 기록</h1>
+      <h1 class="main-title m-0">상담기록 조회</h1>
     </div>
 
     <div class="p-5">

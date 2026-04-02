@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const service = require("../../services/result_plan_service.js");
+const uploadResult = require("../../middlewares/uploadFile_result.js");
 
 // 1. 모달에 띄울 '승인된 계획서' 목록 가져오기
 router.get("/approved-list", async (req, res) => {
@@ -30,36 +31,49 @@ router.get("/approved-list", async (req, res) => {
 });
 
 // 2. 지원결과서 저장 (승인 요청)
-router.post("/write", async (req, res) => {
-  try {
-    const { supportPlan_id, result, content, file1, file2 } = req.body;
-    // 🚨 [임시 하드코딩] 작성자 ID
-    const managerId = "IUSR0003";
+router.post(
+  "/write",
+  uploadResult.fields([
+    { name: "file1", maxCount: 1 },
+    { name: "file2", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      // 🌟 파일 정보는 req.files에, 나머지 텍스트 데이터는 req.body에 들어있음
+      const { supportPlan_id, result, content } = req.body;
+      const files = req.files || {};
 
-    if (!supportPlan_id || !result || !content) {
-      return res
-        .status(400)
-        .json({ message: "필수 항목을 모두 입력해주세요." });
+      // 🚨 [임시 하드코딩] 작성자 ID (세션 연동 전까지 유지)
+      const managerId = "IUSR0003";
+
+      if (!supportPlan_id || !result || !content) {
+        return res
+          .status(400)
+          .json({ message: "필수 항목을 모두 입력해주세요." });
+      }
+
+      // 🌟 업로드된 파일이 있으면 파일명을 객체에 넣고, 없으면 빈칸("")
+      const saveData = {
+        supportPlan_id,
+        managerId,
+        result,
+        content,
+        file1: files.file1 ? files.file1[0].filename : "",
+        file2: files.file2 ? files.file2[0].filename : "",
+      };
+
+      const response = await service.savePlanResult(saveData);
+
+      res.status(200).json({
+        message: "지원결과서가 성공적으로 등록되었습니다.",
+        data: response,
+      });
+    } catch (err) {
+      console.error("결과서 등록 실패:", err);
+      res.status(500).json({ message: "결과서 등록 실패", error: err.message });
     }
-
-    const saveData = {
-      supportPlan_id,
-      managerId,
-      result,
-      content,
-      file1,
-      file2,
-    };
-    const response = await service.savePlanResult(saveData);
-
-    res.status(200).json({
-      message: "지원결과서가 성공적으로 등록되었습니다.",
-      data: response,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "결과서 등록 실패", error: err.message });
-  }
-});
+  },
+);
 
 // 지원결과서 조회
 router.get("/general-list", async (req, res) => {

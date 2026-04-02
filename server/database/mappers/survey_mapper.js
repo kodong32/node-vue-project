@@ -138,6 +138,48 @@ const items = async (Ver_Id) => {
   }
 };
 
+//상세조회
+const surveyDetail = async (id) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.surveyDetail, [id]);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//타이틀 코드
+const title = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.title);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//조사지 답변 조회
+const answerSelect = async (id) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.answerSelect, [id]);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   gender,
   support,
@@ -148,4 +190,7 @@ module.exports = {
   answerAdd,
   lastAnswer,
   items,
+  surveyDetail,
+  title,
+  answerSelect,
 };

@@ -20,6 +20,7 @@ import ApprovalResult from "./approval_result_router";
 import Notice from "./notice_router";
 import managerMypage from "./mngMypage_router";
 import generalMypage_router from "./generalMypage_router";
+import general_managerInfo_router from "./general_managerInfo_router";
 
 const routes = [
   {
@@ -46,6 +47,7 @@ const routes = [
   ...Notice,
   ...managerMypage,
   ...generalMypage_router,
+  ...general_managerInfo_router,
 ];
 
 const router = createRouter({

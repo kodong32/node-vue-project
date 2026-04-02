@@ -380,11 +380,11 @@ const selectedUserInfo = computed(() => {
     (u) => u.support_id === surveyStore.selectedUserId,
   );
 
-  if (!user) return { formatDate: dateFormat(new Date()) };
+  const dateToFormat = user?.created_at || new Date();
 
   return {
     ...user,
-    formatDate: dateFormat(user.created_at),
+    formatDate: dateFormat(dateToFormat),
   };
 });
 

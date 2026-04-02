@@ -88,6 +88,51 @@ WHERE f.use_yn = 'Y'
 ORDER BY i.question_id ASC;
 `;
 
+//상세조회
+const surveyDetail = `
+SELECT 
+    m.J_ID, 
+    m.G_UserId,
+    u.name AS userName,
+    m.created_at, 
+    m.reason,
+    q.question_id, 
+    q.titleCode, 
+    q.question_no, 
+    q.question_text, 
+    q.answer_type,
+    a.answer
+FROM Survey_Tbl m
+LEFT JOIN SurveyItem_Tbl q ON m.Ver_Id = q.Ver_Id
+LEFT JOIN GeneralUser_Tbl u ON m.G_UserId = u.G_UserId
+LEFT JOIN SurveyUserAnswer_Tbl a 
+    ON q.question_id = a.question_id 
+    AND a.J_ID = m.J_ID
+WHERE m.J_ID = ?
+ORDER BY q.titleCode, q.question_no ASC
+`;
+
+//타이틀 코드
+const title = `
+SELECT 
+  titleCode,
+  title,
+  parentCode,
+  level
+FROM SurveyTitle_Tbl
+ORDER BY titleCode
+`;
+
+//조사지 답변 조회
+const answerSelect = `
+SELECT answer_id,
+       J_ID,
+       question_id,
+       answer
+FROM SurveyUserAnswer_Tbl
+WHERE J_ID = ?
+ORDER BY answer_id`;
+
 module.exports = {
   gender,
   support,
@@ -98,4 +143,7 @@ module.exports = {
   answerAdd,
   lastAnswer,
   items,
+  surveyDetail,
+  title,
+  answerSelect,
 };

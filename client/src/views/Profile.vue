@@ -4,6 +4,8 @@ import { useStore } from "vuex";
 import ArgonInput from "@/components/ArgonInput.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
 import RoleHeader from "./components/RoleHeader.vue";
+import GuardianCard from "./components/GuardianCard.vue";
+import SupportTargetList from "./components/SupportTargetList.vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -99,9 +101,12 @@ const guardianInfo = reactive({
   name: "",
   tel: "",
   email: "",
+  zipCode: "",
   address: "",
   institution: "",
   institution_id: "",
+  document1: "",
+  document2: "",
 });
 
 const guardianEditInfo = reactive({
@@ -115,6 +120,10 @@ const guardianEditInfo = reactive({
   newPasswordConfirm: "",
   institution: "",
   institution_id: "",
+  zipCode: "",
+  address: "",
+  document1: "",
+  document2: "",
   file1: null,
   file2: null,
   joinDate: "2026.03.13 (가입 날짜로 고정)",
@@ -122,7 +131,7 @@ const guardianEditInfo = reactive({
 
 const supInfo = reactive({
   support_id: "",
-  G_UserId: userId, // 현재 테스트용
+  G_UserId: userId,
   I_userId1: null,
   I_userId2: null,
   name: "",
@@ -170,7 +179,7 @@ const resetSupForm = () => {
   supInfo.major = [];
   supInfo.middle = [];
   supInfo.sub = "";
-  supInfo.G_UserId = userId;
+  supInfo.G_UserId = guardianInfo.GuserId || userId;
   supInfo.I_userId1 = null;
   supInfo.I_userId2 = null;
 
@@ -240,32 +249,38 @@ const resetGuardianForm = () => {
   guardianEditInfo.newPasswordConfirm = "";
   guardianEditInfo.institution = guardianInfo.institution || "";
   guardianEditInfo.institution_id = guardianInfo.institution_id || "";
+  guardianEditInfo.zipCode = guardianInfo.zipCode || "";
+  guardianEditInfo.address = guardianInfo.address || "";
+  guardianEditInfo.document1 = guardianInfo.document1 || "";
+  guardianEditInfo.document2 = guardianInfo.document2 || "";
   guardianEditInfo.file1 = null;
   guardianEditInfo.file2 = null;
 
-  guardianZipCode.value = "";
+  guardianZipCode.value = guardianInfo.zipCode || "";
   guardianMainAddress.value = guardianInfo.address || "";
   guardianDetailAddress.value = "";
 };
 
-const toggleSupForm = () => {
+const handleGuardianEditClick = () => {
+  if (!showGuardianEditForm.value) {
+    resetGuardianForm();
+    showSupAddForm.value = false;
+    showGuardianEditForm.value = true;
+  } else {
+    showGuardianEditForm.value = false;
+  }
+};
+
+const handleSupportAddClick = () => {
   if (!showSupAddForm.value) {
     isEdit.value = false;
     resetSupForm();
-    supInfo.G_UserId = userId;
+    supInfo.G_UserId = guardianInfo.GuserId || userId;
+    showGuardianEditForm.value = false;
+    showSupAddForm.value = true;
+  } else {
+    showSupAddForm.value = false;
   }
-
-  showGuardianEditForm.value = false;
-  showSupAddForm.value = !showSupAddForm.value;
-};
-
-const toggleGuardianForm = () => {
-  if (!showGuardianEditForm.value) {
-    resetGuardianForm();
-  }
-
-  showSupAddForm.value = false;
-  showGuardianEditForm.value = !showGuardianEditForm.value;
 };
 
 const openPostcode = () => {
@@ -287,9 +302,10 @@ const getMajorList = async () => {
   try {
     const resp = await fetch("/api/dis/disList");
     const data = await resp.json();
-    majorList.value = data;
+    majorList.value = Array.isArray(data) ? data : [];
   } catch (err) {
     console.error("대분류 조회 실패", err);
+    majorList.value = [];
   }
 };
 
@@ -307,9 +323,12 @@ const getMiddleList = async () => {
 
     const result = await fetch(`/api/dis/disMidList?${queryString}`)
       .then((resp) => resp.json())
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        return [];
+      });
 
-    middleList.value = result;
+    middleList.value = Array.isArray(result) ? result : [];
     supInfo.middle = [];
   } catch (err) {
     console.log(err);
@@ -323,31 +342,38 @@ const onChangeMajor = async () => {
 const getSupList = async (loginIno) => {
   const result = await fetch(`/api/user/support/supList/${loginIno}`)
     .then((resp) => resp.json())
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      return [];
+    });
 
-  supList.value = result;
+  supList.value = Array.isArray(result) ? result : [];
 };
 
 const getGuardianInfo = async (userId) => {
   const result = await fetch(`/api/user/info/${userId}`)
     .then((resp) => resp.json())
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      return null;
+    });
 
-  console.log(result);
-
-  if (result.status === "Success") {
+  if (result && result.status === "Success") {
     guardianInfo.GuserId = result.data.GUSERID || "";
     guardianInfo.userId = result.data.id || "";
     guardianInfo.name = result.data.name || "";
     guardianInfo.tel = result.data.tel || "";
     guardianInfo.email = result.data.email || "";
+    guardianInfo.zipCode = result.data.zipCode || "";
     guardianInfo.address = result.data.address || "";
     guardianInfo.institution = result.data.institution || "";
     guardianInfo.institution_id = result.data.institution_id || "";
+    guardianInfo.document1 = result.data.document1 || "";
+    guardianInfo.document2 = result.data.document2 || "";
 
     await getSupList(guardianInfo.GuserId);
   } else {
-    alert(result.message || "사용자 정보 조회 실패");
+    alert(result?.message || "사용자 정보 조회 실패");
   }
 };
 
@@ -377,6 +403,7 @@ const addSupport = async () => {
     await getSupList(data.G_UserId);
     alert("등록이 성공하였습니다.");
     resetSupForm();
+    showSupAddForm.value = false;
   } else {
     alert("등록이 실패하였습니다.");
   }
@@ -404,11 +431,15 @@ const updateSupport = async (supId) => {
     body: JSON.stringify(data),
   })
     .then((resp) => resp.json())
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      return { status: "Failed" };
+    });
 
   if (result.status === "Success") {
     await getSupList(supInfo.G_UserId);
     alert("수정이 성공하였습니다.");
+    showSupAddForm.value = false;
   } else {
     alert("수정이 실패하였습니다.");
   }
@@ -419,7 +450,10 @@ const deleteSupport = async (supId) => {
     method: "delete",
   })
     .then((resp) => resp.json())
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      return { status: "Failed" };
+    });
 
   if (result.status === "Success") {
     await getSupList(supInfo.G_UserId);
@@ -432,6 +466,11 @@ const deleteSupport = async (supId) => {
 };
 
 const editSup = async (item) => {
+  if (!item) {
+    console.log("editSup item 없음 :", item);
+    return;
+  }
+
   showGuardianEditForm.value = false;
   showSupAddForm.value = true;
   isEdit.value = true;
@@ -441,7 +480,7 @@ const editSup = async (item) => {
   supInfo.I_userId1 = item.I_userId1 || null;
   supInfo.I_userId2 = item.I_userId2 || null;
   supInfo.name = item.name || "";
-  supInfo.born = item.born ? item.born.slice(0, 10) : "";
+  supInfo.born = item.born ? String(item.born).slice(0, 10) : "";
   supInfo.gender = item.gender || "";
   supInfo.relation = item.relation || "";
   supInfo.sub = item.sub || "";
@@ -459,6 +498,14 @@ const editSup = async (item) => {
 const onGuardianFileChange = (event, key) => {
   const file = event.target.files?.[0] || null;
   guardianEditInfo[key] = file;
+
+  if (key === "file1" && file) {
+    guardianEditInfo.document1 = file.name;
+  }
+
+  if (key === "file2" && file) {
+    guardianEditInfo.document2 = file.name;
+  }
 };
 
 const saveGuardianInfo = async () => {
@@ -491,6 +538,8 @@ const saveGuardianInfo = async () => {
 
   if (result.status === "Success") {
     alert("회원정보가 수정되었습니다.");
+    await getGuardianInfo(userId);
+    showGuardianEditForm.value = false;
   } else {
     alert(result.message || "회원정보 수정 실패");
   }
@@ -550,6 +599,34 @@ const selectedMiddleNames = computed(() => {
     .filter((item) => supInfo.middle.includes(item.j_Code))
     .map((item) => item.description);
 });
+
+const withdrawMember = async () => {
+  const ok = confirm("정말 탈퇴하시겠습니까? 탈퇴 후에는 로그인할 수 없습니다.");
+  if (!ok) return;
+
+  const result = await fetch("/api/user/withdraw", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      G_UserId: guardianInfo.GuserId,
+    }),
+  })
+    .then((res) => res.json())
+    .catch((err) => {
+      console.log(err);
+      return { status: "Failed", message: "서버 오류" };
+    });
+
+  if (result.status === "Success") {
+    alert("회원 탈퇴 처리되었습니다.");
+    window.location.href = "/";
+  } else {
+    alert(result.message || "회원 탈퇴 실패");
+  }
+};
 </script>
 
 <template>
@@ -557,274 +634,225 @@ const selectedMiddleNames = computed(() => {
     <RoleHeader />
 
     <div class="py-4 container-fluid">
-      <div class="row align-items-stretch">
-        <div class="col-md-4 d-flex">
-          <div class="row g-0 h-100">
-            <!-- 좌측 보호자 정보 -->
-            <div class="col-6">
-              <div class="card h-100 rounded-0 border border-secondary">
-                <div class="card-header pb-0 border-bottom">
-                  <h6 class="mb-1 text-dark">보호자</h6>
-                  <p class="text-sm mb-2">{{ guardianInfo.name }}님의 정보</p>
-                </div>
+      <!-- 보호자 수정 모드 -->
+      <div class="row align-items-stretch" v-if="showGuardianEditForm">
+        <div class="col-md-2 left-fixed-card">
+          <GuardianCard
+            :info="guardianInfo"
+            :isEditOpen="showGuardianEditForm"
+            @edit="handleGuardianEditClick"
+          />
+        </div>
 
-                <div class="card-body p-0 d-flex flex-column">
-                  <div
-                    class="border-bottom d-flex flex-column justify-content-center px-3"
-                    style="height: 69px"
-                  >
-                    <div class="text-sm">아이디</div>
-                    <div class="fw-bold">{{ guardianInfo.userId }}</div>
-                  </div>
-
-                  <div
-                    class="border-bottom d-flex flex-column justify-content-center px-3"
-                    style="height: 70px"
-                  >
-                    <div class="text-sm">연락처</div>
-                    <div class="fw-bold">{{ guardianInfo.tel }}</div>
-                  </div>
-
-                  <div
-                    class="border-bottom d-flex flex-column justify-content-center px-3"
-                    style="height: 70px"
-                  >
-                    <div class="text-sm">이메일</div>
-                    <div class="fw-bold text-decoration-underline">
-                      {{ guardianInfo.email }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="border-bottom d-flex flex-column justify-content-center px-3"
-                    style="height: 70px"
-                  >
-                    <div class="text-sm">주소</div>
-                    <div class="text-sm">{{ guardianInfo.address }}</div>
-                  </div>
-
-                  <div class="p-2">
-                    <div class="text-sm">등록된 기관명</div>
-                    <div class="text-sm">{{ guardianInfo.institution }}</div>
-                  </div>
-
-                  <div class="mt-auto p-2">
-                    <argon-button
-                      color="secondary"
-                      class="w-100"
-                      @click="toggleGuardianForm"
-                    >
-                      {{ showGuardianEditForm ? "닫기" : "내 정보 수정" }}
-                    </argon-button>
-                  </div>
-                </div>
+        <div class="col-md-7">
+          <div class="card h-100 rounded-0 border border-secondary border-start-0 profile-equal-card compact-form">
+            <div class="card-header pb-0">
+              <div class="d-flex align-items-center">
+                <p class="mb-0 fw-bold">{{ guardianInfo.name }}님의 정보</p>
               </div>
             </div>
 
-            <!-- 좌측 지원대상자 목록 -->
-            <div class="col-6">
-              <div class="card h-100 rounded-0 border border-secondary border-start-0">
-                <div class="card-header text-center border-bottom">
-                  <h6 class="mb-2 fw-bold">지원 대상자 목록</h6>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <label class="form-control-label">이름</label>
+                  <argon-input type="text" v-model="guardianEditInfo.name" />
                 </div>
 
-                <div class="card-body p-0 d-flex flex-column">
-                  <template v-if="supList.length">
-                    <div
-                      v-for="item in supList"
-                      :key="item.support_id"
-                      class="d-flex justify-content-between align-items-center px-3 border-bottom"
-                      style="height: 70px"
-                    >
-                      <span>{{ item.name }}</span>
-                      <argon-button size="sm" color="dark" @click="editSup(item)">
-                        수정
+                <div class="col-md-12">
+                  <label class="form-control-label">아이디</label>
+                  <div class="form-control bg-light">
+                    {{ guardianEditInfo.userId }}
+                  </div>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-control-label">현재 비밀번호</label>
+                  <argon-input
+                    type="password"
+                    v-model="guardianEditInfo.currentPassword"
+                  />
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-control-label">새 비밀번호</label>
+                  <argon-input type="password" v-model="guardianEditInfo.newPassword" />
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-control-label">새 비밀번호 확인</label>
+                  <argon-input
+                    type="password"
+                    v-model="guardianEditInfo.newPasswordConfirm"
+                  />
+                </div>
+
+                <div class="col-md-12 mb-2">
+                  <argon-button color="dark" size="sm" @click="changePassword">
+                    비밀번호 변경
+                  </argon-button>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-control-label">연락처</label>
+                  <argon-input type="text" v-model="guardianEditInfo.tel" />
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-control-label">주소</label>
+
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-12 d-flex gap-2">
+                      <div style="width: 140px">
+                        <argon-input
+                          class="mb-0"
+                          type="text"
+                          v-model="guardianZipCode"
+                          placeholder="우편번호"
+                          readonly
+                        />
+                      </div>
+
+                      <argon-button class="mb-0 px-3" @click="openPostcode">
+                        주소 검색
                       </argon-button>
                     </div>
-                  </template>
-
-                  <div v-else class="text-center p-3 text-sm text-muted">
-                    등록된 대상자가 없습니다.
                   </div>
 
-                  <div class="mt-auto p-2 position-relative">
-                    <argon-button color="secondary" class="w-100" @click="toggleSupForm">
-                      {{ showSupAddForm ? "닫기" : "지원 대상자 등록" }}
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <argon-input
+                        class="mb-0"
+                        type="text"
+                        v-model="guardianMainAddress"
+                        placeholder="기본주소"
+                        readonly
+                      />
+                    </div>
+
+                    <div class="col-md-6">
+                      <argon-input
+                        class="mb-0"
+                        type="text"
+                        v-model="guardianDetailAddress"
+                        placeholder="상세주소 입력"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-12 mt-3">
+                  <label class="form-control-label">등록된 기관명</label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <div class="flex-grow-1">
+                      <div class="form-control bg-light">
+                        {{ guardianEditInfo.institution }}
+                      </div>
+                    </div>
+                    <argon-button color="dark" size="sm" @click="openInstitutionModal">
+                      기관 검색
                     </argon-button>
                   </div>
+                </div>
+
+                <div class="col-md-12 mt-3">
+                  <label class="form-control-label">증빙서류</label>
+
+                  <div class="current-file-box mb-2">
+                    <div class="small text-muted">
+                      현재 등록된 파일1 :
+                      <span class="fw-bold text-dark">
+                        {{ guardianEditInfo.document1 || "등록된 파일 없음" }}
+                      </span>
+                    </div>
+                    <div class="small text-muted mt-1">
+                      현재 등록된 파일2 :
+                      <span class="fw-bold text-dark">
+                        {{ guardianEditInfo.document2 || "등록된 파일 없음" }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="file-input-group">
+                    <input
+                      type="file"
+                      class="form-control file-input-top"
+                      @change="(e) => onGuardianFileChange(e, 'file1')"
+                    />
+                    <input
+                      type="file"
+                      class="form-control file-input-bottom"
+                      @change="(e) => onGuardianFileChange(e, 'file2')"
+                    />
+                  </div>
+                </div>
+
+                <div class="col-md-12 mt-3">
+                  <argon-input
+                    type="text"
+                    v-model="guardianEditInfo.joinDate"
+                    readonly
+                  />
+                </div>
+
+                <div class="col-md-6 mt-3">
+                  <argon-button color="success" class="w-100" @click="saveGuardianInfo">
+                    수정
+                  </argon-button>
+                </div>
+
+                <div class="col-md-6 mt-3">
+                  <argon-button
+                    color="secondary"
+                    class="w-100"
+                    @click="cancelGuardianEdit"
+                  >
+                    취소
+                  </argon-button>
+                </div>
+
+                <div class="col-md-12 mt-3 text-end">
+                  <argon-button color="danger" size="sm" @click="withdrawMember">
+                    회원 탈퇴
+                  </argon-button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 우측 폼 영역 -->
-        <div class="col-md-8">
-          <div class="card h-100 rounded-0 border border-secondary border-start-0">
-            <!-- 보호자 정보 수정 폼 -->
-            <div v-if="showGuardianEditForm">
-              <div class="card-header pb-0">
-                <div class="d-flex align-items-center">
-                  <p class="mb-0 fw-bold">{{ guardianInfo.name }}님의 정보</p>
-                </div>
-              </div>
+        <div class="col-md-3 left-fixed-card">
+          <SupportTargetList
+            :list="supList"
+            :isFormOpen="showSupAddForm && !isEdit"
+            @add="handleSupportAddClick"
+            @edit="editSup"
+          />
+        </div>
+      </div>
 
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <label class="form-control-label">이름</label>
-                    <argon-input type="text" v-model="guardianEditInfo.name" />
-                  </div>
+      <!-- 기본 / 지원대상자 등록수정 모드 -->
+      <div class="row align-items-stretch" v-else>
+        <div class="col-md-2 left-fixed-card">
+          <GuardianCard
+            :info="guardianInfo"
+            :isEditOpen="showGuardianEditForm"
+            @edit="handleGuardianEditClick"
+          />
+        </div>
 
-                  <div class="col-md-12">
-                    <label class="form-control-label">아이디</label>
-                    <div class="form-control bg-light">
-                      {{ guardianEditInfo.userId }}
-                    </div>
-                  </div>
+        <div class="col-md-3 left-fixed-card">
+          <SupportTargetList
+            :list="supList"
+            :isFormOpen="showSupAddForm && !isEdit"
+            @add="handleSupportAddClick"
+            @edit="editSup"
+          />
+        </div>
 
-                  <div class="col-md-12">
-                    <label class="form-control-label">현재 비밀번호</label>
-                    <argon-input
-                      type="password"
-                      v-model="guardianEditInfo.currentPassword"
-                    />
-                  </div>
-
-                  <div class="col-md-12">
-                    <label class="form-control-label">새 비밀번호</label>
-                    <argon-input type="password" v-model="guardianEditInfo.newPassword" />
-                  </div>
-
-                  <div class="col-md-12">
-                    <label class="form-control-label">새 비밀번호 확인</label>
-                    <argon-input
-                      type="password"
-                      v-model="guardianEditInfo.newPasswordConfirm"
-                    />
-                  </div>
-
-                  <div class="col-md-12 mb-2">
-                    <argon-button color="dark" size="sm" @click="changePassword">
-                      비밀번호 변경
-                    </argon-button>
-                  </div>
-
-                  <div class="col-md-12">
-                    <label class="form-control-label">연락처</label>
-                    <argon-input type="text" v-model="guardianEditInfo.tel" />
-                  </div>
-
-                  <div class="col-md-12">
-                    <label class="form-control-label">주소</label>
-
-                    <div class="row g-2 mb-2">
-                      <div class="col-md-12 d-flex gap-2">
-                        <div style="width: 140px">
-                          <argon-input
-                            class="mb-0"
-                            type="text"
-                            v-model="guardianZipCode"
-                            placeholder="우편번호"
-                            readonly
-                          />
-                        </div>
-
-                        <argon-button class="mb-0 px-3" @click="openPostcode">
-                          주소 검색
-                        </argon-button>
-                      </div>
-                    </div>
-
-                    <div class="row g-2">
-                      <div class="col-md-6">
-                        <argon-input
-                          class="mb-0"
-                          type="text"
-                          v-model="guardianMainAddress"
-                          placeholder="기본주소"
-                          readonly
-                        />
-                      </div>
-
-                      <div class="col-md-6">
-                        <argon-input
-                          class="mb-0"
-                          type="text"
-                          v-model="guardianDetailAddress"
-                          placeholder="상세주소 입력"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="col-md-12 mt-3">
-                    <label class="form-control-label">등록된 기관명</label>
-                    <div class="d-flex gap-2 align-items-center">
-                      <div class="flex-grow-1">
-                        <div class="form-control bg-light">
-                          {{ guardianEditInfo.institution }}
-                        </div>
-                      </div>
-                      <argon-button color="dark" size="sm" @click="openInstitutionModal"
-                        >기관 검색</argon-button
-                      >
-                    </div>
-                  </div>
-
-                  <div class="col-md-12 mt-3">
-                    <label class="form-control-label">증빙서류</label>
-
-                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                      <input
-                        type="file"
-                        class="form-control"
-                        @change="(e) => onGuardianFileChange(e, 'file1')"
-                      />
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      <input
-                        type="file"
-                        class="form-control"
-                        @change="(e) => onGuardianFileChange(e, 'file2')"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="col-md-12 mt-3">
-                    <argon-input
-                      type="text"
-                      v-model="guardianEditInfo.joinDate"
-                      readonly
-                    />
-                  </div>
-
-                  <div class="col-md-6 mt-3">
-                    <argon-button color="success" class="w-100" @click="saveGuardianInfo">
-                      수정
-                    </argon-button>
-                  </div>
-
-                  <div class="col-md-6 mt-3">
-                    <argon-button
-                      color="secondary"
-                      class="w-100"
-                      @click="cancelGuardianEdit"
-                    >
-                      취소
-                    </argon-button>
-                  </div>
-
-                  <div class="col-md-12 mt-3 text-end">
-                    <argon-button color="danger" size="sm">회원 탈퇴</argon-button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 지원 대상자 등록/수정 폼 -->
-            <div v-else-if="showSupAddForm">
+        <div class="col-md-7">
+          <div class="card h-100 rounded-0 border border-secondary border-start-0 profile-equal-card compact-form">
+            <div v-if="showSupAddForm">
               <div class="card-header pb-0">
                 <div class="d-flex align-items-center">
                   <p class="mb-0">
@@ -1060,7 +1088,6 @@ const selectedMiddleNames = computed(() => {
               </div>
             </div>
 
-            <!-- 초기 빈 화면 -->
             <div v-else class="h-100 d-flex align-items-center justify-content-center">
               <p class="text-muted mb-0">왼쪽에서 작업을 선택하세요.</p>
             </div>
@@ -1153,7 +1180,7 @@ const selectedMiddleNames = computed(() => {
                 <td>{{ item.institution_name }}</td>
                 <td>{{ item.address }}</td>
                 <td class="text-center">
-                  <argon-button size="sm" color="info" @click="selectInstitution(item)">
+                  <argon-button size="sm" color="dark" @click="selectInstitution(item)">
                     선택
                   </argon-button>
                 </td>
@@ -1165,3 +1192,64 @@ const selectedMiddleNames = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.profile-equal-card {
+  min-height: 640px;
+}
+
+.current-file-box {
+  padding: 12px 14px;
+  border: 1px solid #d2d6da;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+}
+
+.file-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-input-top,
+.file-input-bottom {
+  margin-bottom: 0 !important;
+}
+
+.compact-form .row > [class*="col-"] {
+  margin-bottom: 10px;
+}
+
+.compact-form .row.g-2 {
+  --bs-gutter-y: 0.5rem;
+}
+
+.compact-form .horizontal {
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.left-fixed-card {
+  min-height: 640px;
+  display: flex;
+}
+
+.left-fixed-card :deep(.guardian-card),
+.left-fixed-card :deep(.support-card) {
+  width: 100%;
+  min-height: 640px;
+}
+
+.left-fixed-card :deep(.list-row) {
+  min-height: 69px;
+}
+
+@media (max-width: 991px) {
+  .profile-equal-card,
+  .left-fixed-card,
+  .left-fixed-card :deep(.guardian-card),
+  .left-fixed-card :deep(.support-card) {
+    min-height: auto;
+  }
+}
+</style>

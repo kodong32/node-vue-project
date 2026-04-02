@@ -63,7 +63,6 @@ router.post("/answer", async (req, res) => {
   try {
     const { J_ID, answerList } = req.body;
 
-    // 1. 마지막 ID 조회 (기존 로직)
     const lastRow = await surveyService.lastAnswer();
     const nextId = lastRow.length > 0 ? lastRow[0].answer_id + 1 : 1;
 
@@ -89,7 +88,7 @@ router.get("/last", async (req, res) => {
   }
 });
 
-// //문항 가져오는 라우터
+//문항 가져오는 라우터
 router.get("/items/:Ver_Id", async (req, res) => {
   let { Ver_Id } = req.params;
   let result = await surveyService.items(Ver_Id);
@@ -97,26 +96,30 @@ router.get("/items/:Ver_Id", async (req, res) => {
   res.json(result);
 });
 
-// //조사지 전체조회 <김민지, 브라우저에 응답 결과 전달 26.03.23 추가>
-// router.get("/user", async (req, res) => {
-//   let result = await surveyService.findAll();
-//   res.send(result);
-// });
+//건별조회
+router.get("/surveySelect/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const result = await surveyService.surveyDetail(id);
+    res.json(result);
+  } catch (err) {
+    console.error("건별조회 실패:", err);
+  }
+});
 
-// //조사지 건별조회 <김민지, 브라우저에 응답 결과 전달 26.03.23 추가>
-// router.get("/user/:no", async (req, res) => {
-//   console.log(req.params.no);
-//   let target = req.params.no;
-//   console.log("건별조회", target);
-//   let result = await surveyService.findInfoByNo(target);
-//   console.log("건별조회", result);
-//   res.send(result);
-// });
+//타이틀 코드
+router.get("/title", async (req, res) => {
+  let result = await surveyService.title();
+  // console.log("타이틀:", result);
+  res.json(result);
+});
 
-// //조사지 문항에 대한 답변 <김민지, 26.03.24 추가>
-// router.get("/selectItemsByJID/:id", async (req, res) => {
-//   let { id } = req.params;
-//   let result = await surveyService.selectItemsByJID(id);
-//   res.send(result);
-// });
+//조사지 답변 조회
+router.get("/answerSelect/:id", async (req, res) => {
+  const id = req.params.id;
+  let result = await surveyService.answerSelect(id);
+  console.log("답변데이터:", result);
+  res.json(result);
+});
+
 module.exports = router;

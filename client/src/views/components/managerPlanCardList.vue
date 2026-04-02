@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 
 const props = defineProps({
   planList: {
@@ -13,6 +13,8 @@ const props = defineProps({
     default: "",
   },
 });
+
+const emit = defineEmits(["edit", "delete"]);
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -55,19 +57,27 @@ const getStateBtnClass = (state) => {
 const getBadgeClass = (state) => {
   switch (state) {
     case "g001":
-      return "btn-success";
+      return "bg-success";
     case "g002":
-      return "btn-warning";
+      return "bg-warning";
     case "g003":
-      return "btn-secondary";
+      return "bg-secondary";
     default:
-      return "btn-secondary";
+      return "bg-secondary";
   }
 };
 
 const getFileUrl = (fileName) => {
   if (!fileName) return "";
   return `/uploads/supportPlan/${fileName}`;
+};
+
+const onEdit = (item) => {
+  emit("edit", item);
+};
+
+const onDelete = (item) => {
+  emit("delete", item.supportPlan_id);
 };
 </script>
 
@@ -201,12 +211,30 @@ const getFileUrl = (fileName) => {
               </span>
 
               <button
-                class="btn btn-sm mb-0 px-4"
+                class="btn btn-sm mb-0 px-4 me-2"
                 :class="getStateBtnClass(item.state)"
                 type="button"
               >
                 {{ getStateText(item.state) }}
               </button>
+
+              <template v-if="item.state === 'g003'">
+                <button
+                  class="btn btn-sm btn-primary mb-0 px-3 me-2"
+                  type="button"
+                  @click="onEdit(item)"
+                >
+                  수정
+                </button>
+
+                <button
+                  class="btn btn-sm btn-danger mb-0 px-3"
+                  type="button"
+                  @click="onDelete(item)"
+                >
+                  삭제
+                </button>
+              </template>
             </div>
           </div>
         </div>

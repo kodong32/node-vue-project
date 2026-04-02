@@ -66,13 +66,16 @@ WHERE G_userId = ?
 const getUserInfo = `
 SELECT
   g.G_UserId AS GUSERID,
-  g.id,
   g.name,
+  g.id,
   g.tel,
   g.email,
+  g.zipCode,
   g.address,
-  i.institution_name AS institution,
-  i.institution_id
+  g.document1,
+  g.document2,
+  g.institution_id,
+  i.institution_name AS institution
 FROM GeneralUser_Tbl g
 LEFT JOIN Institution_Tbl i
   ON g.institution_id = i.institution_id
@@ -141,8 +144,17 @@ WHERE support_id = ?
 const confirmUser = `
 SELECT G_UserId, institution_id, name, id, password, tel, email, zipCode, address, document1, document2
 FROM GeneralUser_Tbl       
-WHERE id = ?
+WHERE id = ? 
+AND approval = 'g001'
 `;
+
+//일반 회원탈퇴
+const withdrawUser = `
+UPDATE GeneralUser_Tbl
+SET approval = 'g003'
+WHERE G_UserId = ?
+`;
+
 
 const confirmInstiUser = `
 SELECT I_UserId ,institution_id ,name, id, password, tel, roll
@@ -280,6 +292,76 @@ JOIN Institution_Tbl i
 WHERE u.I_UserId = ?;
 `;
 
+const checkInstitutionAdmin = `
+SELECT I_UserId, institution_id, roll
+FROM InstiUser_Tbl
+WHERE I_UserId = ?
+  AND institution_id = ?
+  AND roll = 'a002'
+LIMIT 1
+`;
+
+const updateInstInfo = `
+UPDATE Institution_Tbl
+SET institution_name = ?,
+    tel = ?,
+    zipCode = ?,
+    address = ?,
+    email = ?
+WHERE institution_id = ?
+`;
+
+//기관 내 담당자 목록조회
+const getManagerListByInstitution = `
+SELECT
+  iu.I_UserId,
+  iu.institution_id,
+  it.institution_name,
+  iu.name,
+  iu.id,
+  iu.tel,
+  iu.approval,
+  iu.roll,
+  COUNT(DISTINCT s.support_id) AS assigned_count
+FROM InstiUser_Tbl iu
+LEFT JOIN Institution_Tbl it
+  ON iu.institution_id = it.institution_id
+LEFT JOIN Support_Tbl s
+  ON iu.I_UserId = s.I_UserId1
+  OR iu.I_UserId = s.I_UserId2
+WHERE iu.institution_id = ?
+  AND iu.roll = 'a003'
+GROUP BY
+  iu.I_UserId,
+  iu.institution_id,
+  it.institution_name,
+  iu.name,
+  iu.id,
+  iu.tel,
+  iu.approval,
+  iu.roll
+ORDER BY iu.name ASC
+`;
+
+// 기관 내 담당자의 지원대상자 정보
+const getAssignedSupportListByManager = `
+SELECT
+  s.support_id,
+  s.name,
+  s.born,
+  s.gender,
+  s.major,
+  s.I_UserId1,
+  s.I_UserId2,
+  dm.description AS major_name
+FROM Support_Tbl s
+LEFT JOIN DisMajor_Tbl dm
+  ON s.major = dm.b_Code
+WHERE s.I_UserId1 = ?
+   OR s.I_UserId2 = ?
+ORDER BY s.name ASC
+`;
+
 //담당자 선택시 보호대상자의 I_UserId1, 2 등록(김경환 20260401)
 const updateManager = `
 UPDATE Support_Tbl
@@ -310,6 +392,8 @@ JOIN GeneralUser_Tbl gu
   ON s.G_UserId = gu.G_UserId
 WHERE s.J_ID = ?
 `;
+
+
 
 module.exports = {
   testSelect,
@@ -345,4 +429,9 @@ module.exports = {
   waitInstiUser,
   agreeInstiUser,
   getSupportInstitutionByJid,
+  updateInstInfo,
+  checkInstitutionAdmin,
+  getManagerListByInstitution,
+  getAssignedSupportListByManager,
+  withdrawUser,
 };

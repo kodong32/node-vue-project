@@ -79,17 +79,24 @@ const submitResult = async () => {
     return;
   }
 
+  // 🌟 핵심: FormData 객체 생성 (JSON 대신 이걸로 보내야 파일이 넘어감!)
+  const formData = new FormData();
+  formData.append("supportPlan_id", selectedPlan.value.supportPlan_id);
+  formData.append("result", resultTitle.value); // 백엔드가 req.body.result 로 받음
+  formData.append("content", resultContent.value); // 백엔드가 req.body.content 로 받음
+
+  // 🌟 파일이 선택된 경우에만 실제 파일 객체를 폼에 추가!
+  if (file1.value) formData.append("file1", file1.value);
+  if (file2.value) formData.append("file2", file2.value);
+
   try {
-    await axios.post("http://localhost:3000/result/plan/write", {
-      supportPlan_id: selectedPlan.value.supportPlan_id,
-      result: resultTitle.value,
-      content: resultContent.value,
-      file1: file1.value ? file1.value.name : "",
-      file2: file2.value ? file2.value.name : "",
+    // 🌟 헤더에 multipart/form-data 추가!
+    await axios.post("http://localhost:3000/result/plan/write", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
     alert("지원결과서가 성공적으로 등록(승인 요청)되었습니다.");
-    router.push("/manager/result/plan"); // 💡 작성 완료 후 결과서 조회 페이지로 이동!
+    router.push("/manager/result/list"); // 💡 작성 완료 후 담당자용 결과서 조회 페이지로 이동!
   } catch (err) {
     alert("결과서 등록 중 오류가 발생했습니다.");
     console.error(err);

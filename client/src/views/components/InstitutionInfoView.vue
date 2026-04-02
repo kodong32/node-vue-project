@@ -8,7 +8,8 @@ defineProps({
 
 const getStateText = (state) => {
   if (state === "b001") return "운영중";
-  if (state === "b002") return "중지";
+  if (state === "b002") return "폐업";
+  if (state === "b003") return "휴무";
   return state || "-";
 };
 
