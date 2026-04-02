@@ -20,10 +20,10 @@ export default [
     name: "NoticeWrite",
     component: () => import("../views/components/NoticeWrite.vue"),
   },
-  // {
-  //   // 💡 4. 공지사항 수정 (시스템/기관 관리자용 - 작성 화면 껍데기 재활용!)
-  //   path: "/notice/edit/:noticeId",
-  //   name: "NoticeEdit",
-  //   component: () => import("../views/components/NoticeList.vue"),
-  // },
+  {
+    // 💡 4. 공지사항 수정 (시스템/기관 관리자용 - 작성 화면 껍데기 재활용!)
+    path: "/notice/edit/:noticeId",
+    name: "NoticeEdit",
+    component: () => import("../views/components/NoticeWrite.vue"),
+  },
 ];

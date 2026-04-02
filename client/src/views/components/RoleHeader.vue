@@ -53,6 +53,7 @@
                     </button>
                   </li>
                 </template>
+
                 <template
                   v-if="userRole === ROLE.ADMIN || userRole === ROLE.MANAGER"
                 >

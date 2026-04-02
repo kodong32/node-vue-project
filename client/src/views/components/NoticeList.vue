@@ -1,3 +1,4 @@
+<!-- D:\node-vue-project\client\src\views\components\NoticeList.vue -->
 <script setup>
 import { ref, onMounted, computed } from "vue";
 // import { useRouter } from "vue-router";
@@ -15,6 +16,7 @@ const noticeList = ref([]);
 const totalCount = ref(0);
 const currentPage = ref(1);
 const limit = ref(10);
+const topNotice = ref(null);
 
 // 검색 및 필터 조건
 const filters = ref({
@@ -41,6 +43,7 @@ const fetchNoticeList = async () => {
     });
     noticeList.value = response.data.data;
     totalCount.value = response.data.totalCount;
+    topNotice.value = response.data.topNotice;
   } catch (error) {
     console.error("공지사항을 불러오는 중 오류 발생:", error);
   }
@@ -211,6 +214,43 @@ onMounted(() => {
                   </tr>
                 </thead>
                 <tbody>
+                  <tr
+                    v-if="topNotice"
+                    class="cursor-pointer"
+                    style="background-color: #e8f5e9"
+                    @click="
+                      $router.push(`/notice/detail/${topNotice.notice_id}`)
+                    "
+                  >
+                    <td class="align-middle text-center">
+                      <span class="badge bg-gradient-danger badge-sm"
+                        >시스템</span
+                      >
+                    </td>
+
+                    <td class="align-middle text-left px-3">
+                      <p class="text-sm mb-0 font-weight-bolder text-dark">
+                        <i
+                          v-if="topNotice.isImportant"
+                          class="fas fa-thumbtack text-primary me-2"
+                        ></i>
+                        {{ topNotice.title }}
+                        <span class="text-danger ms-1">*</span>
+                      </p>
+                    </td>
+
+                    <td class="align-middle text-center">
+                      <span class="text-secondary text-xs font-weight-bold"
+                        >시스템관리자</span
+                      >
+                    </td>
+
+                    <td class="align-middle text-center">
+                      <span class="text-secondary text-xs font-weight-bold">{{
+                        topNotice.create_at
+                      }}</span>
+                    </td>
+                  </tr>
                   <tr v-if="noticeList.length === 0">
                     <td
                       colspan="4"

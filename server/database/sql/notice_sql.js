@@ -74,6 +74,14 @@ const deleteNotice = `
   WHERE notice_id = ?
 `;
 
+// 최상단 독립 공간용 (시스템 공지 중 가장 최신 글 1개 - 중요도 무시하고 무조건 최신!)
+const selectTopSystemNotice = `
+  SELECT * FROM Notice_Tbl 
+  WHERE notice_type = 'ALL' AND notice_date >= CURRENT_DATE()
+  ORDER BY notice_id DESC 
+  LIMIT 1
+`;
+
 module.exports = {
   selectNoticeList,
   selectNoticeCount,
@@ -82,4 +90,5 @@ module.exports = {
   insertNotice,
   updateNotice,
   deleteNotice,
+  selectTopSystemNotice,
 };

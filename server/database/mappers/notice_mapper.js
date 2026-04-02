@@ -72,10 +72,10 @@ const getNoticeList = async (userRole, instiId, filters, limit, offset) => {
     // 🌟 [정렬 필터링] (최신순, 오래된순)
     // 중요 공지는 항상 맨 위에 오도록 important_mark DESC를 고정으로 박아둠!
     if (filters.sort === "오래된순") {
-      sql += ` ORDER BY important_mark DESC, create_at ASC`;
+      sql += ` ORDER BY create_at ASC, notice_id ASC`;
     } else {
       // 기본값은 최신순
-      sql += ` ORDER BY important_mark DESC, create_at DESC`;
+      sql += ` ORDER BY create_at DESC, notice_id DESC`;
     }
 
     // 🌟 [페이지네이션]
@@ -172,10 +172,22 @@ const deleteNotice = async (noticeId) => {
   }
 };
 
+const getTopSystemNotice = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(noticeSql.selectTopSystemNotice);
+    return rows.length > 0 ? rows[0] : null;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   getNoticeList,
   getNoticeDetail,
   createNotice,
   updateNotice,
   deleteNotice,
+  getTopSystemNotice,
 };

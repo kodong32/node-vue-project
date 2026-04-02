@@ -27,6 +27,20 @@ const fetchNoticeList = async (query) => {
     sort: query.sort || "최신순",
   };
 
+  // 🌟 [추가됨!] 시스템 관리자의 가장 최신 공지 1건을 무조건 가져오기
+  // 필터 없는 상태로, 시스템 공지('ALL') 중 최신 1건만 뽑아옴
+  const topNoticeRaw = await noticeMapper.getTopSystemNotice();
+  let topNotice = null;
+
+  if (topNoticeRaw) {
+    topNotice = {
+      ...topNoticeRaw,
+      create_at: formatDate(topNoticeRaw.create_at),
+      notice_date: formatDate(topNoticeRaw.notice_date),
+      isImportant: topNoticeRaw.important_mark === "Y",
+    };
+  }
+
   const result = await noticeMapper.getNoticeList(
     userRole,
     instiId,
@@ -44,11 +58,13 @@ const fetchNoticeList = async (query) => {
     isImportant: item.important_mark === "Y",
   }));
 
+  // 🌟 리턴 값에 topNotice 추가!
   return {
+    topNotice: topNotice, // 상단 고정 공지
     totalCount: result.totalCount,
     currentPage: page,
     limit: limit,
-    data: formattedData,
+    data: formattedData, // 일반 목록
   };
 };
 

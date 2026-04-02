@@ -1,3 +1,4 @@
+<!-- D:\node-vue-project\client\src\views\components\ResultPlanWrite.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
