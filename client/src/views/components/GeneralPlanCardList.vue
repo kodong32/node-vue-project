@@ -1,3 +1,4 @@
+<!-- D:\node-vue-project\client\src\views\components\GeneralPlanCardList.vue -->
 <script setup>
 import { defineProps } from "vue";
 

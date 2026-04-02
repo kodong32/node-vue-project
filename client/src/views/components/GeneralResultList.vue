@@ -1,3 +1,4 @@
+<!-- D:\node-vue-project\client\src\views\components\GeneralResultList.vue -->
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
