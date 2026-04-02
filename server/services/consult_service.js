@@ -7,10 +7,18 @@ const findAll = async () => {
   return list;
 };
 
-//폼 장애유형 선택
+//폼 장애유형 대 선택
 const description = async () => {
   let major = await consultMapper.description();
   return major;
+};
+
+//폼 장애유형 중 선택
+const descriptionMiddle = async (codes) => {
+  const allMiddle = await consultMapper.descriptionMiddle();
+  return allMiddle
+    .filter((m) => codes.includes(m.j_Code))
+    .map((m) => m.description);
 };
 
 //폼 상담장소 선택
@@ -57,6 +65,40 @@ const consultCount = async (info) => {
   return count;
 };
 
+//건별조회
+const getMiddleDescriptions = async (codes) => {
+  const allMiddle = await consultMapper.descriptionMiddle();
+  return allMiddle
+    .filter((m) => codes.includes(m.j_Code))
+    .map((m) => m.description);
+};
+
+// 건별조회
+const consultDetail = async (counsultId) => {
+  const result = await consultMapper.consultDetail(counsultId);
+  if (!result || result.length === 0) return [];
+
+  const row = result[0];
+
+  // 🔹 수정: Router에서 처리하던 중분류 변환을 Service로 이동
+  if (row.dis_middle_raw) {
+    const middleCodes = row.dis_middle_raw.split(",").map((c) => c.trim());
+    const middleDescs = await getMiddleDescriptions(middleCodes);
+    row.dis_middle_desc = middleDescs.join(", ");
+  } else {
+    row.dis_middle_desc = "";
+  }
+
+  delete row.dis_middle_raw;
+
+  return [row];
+};
+
+// const consultDetail = async (info) => {
+//   let detail = await consultMapper.consultDetail(info);
+//   return detail;
+// };
+
 module.exports = {
   findAll,
   description,
@@ -65,5 +107,6 @@ module.exports = {
   manager,
   consultAdd,
   counsultId,
-  consultCount,
+  consultDetail,
+  descriptionMiddle,
 };

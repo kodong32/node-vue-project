@@ -37,7 +37,7 @@
             </div>
           </div>
           <div class="info-item">
-            <label>장애 유형</label>
+            <label>장애 유형(대분류)</label>
             <select
               v-model="form.disabilityType"
               class="form-input custom-select"
@@ -53,9 +53,25 @@
             </select>
           </div>
           <div class="info-item">
+            <label>장애 유형(중분류)</label>
+            <select
+              v-model="form.consultMiddle"
+              class="form-input custom-select"
+            >
+              <option value="">유형 선택</option>
+              <option
+                v-for="item in consultMiddle"
+                :key="item.code"
+                :value="item.code"
+              >
+                {{ item.description }}
+              </option>
+            </select>
+          </div>
+          <div class="info-item">
             <label>상담 장소</label>
             <select v-model="form.location" class="form-input custom-select">
-              <option value="" disabled>장소 선택</option>
+              <option value="">장소 선택</option>
               <option
                 v-for="place in placeList"
                 :key="place.counsult_loc"
@@ -181,12 +197,14 @@
 import { ref, onMounted, computed } from "vue";
 import RoleHeader from "../components/RoleHeader.vue";
 
+//서브 담당자 에외하고, 메인 담당자 선택용 리스트 생성
 const filteredMainManagers = computed(() => {
   return managerList.value.filter(
     (m) => m.I_UserId !== form.value.managerSubId,
   );
 });
 
+//메인 담당자 에외하고, 서브 담당자 선택용 리스트 생성
 const filteredSubManagers = computed(() => {
   return managerList.value.filter(
     (m) => m.I_UserId !== form.value.managerMainId,
@@ -199,6 +217,7 @@ const form = ref({
   startTime: "",
   endTime: "",
   disabilityType: "",
+  consultMiddle: "",
   location: "",
   targetId: "",
   targetName: "",
@@ -224,6 +243,7 @@ const sections = [
 ];
 
 const disabilityTypes = ref([]);
+const consultMiddle = ref([]);
 const userList = ref([]);
 const placeList = ref([]);
 const methods = ref([]);
@@ -278,13 +298,25 @@ const fetchConsultList = async () => {
   }
 };
 
-//장애유형
+//장애유형(대분류)
 const fetchDisabilityTypes = async () => {
   try {
     const response = await fetch("/api/consult/disability-types");
     if (!response.ok) throw new Error("네트워크 응답 에러");
     const data = await response.json();
     disabilityTypes.value = data;
+  } catch (error) {
+    console.error("데이터 로드 실패:", error);
+  }
+};
+
+//장애유형(중분류)
+const fetchConsultMiddle = async () => {
+  try {
+    const response = await fetch("/api/consult/consultMiddle");
+    if (!response.ok) throw new Error("네트워크 응답 에러");
+    const data = await response.json();
+    consultMiddle.value = data;
   } catch (error) {
     console.error("데이터 로드 실패:", error);
   }
@@ -349,6 +381,7 @@ onMounted(() => {
   fetchPlaces();
   fetchMethod();
   fetchManagersList();
+  fetchConsultMiddle();
 });
 
 //취소 버튼 (리셋)
@@ -480,7 +513,6 @@ const consultAdd = async () => {
 .content-container {
   max-width: 1000px;
   border-radius: 16px;
-  /* overflow: hidden; */
   overflow: visible !important;
 }
 .main-title {
@@ -622,6 +654,15 @@ const consultAdd = async () => {
   cursor: pointer;
   padding: 5px;
   filter: invert(30%) sepia(10%) saturate(1000%) hue-rotate(90deg);
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
 }
 
 .p-5 {

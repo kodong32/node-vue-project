@@ -1,127 +1,3 @@
-<script setup>
-import { ref, reactive, watch } from "vue";
-
-const props = defineProps({
-  selectedSupport: {
-    type: Object,
-    default: null,
-  },
-  sections: {
-    type: Array,
-    default: () => [],
-  },
-});
-
-const allSections = ref([]);
-const answers = ref([]);
-
-watch(
-  () => props.sections,
-  (newSections) => {
-    if (newSections && newSections.length > 0) {
-      allSections.value = newSections;
-      answers.value = newSections.map((s) =>
-        s.subs.map((sub) => sub.questions.map(() => "")),
-      );
-    }
-  },
-  { immediate: true },
-);
-
-const extraRequest = ref("");
-const isModalOpen = ref(false);
-const extraInputs = reactive({ result: "", reason: "", date: "" });
-
-const openModal = () => {
-  isModalOpen.value = true;
-  document.body.style.overflow = "hidden";
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
-  document.body.style.overflow = "auto";
-};
-
-const emit = defineEmits(["submit-survey"]);
-
-const surveyInfo = () => {
-  for (let sIdx = 0; sIdx < allSections.value.length; sIdx++) {
-    for (
-      let subIdx = 0;
-      subIdx < allSections.value[sIdx].subs.length;
-      subIdx++
-    ) {
-      for (
-        let qIdx = 0;
-        qIdx < allSections.value[sIdx].subs[subIdx].questions.length;
-        qIdx++
-      ) {
-        const answer = answers.value[sIdx][subIdx][qIdx];
-        const question = allSections.value[sIdx].subs[subIdx].questions[qIdx];
-
-        if (!answer && question.answer_type === "e001") {
-          alert(
-            `"${allSections.value[sIdx].title} > ${allSections.value[sIdx].subs[subIdx].subTitle}"\n질문 ${qIdx + 1}에 예/아니오를 선택해주세요.`,
-          );
-          return;
-        }
-
-        if (answer === "예" && question.hasExtraInput) {
-          if (!extraInputs.reason.trim() || !extraInputs.date.trim()) {
-            alert(
-              `질문 ${qIdx + 1}에 대해 구체적 사유와 필요 시기를 입력해주세요.`,
-            );
-            return;
-          }
-        }
-      }
-    }
-  }
-
-  let flatAnswers = [];
-  allSections.value.forEach((section, sIdx) => {
-    section.subs.forEach((sub, subIdx) => {
-      sub.questions.forEach((q, qIdx) => {
-        flatAnswers.push({
-          question_id: q.question_id,
-          answer: answers.value[sIdx][subIdx][qIdx],
-          titleCode: section.title,
-        });
-      });
-    });
-  });
-
-  emit("submit-survey", {
-    answers: flatAnswers,
-    extraInputs: extraInputs,
-    extraRequest: extraRequest.value,
-    support_id: props.selectedSupport?.support_id,
-  });
-  closeModal();
-};
-
-const resetCancel = () => {
-  if (confirm("작성 내용을 초기화하시겠습니까?")) {
-    answers.value = allSections.value.map((s) =>
-      s.subs.map((sub) => sub.questions.map(() => "")),
-    );
-    extraInputs.reason = "";
-    extraInputs.date = "";
-    extraRequest.value = "";
-    closeModal();
-  }
-};
-
-const dateFormat = (dateVal) => {
-  if (!dateVal) return "-";
-  let newDate = new Date(dateVal);
-  return `${newDate.getFullYear()}-${("0" + (newDate.getMonth() + 1)).slice(-2)}-${("0" + newDate.getDate()).slice(-2)}`;
-};
-
-const today = ref(new Date());
-const todayAdd = new Date().toISOString().split("T")[0];
-</script>
-
 <template>
   <div class="py-4 container-fluid survey-view-page">
     <div class="row justify-content-center">
@@ -132,9 +8,9 @@ const todayAdd = new Date().toISOString().split("T")[0];
           >
             <h5 class="mb-0 font-weight-bolder text-white">조사지 신청하기</h5>
             <div class="date-center">
-              <span class="text-sm font-weight-bold opacity-9"
-                >등록일 : {{ dateFormat(today) }}</span
-              >
+              <span class="text-sm font-weight-bold opacity-9">
+                등록일 : {{ selectedUserInfo.formatDate }}
+              </span>
             </div>
           </div>
         </div>
@@ -170,7 +46,9 @@ const todayAdd = new Date().toISOString().split("T")[0];
                         <td
                           class="text-dark font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
                         >
-                          {{ sub.description }}
+                          {{
+                            sub.description || "즉시 지원인식 및 서비스 필요"
+                          }}
                         </td>
                         <td
                           class="text-center text-dark font-weight-bolder text-sm py-3 border-bottom-dark border-start"
@@ -185,6 +63,7 @@ const todayAdd = new Date().toISOString().split("T")[0];
                           아니오
                         </td>
                       </tr>
+
                       <tr
                         v-for="(q, qIdx) in sub.questions"
                         :key="qIdx"
@@ -199,71 +78,64 @@ const todayAdd = new Date().toISOString().split("T")[0];
                         <td
                           class="text-sm text-dark text-wrap py-3 ps-3 align-middle"
                         >
-                          {{ q.text }}
-                          <div v-if="q.answer_type === 'e002'" class="mt-2">
-                            <textarea
-                              class="form-control form-control-sm"
-                              rows="3"
-                              v-model="answers[sIdx][subIdx][qIdx]"
-                              placeholder="내용을 입력해주세요."
-                            ></textarea>
-                          </div>
+                          {{ typeof q === "string" ? q : q.text }}
+
                           <div
-                            v-if="
-                              q.hasExtraInput &&
-                              answers[sIdx][subIdx][qIdx] === '예'
-                            "
-                            class="mt-3 p-3 bg-gray-100 border-radius-md border extra-info-box"
+                            v-if="q.hasExtraInput"
+                            class="mt-3 p-3 bg-light border-dark-strong extra-input-container"
                           >
-                            <div class="row">
-                              <div class="col-md-6 mb-2">
-                                <label
-                                  class="text-xs font-weight-bold text-dark mb-1 d-block"
-                                  >[구체적 사유]</label
+                            <div class="row align-items-center">
+                              <div
+                                class="col-md-6 d-flex align-items-center mb-2 mb-md-0"
+                              >
+                                <span
+                                  class="text-xs font-weight-bold text-dark me-2"
+                                  style="white-space: nowrap"
+                                  >[구체적 사유]</span
                                 >
                                 <input
                                   type="text"
-                                  class="form-control form-control-sm"
-                                  v-model="extraInputs.reason"
+                                  class="form-control form-control-sm border-dark-strong"
+                                  v-model="
+                                    extraInputs[sIdx][subIdx][qIdx].reason
+                                  "
                                   placeholder="사유를 입력해주세요"
                                 />
                               </div>
-                              <div class="col-md-6 mb-2">
-                                <label
-                                  class="text-xs font-weight-bold text-dark mb-1 d-block"
-                                  >[필요시기]</label
+                              <div class="col-md-6 d-flex align-items-center">
+                                <span
+                                  class="text-xs font-weight-bold text-dark me-2"
+                                  style="white-space: nowrap"
+                                  >[필요시기]</span
                                 >
                                 <input
                                   type="date"
-                                  class="form-control form-control-sm"
-                                  v-model="extraInputs.date"
-                                  :min="todayAdd"
+                                  class="form-control form-control-sm border-dark-strong"
+                                  v-model="extraInputs[sIdx][subIdx][qIdx].date"
                                 />
                               </div>
                             </div>
                           </div>
                         </td>
+
                         <td class="text-center border-start align-middle">
                           <input
-                            v-if="q.answer_type === 'e001'"
                             type="radio"
                             :name="`q_${sIdx}_${subIdx}_${qIdx}`"
                             value="예"
                             v-model="answers[sIdx][subIdx][qIdx]"
                             class="form-check-input custom-radio"
                           />
-                          <span v-else class="text-secondary">-</span>
                         </td>
+
                         <td class="text-center border-start align-middle">
                           <input
-                            v-if="q.answer_type === 'e001'"
                             type="radio"
                             :name="`q_${sIdx}_${subIdx}_${qIdx}`"
                             value="아니오"
                             v-model="answers[sIdx][subIdx][qIdx]"
                             class="form-check-input custom-radio"
                           />
-                          <span v-else class="text-secondary">-</span>
                         </td>
                       </tr>
                     </template>
@@ -272,10 +144,36 @@ const todayAdd = new Date().toISOString().split("T")[0];
               </div>
             </template>
 
+            <div class="mt-5">
+              <div class="section-title-box mb-2">
+                <div class="d-flex align-items-center">
+                  <span class="dot-icon me-2">●</span>
+                  <h6 class="mb-0 font-weight-bolder text-dark">
+                    추가 요청사항
+                  </h6>
+                </div>
+              </div>
+              <div
+                class="comment-container p-3 bg-white border-dark-1px border-radius-md"
+              >
+                <textarea
+                  class="form-control border-0 bg-transparent text-dark no-resize shadow-none p-0"
+                  rows="4"
+                  v-model="additionalRequest"
+                  placeholder="추가적으로 필요한 사항이나 요청 내용을 입력해주세요."
+                ></textarea>
+                <div class="text-end mt-2">
+                  <span class="text-xs text-dark opacity-7">
+                    {{ additionalRequest.length }} / 500
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div class="d-flex justify-content-center mt-5 mb-4">
               <button
                 class="btn btn-success px-6 py-2-5 me-3 shadow-sm"
-                @click="openModal"
+                @click="isModalOpen = true"
               >
                 저장
               </button>
@@ -300,19 +198,12 @@ const todayAdd = new Date().toISOString().split("T")[0];
             </h5>
             <div class="date-center">
               <span class="text-white text-sm font-weight-bold opacity-9"
-                >등록일 : {{ dateFormat(today) }}</span
+                >등록일 : {{ selectedUserInfo.formatDate }}</span
               >
             </div>
           </div>
 
           <div class="card-body modal-scrollable p-4 bg-white">
-            <div
-              class="alert alert-light border-radius-md mb-4 text-sm text-dark"
-            >
-              최종 제출 전 입력하신 내용을 확인해 주세요.
-              <b>(수정은 닫기 버튼을 눌러주세요)</b>
-            </div>
-
             <template v-for="(section, sIdx) in allSections" :key="'m' + sIdx">
               <div class="section-title-box mb-3" :class="{ 'mt-4': sIdx > 0 }">
                 <div class="d-flex align-items-center">
@@ -334,73 +225,91 @@ const todayAdd = new Date().toISOString().split("T")[0];
                     >
                       <tr class="sub-header-row bg-white">
                         <td
-                          class="text-success font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
-                          style="width: 15%"
+                          class="text-success font-weight-bolder text-sm ps-3 py-2 border-bottom-dark"
+                          style="width: 20%"
                         >
                           {{ sub.subTitle }}
                         </td>
                         <td
-                          class="text-dark font-weight-bolder text-sm ps-3 py-3 border-bottom-dark"
-                          colspan="3"
+                          class="text-dark font-weight-bolder text-sm ps-3 py-2 border-bottom-dark"
                         >
-                          {{ sub.description }}
+                          {{
+                            sub.description || "즉시 지원인식 및 서비스 필요"
+                          }}
+                        </td>
+                        <td
+                          class="text-center text-dark font-weight-bolder text-sm py-2 border-bottom-dark border-start"
+                          style="width: 70px"
+                        >
+                          예
+                        </td>
+                        <td
+                          class="text-center text-dark font-weight-bolder text-sm py-2 border-bottom-dark border-start"
+                          style="width: 70px"
+                        >
+                          아니오
                         </td>
                       </tr>
+
                       <tr
                         v-for="(q, qIdx) in sub.questions"
                         :key="'mq' + qIdx"
                         class="question-row"
                       >
                         <td
-                          class="text-center text-secondary text-sm font-weight-bold border-end align-middle"
+                          class="text-center text-secondary text-xs font-weight-bold border-end align-middle"
                           style="width: 50px"
                         >
                           {{ qIdx + 1 }}
                         </td>
                         <td
-                          class="text-sm text-dark text-wrap py-3 ps-3 align-middle"
+                          class="text-sm text-dark text-wrap py-2 ps-3 align-middle"
                         >
-                          {{ q.text }}
+                          {{ typeof q === "string" ? q : q.text }}
+
                           <div
-                            v-if="
-                              q.answer_type === 'e002' &&
-                              answers[sIdx][subIdx][qIdx]
-                            "
-                            class="mt-2 text-primary font-weight-bold"
+                            v-if="q.hasExtraInput"
+                            class="mt-3 p-3 bg-light border-dark-strong extra-input-container"
                           >
-                            [입력내용]: {{ answers[sIdx][subIdx][qIdx] }}
-                          </div>
-                          <div
-                            v-if="
-                              q.hasExtraInput &&
-                              answers[sIdx][subIdx][qIdx] === '예'
-                            "
-                            class="mt-2 text-sm text-info"
-                          >
-                            <span class="d-block"
-                              >사유: {{ extraInputs.reason || "-" }}</span
+                            <span class="text-success font-weight-bold"
+                              >[구체적 사유]</span
                             >
-                            <span class="d-block"
-                              >필요시기: {{ extraInputs.date || "-" }}</span
+                            {{
+                              (extraInputs[sIdx] &&
+                                extraInputs[sIdx][subIdx] &&
+                                extraInputs[sIdx][subIdx][qIdx].reason) ||
+                              "-"
+                            }}
+                            <span class="ms-2 text-success font-weight-bold"
+                              >[필요시기]</span
                             >
+                            {{
+                              (extraInputs[sIdx] &&
+                                extraInputs[sIdx][subIdx] &&
+                                extraInputs[sIdx][subIdx][qIdx].date) ||
+                              "-"
+                            }}
                           </div>
                         </td>
-                        <td
-                          class="text-center border-start align-middle"
-                          style="width: 160px"
-                        >
-                          <span
-                            v-if="answers[sIdx][subIdx][qIdx]"
-                            class="badge"
-                            :class="
+                        <td class="text-center border-start align-middle">
+                          <div
+                            v-if="
+                              answers[sIdx] &&
+                              answers[sIdx][subIdx] &&
                               answers[sIdx][subIdx][qIdx] === '예'
-                                ? 'bg-success'
-                                : 'bg-secondary'
                             "
-                          >
-                            {{ answers[sIdx][subIdx][qIdx] }}
-                          </span>
-                          <span v-else class="text-muted">-</span>
+                            class="selected-dot mx-auto"
+                          ></div>
+                        </td>
+                        <td class="text-center border-start align-middle">
+                          <div
+                            v-if="
+                              answers[sIdx] &&
+                              answers[sIdx][subIdx] &&
+                              answers[sIdx][subIdx][qIdx] === '아니오'
+                            "
+                            class="selected-dot mx-auto"
+                          ></div>
                         </td>
                       </tr>
                     </template>
@@ -408,6 +317,13 @@ const todayAdd = new Date().toISOString().split("T")[0];
                 </table>
               </div>
             </template>
+
+            <div class="mt-4 p-3 bg-light border-radius-md">
+              <h6 class="text-sm font-weight-bold mb-2">추가 요청사항</h6>
+              <p class="text-sm mb-0 text-dark">
+                {{ additionalRequest || "입력된 내용이 없습니다." }}
+              </p>
+            </div>
           </div>
 
           <div
@@ -415,13 +331,13 @@ const todayAdd = new Date().toISOString().split("T")[0];
           >
             <button
               class="btn btn-success px-5 py-2 me-2 shadow-sm"
-              @click="surveyInfo"
+              @click="serveyAdd()"
             >
               등록
             </button>
             <button
               class="btn btn-outline-secondary px-5 py-2 shadow-sm"
-              @click="closeModal"
+              @click="isModalOpen = false"
             >
               닫기
             </button>
@@ -432,69 +348,303 @@ const todayAdd = new Date().toISOString().split("T")[0];
   </div>
 </template>
 
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useSurveyStore } from "../../store/survey";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const surveyStore = useSurveyStore();
+
+const isModalOpen = ref(false);
+const additionalRequest = ref("");
+const uniqueUserList = ref([]);
+const allSections = ref([]);
+const answers = ref([]);
+const extraInputs = ref([]);
+
+const Ver_Id = ref("FORM0004");
+
+//날짜 형식
+const dateFormat = (dateVal) => {
+  if (!dateVal) return "-";
+  let newDate = new Date(dateVal);
+  let year = newDate.getFullYear();
+  let month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+  let day = ("0" + newDate.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+};
+
+const selectedUserInfo = computed(() => {
+  const user = uniqueUserList.value.find(
+    (u) => u.support_id === surveyStore.selectedUserId,
+  );
+
+  if (!user) return { formatDate: dateFormat(new Date()) };
+
+  return {
+    ...user,
+    formatDate: dateFormat(user.created_at),
+  };
+});
+
+// 초기 답변 상태 생성 함수
+const createInitialAnswers = () =>
+  allSections.value.map((section) =>
+    section.subs.map((sub) => new Array(sub.questions.length).fill(null)),
+  );
+
+//설문 문항
+const fetchSurveyItems = async () => {
+  try {
+    const res = await fetch(`/api/survey/items/${Ver_Id.value}`);
+    if (res.ok) {
+      const rawData = await res.json();
+      const grouped = [];
+
+      rawData.forEach((item) => {
+        let section = grouped.find(
+          (s) => s.title === getSectionTitle(item.titleCode),
+        );
+
+        if (!section) {
+          section = {
+            title: getSectionTitle(item.titleCode),
+            subs: [],
+          };
+          grouped.push(section);
+        }
+
+        let sub = section.subs.find(
+          (sb) => sb.subTitle === (item.S_Name || "기본 항목"),
+        );
+        if (!sub) {
+          sub = {
+            subTitle: item.S_Name || "기본 항목",
+            description: item.S_Desc || "지원이 필요한 서비스 항목입니다.",
+            questions: [],
+          };
+          section.subs.push(sub);
+        }
+
+        sub.questions.push({
+          id: item.question_id,
+          text: item.question_text,
+          hasExtraInput: item.use_yn === "Y",
+        });
+      });
+
+      allSections.value = grouped;
+
+      answers.value = allSections.value.map((section) =>
+        section.subs.map((sub) => new Array(sub.questions.length).fill(null)),
+      );
+
+      extraInputs.value = allSections.value.map((section) =>
+        section.subs.map((sub) =>
+          sub.questions.map(() => ({ reason: "", date: "" })),
+        ),
+      );
+    }
+  } catch (err) {
+    console.error("문항 로드 실패:", err);
+  }
+};
+
+//취소 버튼 (리셋)
+const resetCancel = () => {
+  if (confirm("작성 내용을 초기화하시겠습니까?")) {
+    answers.value = createInitialAnswers();
+    extraInputs.value.forEach((section) => {
+      section.forEach((sub) => {
+        sub.forEach((q) => {
+          q.reason = "";
+          q.date = "";
+        });
+      });
+    });
+    additionalRequest.value = "";
+  }
+};
+
+//조사지 등록
+const serveyAdd = async () => {
+  const selectedUser = uniqueUserList.value.find(
+    (u) => u.support_id === surveyStore.selectedUserId,
+  );
+
+  if (!selectedUser) {
+    alert("지원대상자를 선택해주세요.");
+    return;
+  }
+
+  const flatAnswers = answers.value.flat(2);
+  if (flatAnswers.includes(null)) {
+    alert("작성하지 않은 문항이 있습니다.");
+    return;
+  }
+
+  try {
+    const idResponse = await fetch("/api/survey/newId");
+    if (!idResponse.ok) throw new Error("새 아이디 생성 실패");
+    const newJId = await idResponse.text();
+
+    const flatAnswers = answers.value.flat(2);
+
+    let data = {
+      J_ID: newJId,
+      Ver_Id: "FORM0004",
+      G_UserId: selectedUser.G_UserId,
+      support_id: selectedUser.support_id,
+      result: null,
+      reason: null,
+      answerList: flatAnswers,
+      created_at: new Date().toISOString().split("T")[0],
+      updated_at: new Date().toISOString().split("T")[0],
+    };
+
+    let response = await fetch("/api/survey/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      const answerResponse = await fetch("/api/survey/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          J_ID: data.J_ID,
+          answerList: flatAnswers,
+          extraInputs: extraInputs.value.flat(2),
+        }),
+      });
+
+      if (answerResponse.ok) {
+        alert("조사지 등록이 완료되었습니다.");
+        router.push({ name: "userSurveySelect", params: { no: data.J_ID } });
+      } else {
+        alert("상세 답변 등록 중 오류가 발생했습니다.");
+      }
+    } else {
+      alert("조사지 마스터 등록 실패");
+    }
+  } catch (err) {
+    console.error("등록 중 에러 발생:", err);
+    alert("오류가 발생했습니다: " + err.message);
+  }
+};
+
+const getSectionTitle = (code) => {
+  const titles = {
+    T01: "지원사유",
+    T02: "지원이 필요한 서비스",
+    T03: "이용중인 복지 서비스",
+  };
+  return titles[code] || "기타 항목";
+};
+
+onMounted(async () => {
+  try {
+    const response = await fetch("/api/survey/support");
+    if (response.ok) {
+      uniqueUserList.value = await response.json();
+    }
+    await fetchSurveyItems();
+  } catch (err) {
+    console.error(err);
+  }
+});
+</script>
+
 <style scoped>
-/* 조회 페이지 & 모달 공통 스타일 */
 .survey-view-page {
   font-family: "Noto Sans KR", sans-serif;
   color: #333;
 }
+
 .header-bg {
   background-color: #5dbe8a !important;
   border-radius: 12px 12px 0 0;
 }
+
 .date-center {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
 }
+
 .border-radius-top-none {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
+
 .dot-icon {
   color: #49d38a;
   font-size: 0.9rem;
 }
+
 .section-title-box {
   border-bottom: 2px solid #ebf1f5;
   padding-bottom: 8px;
 }
+
 .custom-bordered-table {
   border: 1px solid #dee2e6;
   border-collapse: collapse;
   width: 100%;
 }
+
 .sub-header-row {
   border-top: 2px solid #333;
 }
+
 .border-bottom-dark {
   border-bottom: 1px solid #333 !important;
 }
+
 .question-row {
   border-bottom: 1px solid #dee2e6;
 }
+
 .custom-radio {
   width: 22px;
   height: 22px;
   cursor: pointer;
   border: 2px solid #c1c9d0;
 }
+
 .custom-radio:checked {
   background-color: #5dbe8a;
   border-color: #5dbe8a;
 }
-.extra-info-box {
-  background-color: #f8f9fa;
-}
-.px-6 {
-  padding-left: 3rem !important;
-  padding-right: 3rem !important;
+
+/* 추가 스타일: 이미지 2번 상세 입력창 */
+.border-dark-thin {
+  border: 1px solid #ffffff !important;
 }
 
-/* 모달 전용 스타일 */
+.extra-input-container {
+  border-radius: 4px;
+}
+
+/* 이미지 1번: 하단 코멘트 영역 */
+.comment-container {
+  border: 1px solid #1a4713;
+  border-radius: 8px;
+}
+
+.no-resize {
+  resize: none;
+}
+
+.no-resize:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* 모달 관련 스타일 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -509,16 +659,14 @@ const todayAdd = new Date().toISOString().split("T")[0];
 }
 
 .modal-content-wrapper {
-  width: 95%;
-  max-width: 1000px; /* 테이블 레이아웃을 위해 폭을 조금 더 넓힘 */
-  background-color: #fff;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  background: white;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
-  position: relative;
-  z-index: 1060;
 }
 
 .modal-scrollable {
@@ -526,12 +674,23 @@ const todayAdd = new Date().toISOString().split("T")[0];
   flex: 1;
 }
 
-.modal-footer {
-  border-top: 1px solid #dee2e6;
-  gap: 10px;
+.selected-dot {
+  width: 12px;
+  height: 12px;
+  background-color: #5dbe8a;
+  border-radius: 50%;
 }
 
-/* 페이드 효과 애니메이션 */
+.px-6 {
+  padding-left: 3rem !important;
+  padding-right: 3rem !important;
+}
+
+.py-2-5 {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -541,19 +700,36 @@ const todayAdd = new Date().toISOString().split("T")[0];
   opacity: 0;
 }
 
-/* 뱃지 스타일 보강 */
-.badge {
-  padding: 0.5em 0.8em;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 4px;
+.border-dark-strong {
+  border: 1px solid #000000 !important;
+  background-color: #ffffff !important;
 }
-.bg-success {
-  background-color: #5dbe8a !important;
-  color: white;
+
+/* 포커스(클릭) 시에도 검은색 테두리 유지 */
+.border-dark-strong:focus {
+  border: 1px solid #000000 !important;
+  box-shadow: none;
+  background-color: #ffffff !important;
 }
-.bg-secondary {
-  background-color: #abb3bb !important;
-  color: white;
+
+/* 박스 자체에 적용되는 스타일 */
+.border-dark-1px {
+  border: 1px solid #000000 !important;
+}
+
+/* 배경 흰색 강제 적용 */
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+/* textarea 포커스 시 발생하는 파란색 테두리 방지 */
+.shadow-none:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 내부 글자색 검정 */
+.text-dark {
+  color: #000000 !important;
 }
 </style>

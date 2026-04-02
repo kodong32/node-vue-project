@@ -40,14 +40,12 @@ const logout = async () => {
     <div class="card shadow-lg mt-n6">
       <div class="card-body p-3">
         <div class="row align-items-center">
-
           <!-- 왼쪽 (프로필 + 메뉴) -->
           <div class="col-auto d-flex align-items-center gap-3">
-
             <!-- 프로필 -->
             <div class="avatar avatar-xl">
               <img
-                src="@/assets/img/team-1.jpg"
+                src="@/assets/img/2조로고.png"
                 alt="profile_image"
                 class="shadow-sm w-100 border-radius-lg"
               />
@@ -55,7 +53,6 @@ const logout = async () => {
 
             <!-- 메뉴 -->
             <ul class="nav nav-pills custom-top-menu flex-nowrap">
-
               <li class="nav-item">
                 <router-link class="px-3 py-2 nav-link" to="/admin">
                   첫화면
@@ -85,7 +82,6 @@ const logout = async () => {
                   공지사항
                 </router-link>
               </li>
-
             </ul>
           </div>
 
@@ -104,7 +100,6 @@ const logout = async () => {
               Log Out
             </button>
           </div>
-
         </div>
       </div>
     </div>

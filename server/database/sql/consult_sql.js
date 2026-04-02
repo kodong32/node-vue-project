@@ -16,6 +16,9 @@ SELECT
   c.counsult_startTime,
   c.counsult_endTime,
   c.counsult_content,
+  c.counsult_content2,
+  c.counsult_content3,
+  c.counsult_content4,
   c.updated_at,
   c.counsult_method,
   i.name
@@ -26,10 +29,16 @@ LEFT JOIN InstiUser_Tbl i ON i.I_UserId = c.I_UserId
 ORDER BY c.counsult_id desc;
 `;
 
-//폼 장애유형 선택
+//폼 장애유형 대 선택
 const description = `
 SELECT b_Code AS code, description
 FROM DisMajor_Tbl
+ORDER BY description;`;
+
+//폼 장애유형 중 선택
+const descriptionMiddle = `
+SELECT j_Code, b_Code AS code, description
+FROM DisMiddle_Tbl
 ORDER BY description;`;
 
 //폼 상담장소 선택
@@ -90,6 +99,39 @@ SELECT COUNT(*) AS total
 FROM ConsultRecord_Tbl
 `;
 
+//건별조회
+const consultDetail = `
+SELECT 
+  c.counsult_id,
+  c.J_ID,
+  c.I_UserId,
+  c.support_id,
+  g.name AS user_name,
+  s.name AS guardian_name,
+  c.counsult_date,
+  c.write_date,
+  c.counsult_loc,
+  c.counsult_startTime,
+  c.counsult_endTime,
+  c.counsult_content,
+  c.counsult_content2,
+  c.counsult_content3,
+  c.counsult_content4,
+  c.updated_at,
+  c.counsult_method,
+  i1.name AS insti_name,
+  i2.name AS insti_sub_name,
+  dm.description AS dis_major_desc,
+  s.middle AS dis_middle_raw
+FROM ConsultRecord_Tbl c
+LEFT JOIN Support_Tbl s ON c.support_id = s.support_id
+LEFT JOIN GeneralUser_Tbl g ON g.G_UserID = s.G_UserID
+LEFT JOIN InstiUser_Tbl i1 ON i1.I_UserId = s.I_UserId1
+LEFT JOIN InstiUser_Tbl i2 ON i2.I_UserId = s.I_UserId2
+LEFT JOIN DisMajor_Tbl dm ON dm.b_Code = s.major
+WHERE c.counsult_id = ?;
+`;
+
 module.exports = {
   consultList,
   description,
@@ -99,4 +141,6 @@ module.exports = {
   consultAdd,
   counsultId,
   consultCount,
+  consultDetail,
+  descriptionMiddle,
 };

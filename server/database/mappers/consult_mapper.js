@@ -16,12 +16,26 @@ const consultList = async () => {
   }
 };
 
-//폼 장애유형 선택
+//폼 장애유형 대 선택
 const description = async () => {
   let conn = null;
   try {
     conn = await pool.getConnection();
     let rows = await conn.query(consultSql.description);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//폼 장애유형 중 선택
+const descriptionMiddle = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(consultSql.descriptionMiddle);
     return rows;
   } catch (err) {
     console.log(err);
@@ -130,6 +144,20 @@ const consultCount = async () => {
   }
 };
 
+//건별조회
+const consultDetail = async (j_Code) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(consultSql.consultDetail, [j_Code]);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   consultList,
   description,
@@ -139,4 +167,6 @@ module.exports = {
   consultAdd,
   counsultId,
   consultCount,
+  consultDetail,
+  descriptionMiddle,
 };

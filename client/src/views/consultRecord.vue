@@ -57,8 +57,10 @@
             v-model="filters.userName"
             placeholder="지원대상자 이름 검색"
             class="form-input search-input"
+            @keyup.enter="applyFilter"
           />
           <button class="btn-search" @click="applyFilter">검색</button>
+          <button class="btn-reset" @click="resetFilter">초기화</button>
         </div>
       </div>
     </section>
@@ -85,10 +87,12 @@
           >
             <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td class="fw-bold">{{ info.user_name }}</td>
-            <td class="text-secondary">{{ dateFormat(info.counsult_date) }}</td>
+            <td class="text-secondary">
+              {{ dateFormat(info.counsult_date, info.counsult_start_time) }}
+            </td>
             <td>{{ info.counsult_method }}</td>
             <td>{{ info.counsult_loc }}</td>
-            <td>
+            <td style="text-align: left">
               [기본요약]: {{ info.counsult_content }}<br />
               [상담내용]: {{ info.counsult_content2 }}<br />
               [서비스욕구]: {{ info.counsult_content3 }}<br />
@@ -159,10 +163,19 @@ const consultList = ref([]);
 
 // 페이지 갯수 제한
 const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = 5;
 
-// // 검색 필터 데이터
+// // 검색 필터 입력용
 const filters = ref({
+  manager: "",
+  type: "all",
+  startDate: "",
+  endDate: "",
+  userName: "",
+});
+
+//실제 적용되는 필터
+const appliedFilters = ref({
   manager: "",
   type: "all",
   startDate: "",
@@ -195,43 +208,50 @@ onBeforeMount(async () => {
 
 //건별조회 가능한 함수
 const goToDetail = (counsultId) => {
-  router.push({ name: "consultList", params: { no: counsultId } });
+  router.push({ name: "managerDetail", params: { no: counsultId } });
 };
 
 //날짜 형식
-const dateFormat = (dateVal) => {
-  let newDate = new Date(dateVal);
+const dateFormat = (dateVal, timeVal) => {
+  if (!dateVal) return "-";
 
+  let newDate = new Date(dateVal);
   let year = newDate.getFullYear();
   let month = ("0" + (newDate.getMonth() + 1)).slice(-2);
   let day = ("0" + newDate.getDate()).slice(-2);
-  let hours = ("0" + newDate.getHours()).slice(-2);
-  let minutes = ("0" + newDate.getMinutes()).slice(-2);
 
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+  let time = timeVal ? timeVal : "00:00";
+
+  return `${year}-${month}-${day} ${time}`;
 };
 
 //필터처리
 const filteredConsults = computed(() => {
   return consults.value.filter((c) => {
-    if (filters.value.manager && c.I_UserId !== filters.value.manager)
-      return false;
-
     if (
-      filters.value.type !== "all" &&
-      c.counsult_method !== filters.value.type
+      appliedFilters.value.manager &&
+      c.I_UserId !== appliedFilters.value.manager
     )
       return false;
 
-    if (filters.value.startDate && filters.value.endDate) {
+    if (
+      appliedFilters.value.type !== "all" &&
+      c.counsult_method !== appliedFilters.value.type
+    )
+      return false;
+
+    if (appliedFilters.value.startDate && appliedFilters.value.endDate) {
       const consultDate = new Date(c.counsult_date);
-      const start = new Date(filters.value.startDate);
-      const end = new Date(filters.value.endDate);
+      const start = new Date(appliedFilters.value.startDate);
+      const end = new Date(appliedFilters.value.endDate);
       end.setHours(23, 59, 59);
       if (consultDate < start || consultDate > end) return false;
     }
 
-    if (filters.value.userName && !c.user_name.includes(filters.value.userName))
+    if (
+      appliedFilters.value.userName &&
+      !c.user_name.includes(appliedFilters.value.userName)
+    )
       return false;
 
     return true;
@@ -264,11 +284,46 @@ const changePage = (page) => {
 const applyFilter = () => {
   console.log("검색 필터 적용:", filters.value);
 
+  //입력값 → 실제 필터로 복사
+  appliedFilters.value = { ...filters.value };
+
+  currentPage.value = 1;
+};
+
+//초기화 버튼
+const resetFilter = () => {
+  filters.value = {
+    manager: "",
+    type: "all",
+    startDate: "",
+    endDate: "",
+    userName: "",
+  };
+
+  appliedFilters.value = {
+    manager: "",
+    type: "all",
+    startDate: "",
+    endDate: "",
+    userName: "",
+  };
+
   currentPage.value = 1;
 };
 </script>
 
 <style scoped>
+.btn-reset {
+  background-color: #1a681ad1;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 6px;
+}
+
 .consultation-container {
   padding: 20px;
   background-color: #f8f9fa;

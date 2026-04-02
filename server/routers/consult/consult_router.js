@@ -10,9 +10,27 @@ router.get("/user", async (req, res) => {
   res.send(result);
 });
 
-//폼 장애유형 선택
+//건별조회
+router.get("/user/:no", async (req, res) => {
+  try {
+    const result = await consultService.consultDetail(req.params.no);
+    res.json(result);
+  } catch (err) {
+    console.error("건별조회 실패:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//폼 장애유형 대 선택
 router.get("/disability-types", async (req, res) => {
   let result = await consultService.description();
+  // console.log("장애유형", result);
+  res.send(result);
+});
+
+//폼 장애유형 중 선택
+router.get("/consultMiddle", async (req, res) => {
+  let result = await consultService.descriptionMiddle();
   // console.log("장애유형", result);
   res.send(result);
 });
