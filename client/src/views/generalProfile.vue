@@ -132,7 +132,6 @@ const resetInstitutionEditInfo = () => {
   Object.assign(institutionEditInfo, institutionInfo);
 };
 
-/* 🔥 모드 변경 */
 const openHome = () => (currentMode.value = "home");
 const openMyInfo = () => (currentMode.value = "myInfo");
 const openMyEdit = () => {
