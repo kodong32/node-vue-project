@@ -25,9 +25,7 @@ onMounted(async () => {
   }
 
   try {
-    const response = await axios.get(
-      `http://localhost:3000/priority/${surveyId}`,
-    );
+    const response = await axios.get(`/api/priority/${surveyId}`);
     candidateInfo.value = response.data;
 
     // 현재 상태가 '심사중(f004)'이더라도, 반려 사유 띄우기
@@ -44,7 +42,7 @@ onMounted(async () => {
 
       // 상세 정보(우선순위 코드, 사유) 전용 API 호출
       const detailRes = await axios.get(
-        `http://localhost:3000/priority/request-info/${surveyId}`,
+        `/api/priority/request-info/${surveyId}`,
       );
 
       if (detailRes.data) {
@@ -71,13 +69,10 @@ const submitRequest = async () => {
   const surveyId = route.params.id;
 
   try {
-    const response = await axios.post(
-      `http://localhost:3000/priority/${surveyId}`,
-      {
-        priority: selectedPriority.value,
-        reason: reasonText.value,
-      },
-    );
+    const response = await axios.post(`/api/priority/${surveyId}`, {
+      priority: selectedPriority.value,
+      reason: reasonText.value,
+    });
 
     if (response.status === 200) {
       alert("우선순위 승인 요청이 완료되었습니다!");

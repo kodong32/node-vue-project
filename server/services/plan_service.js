@@ -1,18 +1,9 @@
 //지원계획서 관련 service
 const planMapper = require("../database/mappers/plan_mapper");
 
-
 const insertPlan = async (data) => {
-  const {
-    J_ID,
-    I_UserId,
-    startDate,
-    endDate,
-    purpose,
-    content,
-    file,
-    file2,
-  } = data;
+  const { J_ID, I_UserId, startDate, endDate, purpose, content, file, file2 } =
+    data;
 
   //Pk 생성
   try {
@@ -49,7 +40,7 @@ const insertPlan = async (data) => {
     } else {
       return {
         status: "Failed",
-        messge: "지원계획서 등록 실패"
+        messge: "지원계획서 등록 실패",
       };
     }
   } catch (err) {
@@ -70,30 +61,40 @@ const getSurveyListByInstUser = async (I_UserId) => {
       status: "Success",
       data: list,
     };
-
   } catch (err) {
     console.log(err);
     return {
       status: "Failed",
-      message: "조사지 불러오기 실패"
+      message: "조사지 불러오기 실패",
     };
   }
 };
 
-const getSupportListByInstUser = async (I_UserId, managerName, guardianName, supportName) => {
+const getSupportListByInstUser = async (
+  I_UserId,
+  managerName,
+  guardianName,
+  supportName,
+  surveyId,
+) => {
   try {
-    const list = await planMapper.getSupportListByInstUser(I_UserId, managerName, guardianName, supportName);
+    const list = await planMapper.getSupportListByInstUser(
+      I_UserId,
+      managerName,
+      guardianName,
+      supportName,
+      surveyId,
+    );
 
     return {
       status: "Success",
       data: list,
     };
-
   } catch (err) {
     console.log(err);
     return {
       status: "Failed",
-      message: "지원계획 불러오기 실패"
+      message: "지원계획 불러오기 실패",
     };
   }
 };
@@ -119,5 +120,10 @@ const deletePlan = async (supportPlan_Id) => {
       message: "삭제 중 오류 발생",
     };
   }
-}
-module.exports = { insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan };
+};
+module.exports = {
+  insertPlan,
+  getSurveyListByInstUser,
+  getSupportListByInstUser,
+  deletePlan,
+};

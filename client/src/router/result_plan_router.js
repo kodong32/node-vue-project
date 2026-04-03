@@ -1,3 +1,4 @@
+// D:\node-vue-project\client\src\router\result_plan_router.js
 // 지원결과서 작성
 export default [
   // 담당자 - 지원결과서 작성
@@ -29,5 +30,11 @@ export default [
     path: "/general/result/rejected",
     name: "GeneralResultRejected",
     component: () => import("../views/components/RejectedResultList.vue"),
+  },
+  // 일반이용자 - 지원결과서 조회
+  {
+    path: "/user/result",
+    name: "UserResultList",
+    component: () => import("../views/components/GeneralResultList.vue"),
   },
 ];

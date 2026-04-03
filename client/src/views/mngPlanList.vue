@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { Modal } from "bootstrap";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import managerPlanCardList from "./components/managerPlanCardList.vue";
 import RoleHeader from "./components/RoleHeader.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 const planList = ref([]);
 const filterType = ref("all"); // all / approved / rejected / pending
@@ -31,6 +32,10 @@ const getPlanList = async () => {
 
   if (searchFilters.value.supportName?.trim()) {
     params.append("supportName", searchFilters.value.supportName.trim());
+  }
+
+  if (route.query.surveyId) {
+    params.append("surveyId", route.query.surveyId);
   }
 
   const queryString = params.toString();
@@ -149,7 +154,9 @@ onMounted(() => {
   <RoleHeader />
 
   <div class="mt-4 px-2 px-md-3">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div
+      class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"
+    >
       <div class="filter-pill-wrap d-flex align-items-center gap-2 flex-wrap">
         <button
           v-for="tab in filterTabs"
@@ -169,7 +176,10 @@ onMounted(() => {
           <i class="fas fa-pen me-2"></i>작성
         </button>
 
-        <button class="search-action-btn btn btn-sm mb-0" @click="showSearchModal">
+        <button
+          class="search-action-btn btn btn-sm mb-0"
+          @click="showSearchModal"
+        >
           <i class="fas fa-search me-2"></i>상세 검색
         </button>
       </div>
@@ -204,7 +214,9 @@ onMounted(() => {
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label text-sm font-weight-bold">담당자 이름</label>
+            <label class="form-label text-sm font-weight-bold"
+              >담당자 이름</label
+            >
             <input
               type="text"
               class="form-control"
@@ -214,7 +226,9 @@ onMounted(() => {
           </div>
 
           <div class="mb-3">
-            <label class="form-label text-sm font-weight-bold">보호자 이름</label>
+            <label class="form-label text-sm font-weight-bold"
+              >보호자 이름</label
+            >
             <input
               type="text"
               class="form-control"
@@ -224,7 +238,9 @@ onMounted(() => {
           </div>
 
           <div class="mb-0">
-            <label class="form-label text-sm font-weight-bold">지원대상자 이름</label>
+            <label class="form-label text-sm font-weight-bold"
+              >지원대상자 이름</label
+            >
             <input
               type="text"
               class="form-control"
@@ -235,10 +251,18 @@ onMounted(() => {
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary mb-0" @click="resetSearch">
+          <button
+            type="button"
+            class="btn btn-secondary mb-0"
+            @click="resetSearch"
+          >
             초기화
           </button>
-          <button type="button" class="btn btn-primary mb-0" @click="applySearch">
+          <button
+            type="button"
+            class="btn btn-primary mb-0"
+            @click="applySearch"
+          >
             검색
           </button>
         </div>

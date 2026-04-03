@@ -17,27 +17,51 @@ const searchFilters = ref({
 });
 let searchModalInstance = null;
 
-// 🌟 현재 접속한 라우터 경로를 보고 권한(role)을 파악!
-// 경로에 '/manager/'가 있으면 담당자, 아니면 관리자('general')로 간주
-const userRole = computed(() => {
-  return route.path.includes("/manager/") ? "manager" : "general";
-});
+// 🌟 1. 세션에서 꺼낼 진짜 이름과 역할 바구니
+const currentUserName = ref("");
+const actualUserRole = ref(""); // "USER", "MANAGER", "GENERAL" 중 하나가 됨
 
-// 타이틀도 권한에 따라 동적으로 변경!
+// 🌟 2. 세션 확인 (진짜 신분 확인)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+
+      if (response.data.userType === "USER") {
+        actualUserRole.value = "USER"; // 일반 이용자
+      } else {
+        // 기관 사용자일 경우 role에 따라 담당자/관리자 구분
+        const role = response.data.user.role || response.data.user.roll;
+        actualUserRole.value = role === "a003" ? "MANAGER" : "GENERAL";
+      }
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 3. 타이틀도 세션 권한에 따라 동적으로!
 const pageTitle = computed(() => {
-  return userRole.value === "manager"
-    ? "내 지원결과서 조회"
-    : "기관 전체 지원결과서 조회";
+  if (actualUserRole.value === "USER") return "내 지원결과서 내역";
+  if (actualUserRole.value === "MANAGER") return "내 지원결과서 조회";
+  return "기관 전체 지원결과서 조회";
 });
 
-// 1. 목록 불러오기 API 호출 (role 파라미터 포함)
+// 💡 4. 목록 불러오기 API 호출 (API 주소 갈라치기!)
 const fetchResults = async () => {
   try {
-    const response = await axios.get("/api/result/plan/general-list", {
+    // 🌟 권한에 따라 찌를 API 주소 결정!
+    const apiUrl =
+      actualUserRole.value === "USER"
+        ? "/api/user/result/list" // 🚨 일반 이용자용 백엔드 라우터 (하단 설명 참고!)
+        : "/api/result/plan/general-list"; // 기관 이용자용 백엔드 라우터
+
+    const response = await axios.get(apiUrl, {
       params: {
         page: 1,
         limit: 10,
-        role: userRole.value, // 💡 백엔드에 권한 정보 전달!
+        // 🚨 role: userRole.value 👈 백엔드가 알아서 하니까 지워버림!
         surveyId: route.query.surveyId,
         ...searchFilters.value,
       },
@@ -62,8 +86,11 @@ const resetSearch = () => {
   if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 5. 무조건 세션부터 확인하고 -> 데이터 불러오기
+  await checkSession();
   fetchResults();
+
   const searchEl = document.getElementById("searchModal");
   if (searchEl) searchModalInstance = new Modal(searchEl);
 });

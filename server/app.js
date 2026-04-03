@@ -87,3 +87,6 @@ app.use("/approval/result", approvalResultRouter);
 //공지사항
 const noticeRouter = require("./routers/notice/notice_router.js");
 app.use("/notice", noticeRouter);
+//일반이용자 승인 결과서 보기
+const userResultRouter = require("./routers/plan/user_result_router.js");
+app.use("/user/result", userResultRouter);

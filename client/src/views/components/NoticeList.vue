@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 import RoleHeader from "./RoleHeader.vue";
+import AdminHeader from "@/views/components/adminPageHeader.vue";
 
 // 💡 1. 빈 바구니 준비 (하드코딩 제거)
 const currentUserRole = ref("");
@@ -112,7 +113,10 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
-    <RoleHeader />
+    <template v-if="currentUserRole !== ''">
+      <AdminHeader v-if="currentUserRole === '시스템관리자'" />
+      <RoleHeader v-else />
+    </template>
     <div class="row">
       <div class="col-lg-3 col-md-4 mb-4">
         <div class="card position-sticky top-1">

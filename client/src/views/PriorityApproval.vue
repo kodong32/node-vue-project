@@ -1,3 +1,4 @@
+<!-- D:\node-vue-project\client\src\views\PriorityApproval.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -24,9 +25,7 @@ onMounted(async () => {
 
   try {
     // 1. 지원자 기본 정보
-    const candidateRes = await axios.get(
-      `http://localhost:3000/priority/${surveyId}`,
-    );
+    const candidateRes = await axios.get(`/api/priority/${surveyId}`);
     candidateInfo.value = candidateRes.data;
 
     // 백엔드에서 넘겨준 이전 반려 사유가 있다면 무조건 변수에 저장
@@ -36,7 +35,7 @@ onMounted(async () => {
 
     // 2. 담당자가 올린 결재 대기 정보(사유, 요청단계)
     const requestRes = await axios.get(
-      `http://localhost:3000/priority/request-info/${surveyId}`,
+      `/api/priority/request-info/${surveyId}`,
     );
     if (requestRes.data) {
       requestInfo.value = requestRes.data;
@@ -51,13 +50,10 @@ const approveRequest = async () => {
   if (confirm("이 우선순위 요청을 승인하시겠습니까?")) {
     try {
       const surveyId = route.params.id;
-      const response = await axios.post(
-        `http://localhost:3000/priority/decide/${surveyId}`,
-        {
-          action: "approve",
-          reqPriorityCode: requestInfo.value.priorityCode, // 예: 원래 요청했던 'f002'를 같이 보냄
-        },
-      );
+      const response = await axios.post(`/api/priority/decide/${surveyId}`, {
+        action: "approve",
+        reqPriorityCode: requestInfo.value.priorityCode, // 예: 원래 요청했던 'f002'를 같이 보냄
+      });
 
       if (response.status === 200) {
         alert("승인이 완료되었습니다!");
@@ -80,13 +76,10 @@ const submitReject = async () => {
   if (confirm("정말 반려하시겠습니까?")) {
     try {
       const surveyId = route.params.id;
-      const response = await axios.post(
-        `http://localhost:3000/priority/decide/${surveyId}`,
-        {
-          action: "reject",
-          rejectReason: rejectReasonText.value,
-        },
-      );
+      const response = await axios.post(`/api/priority/decide/${surveyId}`, {
+        action: "reject",
+        rejectReason: rejectReasonText.value,
+      });
 
       if (response.status === 200) {
         alert("반려 처리되었습니다!");

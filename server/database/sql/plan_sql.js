@@ -1,15 +1,13 @@
 //지원계획서 관련 sql문
 
-const getLastPlanId = 
-`
+const getLastPlanId = `
 SELECT supportPlan_id
 FROM Plan_Tbl
 ORDER BY CAST(SUBSTRING(supportPlan_id,5) AS UNSIGNED) DESC
 LIMIT 1
 `;
 
-const insertPlan = 
-`
+const insertPlan = `
 INSERT INTO Plan_Tbl(
   supportPlan_id, 
   J_ID, 
@@ -27,8 +25,7 @@ VALUES (
 )
 `;
 
-const getSurveyListByInstUser =
-`
+const getSurveyListByInstUser = `
 SELECT
     s.J_ID,
     s.Ver_Id,
@@ -109,6 +106,7 @@ WHERE (
 AND ( ? IS NULL OR u.name LIKE CONCAT('%', ?, '%') )
 AND ( ? IS NULL OR gn.name LIKE CONCAT('%', ?, '%') )
 AND ( ? IS NULL OR sp.name LIKE CONCAT('%', ?, '%') )
+AND ( ? IS NULL OR p.J_ID = ? )
 ORDER BY p.wirte_at DESC
 `;
 
@@ -117,4 +115,10 @@ DELETE FROM Plan_Tbl
 WHERE supportPlan_id = ?
 `;
 
-module.exports = {getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan};
+module.exports = {
+  getLastPlanId,
+  insertPlan,
+  getSurveyListByInstUser,
+  getSupportListByInstUser,
+  deletePlan,
+};

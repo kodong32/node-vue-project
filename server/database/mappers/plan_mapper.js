@@ -9,10 +9,8 @@ const getLastPlanId = async () => {
     conn = await pool.getConnection();
     let rows = await conn.query(planSql.getLastPlanId);
     return rows[0];
-
   } catch (err) {
     console.log(err);
-
   } finally {
     if (conn) {
       conn.release();
@@ -27,7 +25,6 @@ const insertPlan = async (param) => {
     conn = await pool.getConnection();
     let result = await conn.query(planSql.insertPlan, param);
     return result;
-
   } catch (err) {
     console.log(err);
   } finally {
@@ -42,9 +39,11 @@ const getSurveyListByInstUser = async (I_UserId) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(planSql.getSurveyListByInstUser, [I_UserId, I_UserId]);
+    let rows = await conn.query(planSql.getSurveyListByInstUser, [
+      I_UserId,
+      I_UserId,
+    ]);
     return rows;
-
   } catch (err) {
     console.log(err);
   } finally {
@@ -54,21 +53,32 @@ const getSurveyListByInstUser = async (I_UserId) => {
   }
 };
 
-
 //suplist
-const getSupportListByInstUser = async (I_UserId, managerName, guardianName, supportName) => {
+const getSupportListByInstUser = async (
+  I_UserId,
+  managerName,
+  guardianName,
+  supportName,
+  surveyId,
+) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(planSql.getSupportListByInstUser,
-      [
-        I_UserId, I_UserId, I_UserId, I_UserId,
-        managerName, managerName,
-        guardianName, guardianName,
-        supportName, supportName
-      ]);
+    let rows = await conn.query(planSql.getSupportListByInstUser, [
+      I_UserId,
+      I_UserId,
+      I_UserId,
+      I_UserId,
+      managerName,
+      managerName,
+      guardianName,
+      guardianName,
+      supportName,
+      supportName,
+      surveyId,
+      surveyId,
+    ]);
     return rows;
-
   } catch (err) {
     console.log(err);
   } finally {
@@ -78,22 +88,25 @@ const getSupportListByInstUser = async (I_UserId, managerName, guardianName, sup
   }
 };
 
-
-const deletePlan = async(supportPlan_Id) => {
+const deletePlan = async (supportPlan_Id) => {
   let conn = null;
-  try{
+  try {
     conn = await pool.getConnection();
     const result = await conn.query(planSql.deletePlan, supportPlan_Id);
     return result;
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
     throw err;
-  
-  }finally{
-    if(conn){
+  } finally {
+    if (conn) {
       conn.release();
     }
   }
 };
-module.exports = { getLastPlanId, insertPlan, getSurveyListByInstUser, getSupportListByInstUser, deletePlan };
+module.exports = {
+  getLastPlanId,
+  insertPlan,
+  getSurveyListByInstUser,
+  getSupportListByInstUser,
+  deletePlan,
+};

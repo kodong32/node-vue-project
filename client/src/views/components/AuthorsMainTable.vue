@@ -5,17 +5,6 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-const goToPlan = (surveyId) => {
-  if (props.userRole === "USER") {
-    // 🌟 router/index.js에 등록된 실제 주소 + 쿼리로 surveyId 넘기기
-    router.push(`/user/plan?surveyId=${surveyId}`);
-  } else if (props.userRole === "MANAGER") {
-    router.push(`/manager/planlist?surveyId=${surveyId}`);
-  } else if (props.userRole === "GENERAL") {
-    router.push(`/general/planlist?surveyId=${surveyId}`);
-  }
-};
-
 // 💡 부모 컴포넌트에서 던져줄 데이터(surveyList)와 권한(userRole)을 받을 바구니 준비!
 const props = defineProps({
   surveyList: {
@@ -44,6 +33,17 @@ const props = defineProps({
 const goManager = () => {
   //하드코딩상태
   router.push("/general/select-manager/SUV0057");
+};
+
+const goToPlan = (surveyId) => {
+  if (props.userRole === "USER") {
+    // 🌟 router/index.js에 등록된 실제 주소 + 쿼리로 surveyId 넘기기
+    router.push(`/user/plan/detail/${surveyId}`);
+  } else if (props.userRole === "MANAGER") {
+    router.push(`/manager/planlist?surveyId=${surveyId}`);
+  } else if (props.userRole === "GENERAL") {
+    router.push(`/general/plan?surveyId=${surveyId}`);
+  }
 };
 
 const goToResult = (surveyId) => {

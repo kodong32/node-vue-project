@@ -1,3 +1,4 @@
+// D:\node-vue-project\client\src\router\general_plan_router.js
 export default [
   {
     // 💡 기관관리자(GENERAL) 지원계획서 리스트 Router
