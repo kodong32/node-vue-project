@@ -1,8 +1,22 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
+import RoleHeader from "../components/RoleHeader.vue";
 
 const waitUsers = ref([]);
+
+const filterType = ref("all");
+
+const filteredWaitUsers = computed(() => {
+  switch (filterType.value) {
+    case "general":
+      return waitUsers.value.filter((u) => u.type === "general");
+    case "insti":
+      return waitUsers.value.filter((u) => u.type === "insti");
+    default:
+      return waitUsers.value;
+  }
+});
 
 // 승인 대기 사용자 조회
 const loadWaitUsers = async () => {
@@ -41,6 +55,8 @@ const approveUser = async (user) => {
 };
 // 거절
 const rejectUser = async (user) => {
+  if (!confirm("해당 사용자를 거절하시겠습니까?")) return;
+
   try {
     if (user.type === "general") {
       await axios.patch(`/api/user/reject/${user.G_UserId}`);
@@ -60,11 +76,43 @@ onMounted(() => {
 </script>
 
 <template>
+  <RoleHeader />
   <div class="card">
     <div class="card-header pb-0">
       <h6>사용자 가입 승인 관리</h6>
     </div>
     <div class="card-body px-0 pt-0 pb-2">
+      <div class="table-responsive p-0">
+        <div class="d-flex justify-content-end mb-3 me-3">
+          <div class="btn-group" role="group" aria-label="Filter Users">
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              :class="{ active: filterType === 'all' }"
+              @click="filterType = 'all'"
+            >
+              전체
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              :class="{ active: filterType === 'general' }"
+              @click="filterType = 'general'"
+            >
+              일반
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              :class="{ active: filterType === 'insti' }"
+              @click="filterType = 'insti'"
+            >
+              기관
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="table-responsive p-0">
         <table class="table align-items-center mb-0">
           <thead>
@@ -99,8 +147,8 @@ onMounted(() => {
               </th>
             </tr>
           </thead>
-          <tbody v-if="waitUsers.length > 0">
-            <tr v-for="user in waitUsers" :key="user.G_UserId">
+          <tbody v-if="filteredWaitUsers.length > 0">
+            <tr v-for="user in filteredWaitUsers" :key="user.G_UserId">
               <td class="text-center">{{ user.name }}</td>
               <td class="text-center">{{ user.id }}</td>
               <td class="text-center">{{ user.tel }}</td>

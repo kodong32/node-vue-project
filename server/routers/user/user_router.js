@@ -148,13 +148,12 @@ router.post(`/login`, async (req, res) => {
   res.send(result);
 });
 
-
 //일반회원 탈퇴
 router.put("/withdraw", async (req, res) => {
-    const { G_UserId } = req.body;
-    const result = await userService.withdrawUser(G_UserId);
+  const { G_UserId } = req.body;
+  const result = await userService.withdrawUser(G_UserId);
 
-    res.send(result);
+  res.send(result);
 });
 
 //Router Gaurd에서 일반이용자 로그인 여부 확인을 위한 session Check Api 26.03.27 고동현추가
@@ -412,17 +411,29 @@ router.get(`/managerlist`, requireInstRole, async (req, res) => {
   res.send(result);
 });
 
+//정,부담당자 확인 김경환
+router.get(`/managerlist2`, requireInstRole, async (req, res) => {
+  const instId = req.session.loginInstUser.institution_id; //기관PK
+  const result = await userService.getMangerMainSubList(instId);
+
+  console.log(result);
+  res.send(result);
+});
+
 // 담당자 배정현황 조회
 router.get("/manager/assignedSupport", requireInstRole, async (req, res) => {
   const loginIUserId = req.session.loginInstUser.I_UserId;
   const institutionId = req.query.institutionId;
   const targetIUserId = req.query.iUserId;
 
-  const result = await userService.getAssignedSupportListByManager(loginIUserId, institutionId, targetIUserId);
+  const result = await userService.getAssignedSupportListByManager(
+    loginIUserId,
+    institutionId,
+    targetIUserId,
+  );
 
   res.send(result);
 });
-
 
 router.post("/assign", async (req, res) => {
   const { I_UserId1, I_UserId2, support_id } = req.body;
@@ -431,7 +442,6 @@ router.post("/assign", async (req, res) => {
 
   res.send({ success: true });
 });
-
 
 router.get("/wait-insti-users", async (req, res) => {
   // 기관관리자 승인 접근
@@ -464,5 +474,27 @@ router.get("/support/by-jid/:jid", async (req, res) => {
   const result = await userService.getSupportInstitutionByJid(jid);
 
   res.json(result);
+});
+
+router.patch("/reject/:id", async (req, res) => {
+  if (!req.session.loginInstUser) {
+    return res.status(401).send("로그인 필요");
+  }
+  if (req.session.loginInstUser.role !== "a002") {
+    return res.status(403).send("권한없음");
+  }
+  await userService.rejectUser(req.params.id);
+  res.send({ status: "success" });
+});
+
+router.patch("/reject-manager/:id", async (req, res) => {
+  if (!req.session.loginInstUser) {
+    return res.status(401).send("로그인 필요");
+  }
+  if (req.session.loginInstUser.role !== "a002") {
+    return res.status(403).send("권한없음");
+  }
+  await userService.rejectInstiUser(req.params.id);
+  res.send({ status: "success" });
 });
 module.exports = router;

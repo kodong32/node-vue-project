@@ -625,7 +625,10 @@ onBeforeUnmount(() => {
                         >
                           닫기
                         </argon-button>
-                        <argon-button color="dark" @click="searchInstitution">
+                        <argon-button
+                          color="dark"
+                          @click.prevent="searchInstitution"
+                        >
                           검색
                         </argon-button>
                       </div>

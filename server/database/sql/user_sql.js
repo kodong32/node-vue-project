@@ -155,7 +155,6 @@ SET approval = 'g003'
 WHERE G_UserId = ?
 `;
 
-
 const confirmInstiUser = `
 SELECT I_UserId ,institution_id ,name, id, password, tel, roll
 FROM InstiUser_Tbl
@@ -393,7 +392,18 @@ JOIN GeneralUser_Tbl gu
 WHERE s.J_ID = ?
 `;
 
+//회원가입 승인거부 김경환
+const rejectUser = `
+UPDATE GeneralUser_Tbl
+SET approval = 'g003'
+WHERE G_UserId = ?
+`;
 
+const rejectInstUser = `
+UPDATE InstiUser_Tbl
+SET approval = 'g003'
+WHERE I_UserId = ?
+`;
 
 module.exports = {
   testSelect,
@@ -434,4 +444,6 @@ module.exports = {
   getManagerListByInstitution,
   getAssignedSupportListByManager,
   withdrawUser,
+  rejectUser,
+  rejectInstUser,
 };

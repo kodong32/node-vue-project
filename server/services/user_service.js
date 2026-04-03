@@ -620,7 +620,6 @@ const updateInstiUserInfo = async (I_UserId, body) => {
   }
 };
 
-
 const getInstInfoById = async (iUserId) => {
   try {
     const rows = await userMapper.getInstInfoById(iUserId);
@@ -637,7 +636,6 @@ const getInstInfoById = async (iUserId) => {
       message: "기관 정보를 찾을 수 없습니다.",
       data: null,
     };
-
   } catch (err) {
     console.log(err);
   }
@@ -684,7 +682,10 @@ const updateInstInfo = async (instId, info) => {
     }
 
     // 로그인한 기관 관리자가 이 기관 소속인지 확인
-    const authInfo = await userMapper.checkInstitutionAdmin(instId, institution_id);
+    const authInfo = await userMapper.checkInstitutionAdmin(
+      instId,
+      institution_id,
+    );
 
     if (!authInfo || authInfo.length === 0) {
       return {
@@ -693,7 +694,14 @@ const updateInstInfo = async (instId, info) => {
       };
     }
 
-    const updateInfo = [institution_name, institution_tel, institution_zipCode, institution_address, institution_email, institution_id];
+    const updateInfo = [
+      institution_name,
+      institution_tel,
+      institution_zipCode,
+      institution_address,
+      institution_email,
+      institution_id,
+    ];
     const result = await userMapper.updateInstInfo(updateInfo);
 
     if (result.affectedRows > 0) {
@@ -707,12 +715,10 @@ const updateInstInfo = async (instId, info) => {
       status: "Failed",
       message: "수정된 정보가 없습니다.",
     };
-
   } catch (err) {
     console.log(err);
   }
 };
-
 
 //기관 내 담당자 조회
 const getManagerListByInstitution = async (instId) => {
@@ -721,13 +727,24 @@ const getManagerListByInstitution = async (instId) => {
   return {
     status: "Success",
     data: rows || [],
-  }
+  };
+};
 
+//김경환
+const getMangerMainSubList = async (instId) => {
+  const rows = await userMapper.getMangerMainSubList(instId);
+  return {
+    status: "Success",
+    data: rows || [],
+  };
 };
 
 //기관 내 담당자가 배정받은 지원대상자정보
-const getAssignedSupportListByManager = async (loginIUserId, institutionId, targetIUserId) => {
-
+const getAssignedSupportListByManager = async (
+  loginIUserId,
+  institutionId,
+  targetIUserId,
+) => {
   const rows = await userMapper.getAssignedSupportListByManager(targetIUserId);
 
   return {
@@ -763,6 +780,23 @@ const getSupportInstitutionByJid = async (jid) => {
   const result = await userMapper.getSupportInstitutionByJid(jid);
   return result;
 };
+
+const rejectUser = async (id) => {
+  const result = await userMapper.rejectUser(id);
+  return {
+    success: true,
+    result,
+  };
+};
+
+const rejectInstiUser = async (id) => {
+  const result = await userMapper.rejectInstUser(id);
+  return {
+    success: true,
+    result,
+  };
+};
+
 module.exports = {
   testSelect,
   createUser,
@@ -795,4 +829,7 @@ module.exports = {
   getManagerListByInstitution,
   getAssignedSupportListByManager,
   withdrawUser,
+  getMangerMainSubList,
+  rejectUser,
+  rejectInstiUser,
 };

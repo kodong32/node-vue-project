@@ -480,11 +480,9 @@ const getInstInfoById = async (iUserId) => {
     const rows = await conn.query(userSql.getInstInfoById, iUserId);
 
     return rows;
-
   } catch (err) {
     console.log(err);
     throw err;
-
   } finally {
     if (conn) {
       conn.release();
@@ -496,14 +494,15 @@ const checkInstitutionAdmin = async (iUserId, InstId) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query(userSql.checkInstitutionAdmin, [iUserId, InstId]);
+    const rows = await conn.query(userSql.checkInstitutionAdmin, [
+      iUserId,
+      InstId,
+    ]);
 
     return rows;
-
   } catch (err) {
     console.log(err);
     throw err;
-
   } finally {
     if (conn) {
       conn.release();
@@ -517,18 +516,15 @@ const updateInstInfo = async (updateInfo) => {
     conn = await pool.getConnection();
     const result = await conn.query(userSql.updateInstInfo, updateInfo);
     return result;
-
   } catch (err) {
     console.log(err);
     throw err;
-
   } finally {
     if (conn) {
       conn.release();
     }
   }
 };
-
 
 //기관 내 담당자 조회
 const getManagerListByInstitution = async (instId) => {
@@ -538,7 +534,23 @@ const getManagerListByInstitution = async (instId) => {
     const rows = await conn.query(userSql.getManagerListByInstitution, instId);
 
     return rows;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
 
+//경환
+const getMangerMainSubList = async (instId) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(userSql.getManagerListByInstitution, instId);
+    return rows;
   } catch (err) {
     console.log(err);
     throw err;
@@ -568,7 +580,6 @@ const getAssignedSupportListByManager = async (iUserId) => {
     }
   }
 };
-
 
 //기관관리자의 담당자선택(김경환 20260401)
 const updateManager = async (instiId1, instiId2, supportId) => {
@@ -631,6 +642,35 @@ const getSupportInstitutionByJid = async (jid) => {
     if (conn) conn.release();
   }
 };
+
+const rejectUser = async (id) => {
+  let conn = await pool.getConnection();
+  try {
+    const result = await conn.query(userSql.rejectUser, [id]);
+    return result;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
+
+const rejectInstUser = async (id) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    const result = await conn.query(userSql.rejectInstUser, [id]);
+    return result;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) {
+      conn.release();
+    }
+  }
+};
 module.exports = {
   testSelect,
   insertUser,
@@ -670,4 +710,7 @@ module.exports = {
   getManagerListByInstitution,
   getAssignedSupportListByManager,
   withdrawUser,
+  getMangerMainSubList,
+  rejectUser,
+  rejectInstUser,
 };
