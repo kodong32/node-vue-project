@@ -313,6 +313,24 @@ router.patch("/approve/:id", async (req, res) => {
 // 현재 로그인 사용자 통합 조회
 router.get("/auth/me", (req, res) => {
   try {
+    // 시스템 관리자
+    if (req.session.loginAdmin) {
+      return res.send({
+        success: true,
+        isLogin: true,
+        userType: "ADMIN",
+        user: {
+          userId: req.session.loginAdmin.adminId, // ADM0000
+          name: "시스템관리자",
+          loginId: req.session.loginAdmin.id, // admin1
+          role: req.session.loginAdmin.role, // a001
+          institutionId: null,
+          tel: null,
+          email: null,
+        },
+      });
+    }
+
     // 일반 이용자
     if (req.session.user) {
       return res.send({
