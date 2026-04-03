@@ -101,7 +101,7 @@ LEFT JOIN Support_Tbl sp
 LEFT JOIN GeneralUser_Tbl gn
     ON s.G_UserId = gn.G_UserId
 WHERE (
-      p.I_UserId1 = ?
+   p.I_UserId1 = ?
    OR p.I_UserId2 = ?
    OR sp.I_UserId1 = ?
    OR sp.I_UserId2 = ?
