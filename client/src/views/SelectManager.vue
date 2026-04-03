@@ -12,7 +12,7 @@
                 :key="manager.I_UserId"
                 :value="manager.I_UserId"
               >
-                {{ manager.name }} ({{ manager.I_UserId }})
+                {{ manager.name }}
               </option>
             </select>
           </div>
@@ -25,7 +25,7 @@
                 :key="manager.I_UserId"
                 :value="manager.I_UserId"
               >
-                {{ manager.name }} ({{ manager.I_UserId }})
+                {{ manager.name }}
               </option>
             </select>
           </div>
@@ -36,7 +36,8 @@
             </button>
           </div>
         </div>
-        <surveySelect @loaded="(data) => (supportId = data.supportId)" />
+
+        <surveySelect @loaded="handleSurveyLoaded" />
       </div>
     </div>
   </div>
@@ -45,132 +46,63 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import RoleHeader from "./components/RoleHeader.vue";
-// import SelectCard from "./components/surveyManagerCard.vue";
 import surveySelect from "./components/surveySelectCard.vue";
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
-const route = useRoute();
-
-const allSections = ref([]);
-const answerData = ref([]);
-const extraInputs = ref({});
-const extraRequest = ref("");
-const targetUserName = ref("");
-const targetRegDate = ref("");
+const router = useRouter();
 const managers = ref([]);
 const mainManager = ref("");
 const subManager = ref("");
 const supportId = ref("");
 
+// 담당자 목록 조회
 const callme = async () => {
   const result = await fetch(`/api/user/managerlist2`, {
     method: "GET",
     credentials: "include",
   }).then((res) => res.json());
+
   managers.value = result.data || [];
 };
 
 onMounted(async () => {
   await callme();
-
-  const surveyRes = await fetch(`/survey/user/${route.params.id}`);
-  const data = await surveyRes.json();
-
-  allSections.value = data.sections || data;
-  answerData.value = data.answers || data;
-  targetUserName.value = data.userName || "";
-  targetRegDate.value = data.regDate || "";
-  extraInputs.value = data.extraInputs || {};
-  extraRequest.value = data.extraRequest || "";
-  // try {
-  //   const J_ID = route.params.id;
-  //   let G_USER = route.query.userId || "";
-  //   // 1. 조사지 조회 시도
-  //   try {
-  //     const surveyRes = await fetch(
-  //       `http://localhost:3000/survey/user/${J_ID}`,
-  //     );
-  //     if (surveyRes.ok) {
-  //       const rawQuestions = await surveyRes.json();
-  //       if (rawQuestions && rawQuestions.length > 0) {
-  //         G_USER = rawQuestions[0].G_UserId || G_USER;
-  //         console.log("2. 조사지 로드 성공! G_USER:", G_USER);
-  //         // (기존 UI 세팅 로직은 잠시 생략하시거나 그대로 두셔도 됩니다)
-  //       }
-  //     } else {
-  //       console.warn("2. 조사지 API 실패 (404 등). G_USER를 못 찾았습니다.");
-  //     }
-  //   } catch (e) {
-  //     console.error("조사지 API 에러:", e);
-  //   }
-  //   console.log(managerRes);
-  //   const managerData = await managerRes.json();
-  //   // 2. 기관 ID 조회
-  //   if (G_USER) {
-  //     const supportRes = await fetch(
-  //       `http://localhost:3000/user/support/by-jid/${G_USER}`,
-  //     );
-  //     const supportData = await supportRes.json();
-  //     console.log("3. 지원 정보 데이터:", supportData);
-  //     if (supportData && supportData.length > 0) {
-  //       supportId.value = supportData[0].support_id;
-  //       const institutionId = supportData[0].institution_id;
-  //       console.log("4. 추출된 기관 ID:", institutionId);
-  //       // 3. 담당자 목록 조회 (수정하신 라우터 주소 적용)
-  //       // 백엔드 라우터 주소가 맞는지 이 부분의 URL을 꼭 다시 확인해주세요!
-  //       console.log("5. 담당자 API 응답 원본:", managerData);
-  //       // 백엔드에서 { status: "Success", data: [...] } 형태로 주므로 아래처럼 할당
-  //       managers.value = Array.isArray(managerData)
-  //         ? managerData
-  //         : managerData.data || [];
-  //       console.log("6. 🎉 최종 세팅된 매니저 목록:", managers.value);
-  //     } else {
-  //       console.error(
-  //         "❌ 기관 ID를 찾을 수 없습니다. (supportData가 비어있음)",
-  //       );
-  //     }
-  //   } else {
-  //     console.error(
-  //       "❌ G_USER 값이 없어서 담당자 조회 로직이 실행되지 않았습니다!",
-  //     );
-  //   }
-  // } catch (err) {
-  //   console.error("전체 흐름 에러:", err);
-  // }
 });
 
+// surveySelect 에서 전달받음
+const handleSurveyLoaded = (data) => {
+  console.log("부모에서 받은 survey 정보:", data);
+  supportId.value = data.supportId;
+};
+
 const saveAssignment = async () => {
-  // 정/부 담당자 둘 다 선택했는지 확인
   if (!mainManager.value || !subManager.value) {
     alert("정/부 담당자를 모두 선택하세요.");
     return;
   }
 
-  // 같은 사람 선택 방지
   if (mainManager.value === subManager.value) {
     alert("정/부 담당자는 다르게 선택하세요.");
     return;
   }
 
-  // 배정 payload
   const payload = {
     support_id: supportId.value,
     I_UserId1: mainManager.value,
     I_UserId2: subManager.value,
   };
-
   try {
-    // 담당자 배정 저장
     const response = await fetch("/api/user/assign", {
-      method: "POST",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
 
-    if (response.ok) {
+    if (response) {
       alert("담당자 배정이 완료되었습니다.");
+      router.push("/general");
     }
   } catch (err) {
     console.error("저장 실패:", err);

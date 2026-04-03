@@ -137,6 +137,9 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { defineEmits } from "vue";
+
+const emit = defineEmits(["loaded"]);
 
 const route = useRoute();
 const surveyData = ref([]); // 서버에서 받아온 문항 데이터
@@ -258,6 +261,9 @@ const getSurveyDetail = async (id) => {
       surveyData.value = data;
       supportName.value = data[0].supportName || "성함 없음";
       createdAt.value = data[0].created_at;
+      emit("loaded", {
+        supportId: data[0].support_id,
+      });
 
       additionalRequest.value = data[0].request || "입력된 내용이 없습니다.";
     } else {

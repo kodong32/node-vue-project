@@ -133,22 +133,6 @@ onBeforeUnmount(() => {
                     </div>
                   </form>
                 </div>
-                <div class="px-1 pt-0 text-center card-footer px-lg-2">
-                  <p class="mx-auto mb-4 text-sm">
-                    아이디 / 비밀번호를 잊어버리셨나요?
-                    <a
-                      href="javascript:;"
-                      class="text-success text-gradient font-weight-bold"
-                      >아이디 찾기</a
-                    >
-                    |
-                    <a
-                      href="javascript:;"
-                      class="text-success text-gradient font-weight-bold"
-                      >비밀번호 찾기</a
-                    >
-                  </p>
-                </div>
 
                 <div class="px-1 pt-0 text-center card-footer px-lg-2">
                   <p class="mx-auto mb-4 text-sm">

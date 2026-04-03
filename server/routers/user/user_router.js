@@ -498,7 +498,7 @@ router.get("/manager/assignedSupport", requireInstRole, async (req, res) => {
   res.send(result);
 });
 
-router.post("/assign", async (req, res) => {
+router.put("/assign", async (req, res) => {
   const { I_UserId1, I_UserId2, support_id } = req.body;
 
   await userService.updateManager(I_UserId1, I_UserId2, support_id);

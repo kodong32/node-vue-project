@@ -585,11 +585,12 @@ const getAssignedSupportListByManager = async (iUserId) => {
 const updateManager = async (instiId1, instiId2, supportId) => {
   let conn = await pool.getConnection();
   try {
-    const rows = await conn.query(userSql.updateManager, [
+    const [rows] = await conn.query(userSql.updateManager, [
       instiId1,
       instiId2,
       supportId,
     ]);
+    console.log(rows);
     return rows;
   } catch (err) {
     console.log(err);
