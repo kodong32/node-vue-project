@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const service = require("../../services/result_plan_service.js");
 const uploadResult = require("../../middlewares/uploadFile_result.js");
+const downloadFileResult = require("../../middlewares/downloadFile_result.js");
 
 // 💡 1. 모달에 띄울 '승인된 계획서' 목록 가져오기 (기관 담당자 전용)
 router.get("/approved-list", async (req, res) => {
@@ -128,6 +129,8 @@ router.get("/general-list", async (req, res) => {
     res.status(500).json({ message: "조회 실패", error: err.message });
   }
 });
+
+router.get("/download/:fileName", downloadFileResult);
 
 // 💡 4. 지원결과서 반려 목록 조회
 router.get("/rejected-list", async (req, res) => {
