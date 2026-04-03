@@ -6,6 +6,7 @@ export default [
     name: "generalPlanList",
     // 파일 경로가 views/general 폴더 안에 있다고 가정했어. 실제 저장한 경로에 맞게 맞춰줘!
     component: () => import("../views/components/GeneralPlanListMain.vue"),
+    meta: { hideNavbar: true },
   },
   {
     // 💡 일반 이용자(USER) 지원계획서 조회 Router (추가!)
@@ -13,5 +14,6 @@ export default [
     path: "/user/plan/detail/:surveyId",
     name: "userPlanDetail",
     component: () => import("../views/components/GeneralPlanListMain.vue"), // 🌟 껍데기 완벽 재활용!
+    meta: { hideNavbar: true },
   },
 ];

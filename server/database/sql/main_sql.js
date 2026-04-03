@@ -37,10 +37,26 @@ LEFT JOIN InstiUser_Tbl iu ON su.I_UserId1 = iu.I_UserId
 // ==========================================
 // 일반 이용자 (USER): 자기 것만 본다
 // ==========================================
+// const selectByUser =
+//   baseSelect +
+//   `
+// WHERE gu.G_UserId = ? 
+// ORDER BY sv.created_at DESC, sv.J_ID DESC
+// LIMIT ? OFFSET ?
+// `;
+
+// const countByUser =
+//   baseCount +
+//   `
+// WHERE gu.G_UserId = ?
+// `;
 const selectByUser =
   baseSelect +
   `
-WHERE gu.G_UserId = ? 
+WHERE gu.G_UserId = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR gu.name LIKE CONCAT('%', ?, '%'))
 ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
@@ -49,15 +65,34 @@ const countByUser =
   baseCount +
   `
 WHERE gu.G_UserId = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR gu.name LIKE CONCAT('%', ?, '%'))
 `;
 
 // ==========================================
 // 기관 담당자 (MANAGER): "나에게 배정된 것"만 본다
 // ==========================================
+// const selectByManager =
+//   baseSelect +
+//   `
+// WHERE su.I_UserId1 = ? 
+// ORDER BY sv.created_at DESC, sv.J_ID DESC
+// LIMIT ? OFFSET ?
+// `;
+
+// const countByManager =
+//   baseCount +
+//   `
+// WHERE su.I_UserId1 = ?
+// `;
 const selectByManager =
   baseSelect +
   `
-WHERE su.I_UserId1 = ? 
+WHERE su.I_UserId1 = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR su.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
 ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
@@ -66,15 +101,35 @@ const countByManager =
   baseCount +
   `
 WHERE su.I_UserId1 = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR su.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
 `;
 
 // ==========================================
 // 기관 관리자 (GENERAL): 담당자 유무 상관없이 소속 기관 전체를 본다
 // ==========================================
+// const selectByGeneral =
+//   baseSelect +
+//   `
+// WHERE gu.institution_id = ? 
+// ORDER BY sv.created_at DESC, sv.J_ID DESC
+// LIMIT ? OFFSET ?
+// `;
+
+// const countByGeneral =
+//   baseCount +
+//   `
+// WHERE gu.institution_id = ?
+// `;
 const selectByGeneral =
   baseSelect +
   `
-WHERE gu.institution_id = ? 
+WHERE gu.institution_id = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR su.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR su.I_UserId1 = ?)
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
 ORDER BY sv.created_at DESC, sv.J_ID DESC
 LIMIT ? OFFSET ?
 `;
@@ -83,6 +138,18 @@ const countByGeneral =
   baseCount +
   `
 WHERE gu.institution_id = ?
+  AND (? = '' OR DATE(sv.created_at) = ?)
+  AND (? = '' OR su.name LIKE CONCAT('%', ?, '%'))
+  AND (? = '' OR su.I_UserId1 = ?)
+  AND (? = '' OR iu.name LIKE CONCAT('%', ?, '%'))
+`;
+
+const selectManagersByInstitution = `
+SELECT I_UserId, name
+FROM InstiUser_Tbl
+WHERE institution_id = ? 
+AND roll = 'a003'
+ORDER BY name ASC, I_UserId ASC
 `;
 
 module.exports = {
@@ -92,4 +159,5 @@ module.exports = {
   countByManager,
   selectByGeneral,
   countByGeneral,
+  selectManagersByInstitution,
 };

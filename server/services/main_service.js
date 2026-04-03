@@ -58,14 +58,25 @@ const formatListData = (list, userRole) => {
 };
 
 // 일반이용자
-const findByUser = async (id, page, limit) => {
-  // 1. Mapper에서 { data: [...], totalCount: 숫자 } 형태의 객체를 받아옴!
-  let result = await mainMapper.selectByUser(id, page, limit);
+// const findByUser = async (id, page, limit) => {
+//   // 1. Mapper에서 { data: [...], totalCount: 숫자 } 형태의 객체를 받아옴!
+//   let result = await mainMapper.selectByUser(id, page, limit);
 
-  // 2. 알맹이(result.data)만 쏙 빼서 랭크명, 버튼 활성화 등의 가공을 거침
+//   // 2. 알맹이(result.data)만 쏙 빼서 랭크명, 버튼 활성화 등의 가공을 거침
+//   let formattedData = formatListData(result.data, "USER");
+
+//   // 3. 프론트로 쏴주기 위해 다시 원래 형태 { data, totalCount }로 묶어서 반환!
+//   return {
+//     data: formattedData,
+//     totalCount: result.totalCount,
+//   };
+// };
+//일반 이용자 검색조건 추가 고동현
+const findByUser = async (id, page, limit, searchOption = {}) => {
+  let result = await mainMapper.selectByUser(id, page, limit, searchOption);
+
   let formattedData = formatListData(result.data, "USER");
 
-  // 3. 프론트로 쏴주기 위해 다시 원래 형태 { data, totalCount }로 묶어서 반환!
   return {
     data: formattedData,
     totalCount: result.totalCount,
@@ -73,8 +84,19 @@ const findByUser = async (id, page, limit) => {
 };
 
 // 기관담당자
-const findByManager = async (id, page, limit) => {
-  let result = await mainMapper.selectByManager(id, page, limit);
+// const findByManager = async (id, page, limit) => {
+//   let result = await mainMapper.selectByManager(id, page, limit);
+//   let formattedData = formatListData(result.data, "MANAGER");
+
+//   return {
+//     data: formattedData,
+//     totalCount: result.totalCount,
+//   };
+// };
+
+//기관담당자 사이드바 검색조건 추가 고동현
+const findByManager = async (id, page, limit, searchOption = {}) => {
+  let result = await mainMapper.selectByManager(id, page, limit, searchOption);
   let formattedData = formatListData(result.data, "MANAGER");
 
   return {
@@ -84,8 +106,19 @@ const findByManager = async (id, page, limit) => {
 };
 
 // 기관관리자
-const findByGeneral = async (id, page, limit) => {
-  let result = await mainMapper.selectByGeneral(id, page, limit);
+// const findByGeneral = async (id, page, limit) => {
+//   let result = await mainMapper.selectByGeneral(id, page, limit);
+//   let formattedData = formatListData(result.data, "GENERAL");
+
+//   return {
+//     data: formattedData,
+//     totalCount: result.totalCount,
+//   };
+// };
+
+//기관관리자 사이드바 검색조건 추가
+const findByGeneral = async (id, page, limit, searchOption = {}) => {
+  let result = await mainMapper.selectByGeneral(id, page, limit, searchOption);
   let formattedData = formatListData(result.data, "GENERAL");
 
   return {
@@ -94,8 +127,13 @@ const findByGeneral = async (id, page, limit) => {
   };
 };
 
+const findManagersByInstitution = async (institutionId) => {
+  return await mainMapper.selectManagersByInstitution(institutionId);
+};
+
 module.exports = {
   findByUser,
   findByManager,
   findByGeneral,
+  findManagersByInstitution,
 };

@@ -4,5 +4,6 @@ export default [
     path: "/general/approval/plan",
     name: "GeneralApprovalPlan",
     component: () => import("../views/components/ApprovalPlanList.vue"),
+    meta: { hideNavbar: true },
   },
 ];

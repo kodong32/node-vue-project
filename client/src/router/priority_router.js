@@ -5,16 +5,19 @@ export default [
     path: "/manager/priority-request/:id",
     name: "PriorityRequest",
     component: () => import("../views/PriorityRequest.vue"),
+    meta: { hideNavbar: true },
   },
   {
     path: "/general/priority-approval/:id",
     name: "PriorityApproval",
     component: () => import("../views/PriorityApproval.vue"),
+    meta: { hideNavbar: true },
   },
   //담당자 지정 페이지 router(김경환 20260330)
   {
     path: "/general/select-manager/:id",
     name: "SelectManager",
     component: () => import("../views/SelectManager.vue"),
+    meta: { hideNavbar: true },
   },
 ];

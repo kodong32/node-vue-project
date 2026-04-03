@@ -7,23 +7,27 @@ export default [
     name: "NoticeList",
     // 실제 NoticeList.vue 파일이 있는 경로로 맞춰줘!
     component: () => import("../views/components/NoticeList.vue"),
+    meta: { hideNavbar: true },
   },
   {
     // 💡 2. 공지사항 상세 보기 (모두 접근 가능)
     path: "/notice/detail/:noticeId",
     name: "NoticeDetail",
     component: () => import("../views/components/NoticeDetail.vue"),
+    meta: { hideNavbar: true },
   },
   {
     // 💡 3. 공지사항 작성 (시스템/기관 관리자용)
     path: "/notice/write",
     name: "NoticeWrite",
     component: () => import("../views/components/NoticeWrite.vue"),
+    meta: { hideNavbar: true },
   },
   {
     // 💡 4. 공지사항 수정 (시스템/기관 관리자용 - 작성 화면 껍데기 재활용!)
     path: "/notice/edit/:noticeId",
     name: "NoticeEdit",
     component: () => import("../views/components/NoticeWrite.vue"),
+    meta: { hideNavbar: true },
   },
 ];

@@ -1,26 +1,30 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import axios from "axios";
 import AuthorsTable from "./components/AuthorsMainTable.vue";
 import MainPagination from "../components/MainPagination.vue";
 import RoleHeader from "./components/RoleHeader.vue";
+import { useUserMainSearchStore } from "@/store/userMainSearch";
+
+const searchStore = useUserMainSearchStore();
 
 const listData = ref([]);
 const totalCount = ref(0);
 const currentPage = ref(1);
 
-// 🌟 1. 진짜 정보 바구니
 const currentUserId = ref("");
 const currentUserName = ref("");
 
-// 🌟 2. 세션 확인 함수
 const checkSession = async () => {
   try {
     const response = await axios.get("/api/user/auth/me");
     if (response.data.isLogin) {
-      // 일반 이용자의 고유 ID 가져오기
       currentUserId.value = response.data.user.userId;
       currentUserName.value = response.data.user.name;
+
+      if (!searchStore.applicantName) {
+        searchStore.applicantName = response.data.user.name || "";
+      }
     } else {
       alert("로그인이 필요합니다.");
     }
@@ -30,16 +34,21 @@ const checkSession = async () => {
 };
 
 const fetchSurveyList = async (page = 1) => {
-  if (!currentUserId.value) return; // ID 없으면 중지
+  if (!currentUserId.value) return;
 
   try {
-    // 🌟 3. 하드코딩된 GUSR0009 대신 변수 사용 및 /api 적용
     const response = await axios.get(`/api/main/user/${currentUserId.value}`, {
-      params: { page: page, limit: 5 },
+      params: {
+        page: page,
+        limit: 5,
+        writeDate: searchStore.writeDate,
+        applicantName: searchStore.applicantName,
+        managerName: searchStore.managerName,
+      },
     });
 
-    listData.value = response.data.data;
-    totalCount.value = response.data.totalCount;
+    listData.value = response.data.data || [];
+    totalCount.value = response.data.totalCount || 0;
     currentPage.value = page;
   } catch (error) {
     console.error("일반 이용자 데이터 통신 에러:", error);
@@ -47,12 +56,20 @@ const fetchSurveyList = async (page = 1) => {
 };
 
 onMounted(async () => {
-  // 🌟 4. 세션부터 확인 후 데이터 로출
   await checkSession();
   if (currentUserId.value) {
-    fetchSurveyList(1);
+    await fetchSurveyList(1);
   }
 });
+
+watch(
+  () => searchStore.searchTrigger,
+  async () => {
+    if (currentUserId.value) {
+      await fetchSurveyList(1);
+    }
+  }
+);
 
 const handlePageChange = (newPage) => {
   fetchSurveyList(newPage);
@@ -72,6 +89,16 @@ const handlePageChange = (newPage) => {
           :currentPage="currentPage"
           :limit="5"
         />
+
+        <!-- 조사지등록 버튼 -->
+        <div class="d-flex justify-content-end mt-3 mb-3">
+          <router-link
+            :to="{ name: 'userSurveyAdd' }"
+            class="btn bg-gradient-success mb-0"
+          >
+            조사지등록
+          </router-link>
+        </div>
 
         <main-pagination
           :totalCount="totalCount"

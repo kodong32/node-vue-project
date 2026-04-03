@@ -4,5 +4,6 @@ export default [
     path: "/general/managerInfo",
     name: "generalManagerInfo",
     component: () => import("../views/GeneralManagerInfo.vue"),
+    meta: { hideNavbar: true },
   },
 ]
