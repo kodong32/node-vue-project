@@ -5,6 +5,7 @@ import { useRoute } from "vue-router";
 import axios from "axios";
 import GeneralResultCardList from "@/views/components/GeneralResultCardList.vue";
 import { Modal } from "bootstrap";
+import RoleHeader from "./RoleHeader.vue";
 
 const route = useRoute();
 
@@ -16,29 +17,44 @@ const searchFilters = ref({
 });
 let searchModalInstance = null;
 
-// 현재 접속 경로를 통해 권한(role) 파악
-const userRole = computed(() => {
-  return route.path.includes("/manager/") ? "manager" : "general";
-});
+// 🌟 1. 세션에서 꺼낼 내 이름과 진짜 역할 바구니
+const currentUserName = ref("");
+const actualUserRole = ref("");
 
-// 타이틀 동적 변경
+// 🌟 2. 세션 확인 (이름과 권한 가져오기)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+
+      // 세션 권한이 a003이면 담당자(manager), 아니면 관리자(general)
+      const role = response.data.user.role || response.data.user.roll;
+      actualUserRole.value = role === "a003" ? "manager" : "general";
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 3. 타이틀 동적 변경 (주소창이 아닌 진짜 세션 권한 기준!)
 const pageTitle = computed(() => {
-  return userRole.value === "manager"
+  return actualUserRole.value === "manager"
     ? "반려된 지원결과서 내역"
     : "기관 내 반려된 결과서 관리";
 });
 
-// 1. 반려 목록 불러오기 API 호출
+// 💡 4. 반려 목록 불러오기 API 호출 (프록시 적용)
 const fetchRejectedResults = async () => {
   try {
     const response = await axios.get(
-      "http://localhost:3000/result/plan/rejected-list",
+      "/api/result/plan/rejected-list", // 👈 /api 프록시 적용
       {
         params: {
           page: 1,
           limit: 10,
-          role: userRole.value,
-          surveyId: route.query.surveyId,
+          // 🚨 role: userRole.value 👈 백엔드가 세션에서 알아서 판단하므로 삭제!
+          surveyId: route.query.surveyId, // surveyId는 그대로 유지
           ...searchFilters.value,
         },
       },
@@ -63,8 +79,11 @@ const resetSearch = () => {
   if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 5. 세션부터 확인해서 권한 세팅 후 목록 불러오기
+  await checkSession();
   fetchRejectedResults();
+
   const searchEl = document.getElementById("searchModal");
   if (searchEl) searchModalInstance = new Modal(searchEl);
 });
@@ -72,6 +91,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">

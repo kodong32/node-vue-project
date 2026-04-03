@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import RoleHeader from "./RoleHeader.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -35,7 +36,7 @@ const instiOptions = ref([
 // 🌟 2. 세션 확인 함수 추가
 const checkSession = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/user/auth/me", {
+    const response = await axios.get("/api/user/auth/me", {
       withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
     });
     if (response.data.isLogin) {
@@ -62,9 +63,7 @@ const fetchNoticeData = async () => {
   if (!isEditMode.value) return;
 
   try {
-    const response = await axios.get(
-      `http://localhost:3000/notice/${route.params.noticeId}`,
-    );
+    const response = await axios.get(`/api/notice/${route.params.noticeId}`);
     const data = response.data;
 
     formData.value = {
@@ -119,17 +118,13 @@ const submitForm = async () => {
 
   try {
     if (isEditMode.value) {
-      await axios.put(
-        `http://localhost:3000/notice/${route.params.noticeId}`,
-        form,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
+      await axios.put(`/api/notice/${route.params.noticeId}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert("성공적으로 수정되었습니다!");
       router.push(`/notice/detail/${route.params.noticeId}`);
     } else {
-      await axios.post("http://localhost:3000/notice/write", form, {
+      await axios.post("/api/notice/write", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("성공적으로 등록되었습니다!");
@@ -154,6 +149,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12 col-lg-10 mx-auto">
         <div class="card shadow-sm">

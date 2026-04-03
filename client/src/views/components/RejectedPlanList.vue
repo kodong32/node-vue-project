@@ -1,17 +1,10 @@
 <!-- client/src/views/components/RejectedPlanList.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
 import axios from "axios";
-// 💡 1. 우리가 새로 만든 반려 전용 카드를 불러오도록 수정!
 import RejectedPlanCardList from "@/views/components/RejectedPlanCardList.vue";
 import { Modal } from "bootstrap";
-
-const route = useRoute();
-// 기관 관리자인지 담당자인지 Role 설정 (라우터 경로 기준)
-const currentUserRole = ref(
-  route.path.includes("/general") ? "GENERAL" : "MANAGER",
-);
+import RoleHeader from "./RoleHeader.vue";
 
 const planList = ref([]);
 const searchFilters = ref({
@@ -19,22 +12,36 @@ const searchFilters = ref({
   guardianName: "",
   supportName: "",
 });
+
 let searchModalInstance = null;
 
-// 반려 내역 전용 API 호출
+// 🌟 1. 진짜 내 이름을 담을 바구니
+const currentUserName = ref("");
+
+// 🌟 2. 세션 확인 함수 (헤더에 이름 띄우기용)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 3. 반려 내역 전용 API 호출
 const fetchRejectedPlans = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:3000/rejected/plan/list",
-      {
-        params: {
-          role: currentUserRole.value,
-          page: 1,
-          limit: 10,
-          ...searchFilters.value,
-        },
+    // 🌟 프록시 /api 적용 완료!
+    const response = await axios.get("/api/rejected/plan/list", {
+      params: {
+        // 🚨 role: currentUserRole.value 👈 백엔드가 알아서 세션에서 꺼내니까 삭제!
+        page: 1,
+        limit: 10,
+        ...searchFilters.value,
       },
-    );
+    });
     planList.value = response.data.data ? response.data.data : response.data;
   } catch (error) {
     console.error("반려내역 로딩 실패:", error);
@@ -54,8 +61,11 @@ const resetSearch = () => {
   if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 4. 무조건 세션부터 확인하고 -> 데이터 불러오기
+  await checkSession();
   fetchRejectedPlans();
+
   const modalElement = document.getElementById("searchModal");
   if (modalElement) searchModalInstance = new Modal(modalElement);
 });
@@ -63,6 +73,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">

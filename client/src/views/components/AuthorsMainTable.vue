@@ -7,15 +7,12 @@ const router = useRouter();
 
 const goToPlan = (surveyId) => {
   if (props.userRole === "USER") {
-    // 1. 일반 이용자: 승인된 계획서만 보는 전용 상세 페이지로!
-    router.push(`/user/plan/detail/${surveyId}`);
+    // 🌟 router/index.js에 등록된 실제 주소 + 쿼리로 surveyId 넘기기
+    router.push(`/user/plan?surveyId=${surveyId}`);
   } else if (props.userRole === "MANAGER") {
-    // 2. 기관 담당자: 담당자용 리스트/상세 페이지로! (아직 안 만들었지만 주소는 뚫어놓자)
-    router.push(`/manager/plan?surveyId=${surveyId}`);
+    router.push(`/manager/planlist?surveyId=${surveyId}`);
   } else if (props.userRole === "GENERAL") {
-    // 3. 기관 관리자: 방금 우리가 예쁘게 만든 그 리스트 페이지로 이동!
-    // 팁: surveyId를 쿼리로 달고 가면, 그 페이지에서 해당 조사지만 쏙 필터링할 수 있어!
-    router.push(`/general/plan?surveyId=${surveyId}`);
+    router.push(`/general/planlist?surveyId=${surveyId}`);
   }
 };
 
@@ -51,14 +48,12 @@ const goManager = () => {
 
 const goToResult = (surveyId) => {
   if (props.userRole === "USER") {
-    // 일반 이용자용 결과서 상세 페이지 (필요시 주소 변경)
-    router.push(`/user/result/detail/${surveyId}`);
+    // 🌟 하얀 화면 해결! 진짜 주소로 변경
+    router.push(`/user/result?surveyId=${surveyId}`);
   } else if (props.userRole === "MANAGER") {
-    // 기관 담당자: 우리가 방금 만든 결과서 목록 페이지로!
     router.push(`/manager/result/list?surveyId=${surveyId}`);
   } else if (props.userRole === "GENERAL") {
-    // 기관 관리자: 기관 전체 결과서 목록 페이지로!
-    router.push(`/general/result/list?surveyId=${surveyId}`);
+    router.push(`/general/result/list?surveyId=${surveyId}`); // (또는 /general/result)
   }
 };
 </script>

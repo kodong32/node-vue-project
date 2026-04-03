@@ -1,30 +1,32 @@
-// src/routes/general_plan_router.js (새 파일 생성!)
+// src/routes/general_plan_router.js
 
 const express = require("express");
 const router = express.Router();
 const generalPlanService = require("../../services/general_plan_service.js");
 
 // 💡 [기관관리자 전용] 지원계획서 목록 조회 API
-// 주소 예시: GET http://localhost:3000/general/plan/list?instiId=INST001&page=1
 router.get("/list", async (req, res) => {
   try {
+    // 🌟 1. [보안 방어막] 로그인 안 한 사람이 주소창으로 직접 치고 들어오면 쫓아냄!
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    // 💡 관리자 전용이라 role, userId는 뺐어! instiId가 핵심이야.
+    // 🌟 2. [핵심 변경] 프론트에서 주는 query 말고, 내 세션(신분증)에서 직접 기관 ID 꺼내기!
+    const myInstiId = req.session.loginInstUser.institution_id;
+
     const filters = {
-      instiId: req.query.instiId, // 프론트에서 관리자 소속 기관 코드를 넘겨줘야 해
+      instiId: myInstiId, // 👈 안전하게 꺼낸 내 기관 ID를 필터에 쏙!
       managerName: req.query.managerName || "",
       guardianName: req.query.guardianName || "",
       supportName: req.query.supportName || "",
       surveyId: req.query.surveyId || "",
     };
 
-    if (!filters.instiId) {
-      return res
-        .status(400)
-        .json({ message: "기관 ID(instiId)가 필요합니다." });
-    }
+    // (기존에 있던 if (!filters.instiId) 에러 체크는 세션에서 무조건 꺼내오므로 지워도 무방합니다!)
 
     const planList = await generalPlanService.fetchGeneralPlanList(
       filters,

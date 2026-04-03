@@ -4,13 +4,17 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { Modal } from "bootstrap";
+import RoleHeader from "./RoleHeader.vue";
 
 const router = useRouter();
 
+// 🌟 헤더에 띄울 진짜 이름 바구니
+const currentUserName = ref("");
+
 // 1. 상태 변수 모음
-const planList = ref([]); // 모달에 띄울 승인된 계획서 목록
-const selectedPlan = ref(null); // 사용자가 '선택'한 계획서 정보 보관
-let planModalInstance = null; // 모달 컨트롤용
+const planList = ref([]);
+const selectedPlan = ref(null);
+let planModalInstance = null;
 
 // 검색 필터 상태
 const searchFilters = ref({
@@ -22,11 +26,24 @@ const searchFilters = ref({
 // 결과서 작성 폼 상태
 const resultTitle = ref("");
 const resultContent = ref("");
-// 파일 처리는 추후 폼데이터(FormData)로 확장 가능하도록 일단 빈 문자열로 둠
 const file1 = ref(null);
 const file2 = ref(null);
 
-// 💡 파일 선택 시 작동하는 함수
+// 🌟 세션 확인 (이름 가져오기)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+    } else {
+      alert("로그인이 필요합니다.");
+      router.push("/"); // 비로그인 시 메인으로 쫓아내기 (선택 사항)
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
 const handleFile1 = (event) => {
   file1.value = event.target.files[0];
 };
@@ -34,15 +51,12 @@ const handleFile2 = (event) => {
   file2.value = event.target.files[0];
 };
 
-// 2. 모달창 데이터 불러오기 (승인된 계획서만!)
+// 💡 2. 모달창 데이터 불러오기 (프록시 /api 적용 완료!)
 const fetchApprovedPlans = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:3000/result/plan/approved-list",
-      {
-        params: { page: 1, limit: 10, ...searchFilters.value },
-      },
-    );
+    const response = await axios.get("/api/result/plan/approved-list", {
+      params: { page: 1, limit: 10, ...searchFilters.value },
+    });
     planList.value = response.data.data ? response.data.data : response.data;
   } catch (error) {
     console.error("계획서 목록 로딩 실패:", error);
@@ -51,7 +65,7 @@ const fetchApprovedPlans = async () => {
 
 // 3. 모달 제어 함수
 const openPlanModal = () => {
-  fetchApprovedPlans(); // 열 때마다 최신 목록 갱신
+  fetchApprovedPlans();
   if (planModalInstance) planModalInstance.show();
 };
 const applySearch = () => {
@@ -64,11 +78,11 @@ const resetSearch = () => {
 
 // 4. 계획서 '선택' 버튼 눌렀을 때
 const selectPlan = (plan) => {
-  selectedPlan.value = plan; // 화면에 뿌려줄 데이터 저장
-  if (planModalInstance) planModalInstance.hide(); // 모달 닫기
+  selectedPlan.value = plan;
+  if (planModalInstance) planModalInstance.hide();
 };
 
-// 5. 결과서 최종 등록 (승인 요청)
+// 💡 5. 결과서 최종 등록 (프록시 /api 적용 완료!)
 const submitResult = async () => {
   if (!selectedPlan.value) {
     alert("먼저 작성할 지원계획서를 선택해주세요.");
@@ -79,31 +93,32 @@ const submitResult = async () => {
     return;
   }
 
-  // 🌟 핵심: FormData 객체 생성 (JSON 대신 이걸로 보내야 파일이 넘어감!)
   const formData = new FormData();
   formData.append("supportPlan_id", selectedPlan.value.supportPlan_id);
-  formData.append("result", resultTitle.value); // 백엔드가 req.body.result 로 받음
-  formData.append("content", resultContent.value); // 백엔드가 req.body.content 로 받음
+  formData.append("result", resultTitle.value);
+  formData.append("content", resultContent.value);
 
-  // 🌟 파일이 선택된 경우에만 실제 파일 객체를 폼에 추가!
   if (file1.value) formData.append("file1", file1.value);
   if (file2.value) formData.append("file2", file2.value);
 
   try {
-    // 🌟 헤더에 multipart/form-data 추가!
-    await axios.post("http://localhost:3000/result/plan/write", formData, {
+    // 🌟 여기도 프록시 /api 적용! (백엔드가 세션에서 작성자 ID를 알아서 꺼냄)
+    await axios.post("/api/result/plan/write", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
     alert("지원결과서가 성공적으로 등록(승인 요청)되었습니다.");
-    router.push("/manager/result/list"); // 💡 작성 완료 후 담당자용 결과서 조회 페이지로 이동!
+    router.push("/manager/result/list");
   } catch (err) {
     alert("결과서 등록 중 오류가 발생했습니다.");
     console.error(err);
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 컴포넌트 마운트 시 세션부터 확인해서 이름 세팅!
+  await checkSession();
+
   const modalEl = document.getElementById("planSelectModal");
   if (modalEl) planModalInstance = new Modal(modalEl);
 });
@@ -111,6 +126,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">

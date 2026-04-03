@@ -4,18 +4,16 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import GeneralPlanCardList from "@/views/components/GeneralPlanCardList.vue";
-import { Modal } from "bootstrap"; // 💡 여기서 가져온 Modal을 아래 onMounted에서 쓸 거야!
+import { Modal } from "bootstrap";
+import RoleHeader from "./RoleHeader.vue";
 
 const route = useRoute();
-
-const currentUserRole = ref(route.path.includes("/user") ? "USER" : "GENERAL");
-
 const currentSurveyId = route.params.surveyId || route.query.surveyId || "";
 
-// 상태 변수
-const userRole = ref(currentUserRole.value);
+// 🌟 1. 진짜 정보 바구니 준비 (하드코딩 제거!)
+const userRole = ref("");
+const currentUserName = ref("");
 const planList = ref([]);
-const instiId = ref("INST0000");
 
 // 검색 필터 상태 변수
 const searchFilters = ref({
@@ -25,21 +23,39 @@ const searchFilters = ref({
   surveyId: currentSurveyId,
 });
 
-// 모달 객체를 담아둘 변수
 let searchModalInstance = null;
 
-// 데이터 불러오기 함수
+// 🌟 2. 세션 확인 함수 추가 (진짜 신분 확인)
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+
+      // 세션에서 주는 userType("USER" 또는 "INST")에 따라 역할 세팅
+      if (response.data.userType === "USER") {
+        userRole.value = "USER";
+      } else {
+        userRole.value = "GENERAL"; // 기관 관리자
+      }
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 3. 데이터 불러오기 함수 (프록시 적용 및 하드코딩 파라미터 삭제)
 const fetchPlans = async () => {
   try {
-    // 💡 3. 역할에 따라 백엔드 API 주소 분기 처리!
+    // 프록시 적용된 API 주소
     const apiUrl =
       userRole.value === "USER"
-        ? "http://localhost:3000/user/plan/list" // 유저용 API (이제 우리가 만들 곳!)
-        : "http://localhost:3000/general/plan/list"; // 관리자용 API (이미 잘 도는 곳!)
+        ? "/api/user/plan/list" // 유저용 API (추후 구현될 부분)
+        : "/api/general/plan/list"; // 관리자용 API (방금 수술 완료한 곳!)
 
     const response = await axios.get(apiUrl, {
       params: {
-        instiId: instiId.value, // (유저용 API에선 백엔드가 이거 무시할 거니까 냅둬도 돼)
+        // 🚨 instiId: instiId.value 👈 백엔드가 세션에서 알아서 꺼내므로 삭제!
         page: 1,
         limit: 10,
         managerName: searchFilters.value.managerName,
@@ -54,36 +70,31 @@ const fetchPlans = async () => {
   }
 };
 
-// 💡 모달 띄우기 함수
 const showSearchModal = () => {
-  if (searchModalInstance) {
-    searchModalInstance.show();
-  }
+  if (searchModalInstance) searchModalInstance.show();
 };
 
-// 검색 적용 함수
 const applySearch = () => {
   fetchPlans();
-  if (searchModalInstance) {
-    searchModalInstance.hide(); // 검색 누르면 모달 닫기
-  }
+  if (searchModalInstance) searchModalInstance.hide();
 };
 
-// 초기화 함수
 const resetSearch = () => {
-  searchFilters.value.managerName = "";
-  searchFilters.value.guardianName = "";
-  searchFilters.value.supportName = "";
+  searchFilters.value = {
+    managerName: "",
+    guardianName: "",
+    supportName: "",
+    surveyId: currentSurveyId,
+  };
   fetchPlans();
-  if (searchModalInstance) {
-    searchModalInstance.hide(); // 초기화 누르면 모달 닫기
-  }
+  if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 4. 무조건 세션부터 확인하고 -> 리스트를 불러오는 순서 맞추기!
+  await checkSession();
   fetchPlans();
-  // 💡 여기서 Modal을 드디어 사용함! (에러 사라짐)
-  // 화면이 렌더링된 후 id가 'searchModal'인 요소를 Bootstrap 모달로 연결
+
   const modalElement = document.getElementById("searchModal");
   if (modalElement) {
     searchModalInstance = new Modal(modalElement);
@@ -93,6 +104,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">

@@ -6,15 +6,32 @@ const service = require("../../services/rejected_plan_service.js");
 // GET /rejected/plan/list
 router.get("/list", async (req, res) => {
   try {
+    // 🌟 1. [보안 방어막] 세션 없으면 쫓아내기
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    // 프론트에서 던져주는 역할(GENERAL or MANAGER) 받기
-    const role = req.query.role || "MANAGER";
+    // 🌟 2. [핵심 변경] 프론트에서 주는 role 무시하고, 세션에서 진짜 권한 꺼내기!
+    const sessionRole = req.session.loginInstUser.role; // 'a002' 또는 'a003'
 
-    // 🚨 [임시 하드코딩] 나중에 세션 연결되면 실제 로그인 ID로 교체!
-    // MANAGER일 때는 IUSR0003(박담당), GENERAL일 때는 INST0000(기관ID)
-    const loginId = role === "MANAGER" ? "IUSR0003" : "INST0000";
+    let role = "";
+    let loginId = "";
+
+    // 🌟 3. 권한에 따라 가져올 데이터 기준(loginId)을 서버가 직접 세팅!
+    if (sessionRole === "a002") {
+      role = "GENERAL"; // 기관 관리자
+      loginId = req.session.loginInstUser.institution_id; // 소속 기관 전체 데이터를 봐야 하니 '기관 ID' 세팅
+    } else if (sessionRole === "a003") {
+      role = "MANAGER"; // 기관 담당자
+      loginId = req.session.loginInstUser.I_UserId; // 내 담당 데이터만 봐야 하니 '본인 유저 ID' 세팅
+    } else {
+      return res
+        .status(403)
+        .json({ message: "반려 내역을 볼 권한이 없습니다." });
+    }
 
     const filters = {
       managerName: req.query.managerName || "",

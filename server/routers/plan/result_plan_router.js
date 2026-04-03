@@ -4,13 +4,19 @@ const router = express.Router();
 const service = require("../../services/result_plan_service.js");
 const uploadResult = require("../../middlewares/uploadFile_result.js");
 
-// 1. 모달에 띄울 '승인된 계획서' 목록 가져오기
+// 💡 1. 모달에 띄울 '승인된 계획서' 목록 가져오기 (기관 담당자 전용)
 router.get("/approved-list", async (req, res) => {
   try {
+    // 🌟 [보안 검사]
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    // 🚨 [임시 하드코딩] 로그인한 담당자 ID (박담당)
-    const managerId = "IUSR0003";
+
+    // 🌟 [핵심 변경] 하드코딩 제거! 세션에서 로그인한 담당자 ID 꺼내기
+    const managerId = req.session.loginInstUser.I_UserId;
 
     const filters = {
       managerName: req.query.managerName || "",
@@ -30,7 +36,7 @@ router.get("/approved-list", async (req, res) => {
   }
 });
 
-// 2. 지원결과서 저장 (승인 요청)
+// 💡 2. 지원결과서 저장 (승인 요청)
 router.post(
   "/write",
   uploadResult.fields([
@@ -39,12 +45,16 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      // 🌟 파일 정보는 req.files에, 나머지 텍스트 데이터는 req.body에 들어있음
+      // 🌟 [보안 검사]
+      if (!req.session.loginInstUser) {
+        return res.status(401).json({ message: "로그인이 필요합니다." });
+      }
+
       const { supportPlan_id, result, content } = req.body;
       const files = req.files || {};
 
-      // 🚨 [임시 하드코딩] 작성자 ID (세션 연동 전까지 유지)
-      const managerId = "IUSR0003";
+      // 🌟 [핵심 변경] 하드코딩 제거! 작성자(담당자) ID 세션에서 꺼내기
+      const managerId = req.session.loginInstUser.I_UserId;
 
       if (!supportPlan_id || !result || !content) {
         return res
@@ -52,7 +62,6 @@ router.post(
           .json({ message: "필수 항목을 모두 입력해주세요." });
       }
 
-      // 🌟 업로드된 파일이 있으면 파일명을 객체에 넣고, 없으면 빈칸("")
       const saveData = {
         supportPlan_id,
         managerId,
@@ -75,16 +84,30 @@ router.post(
   },
 );
 
-// 지원결과서 조회
+// 💡 3. 지원결과서 일반 목록 조회
 router.get("/general-list", async (req, res) => {
   try {
+    // 🌟 [보안 검사]
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const role = req.query.role; // 'manager' 혹은 'general'
 
-    const instiId = "INST0000";
-    // 🌟 만약 담당자(manager)라면 본인 ID 세팅, 관리자라면 null로 넘겨서 전체 조회
-    const managerId = role === "manager" ? "IUSR0003" : null;
+    // 🌟 [핵심 변경] 프론트엔드가 주는 role 무시하고 세션에서 진짜 권한(role)과 기관ID 꺼내기
+    const sessionRole = req.session.loginInstUser.role;
+    const instiId = req.session.loginInstUser.institution_id;
+    let managerId = null;
+
+    if (sessionRole === "a003") {
+      // 기관 담당자면 자기 담당 리스트만
+      managerId = req.session.loginInstUser.I_UserId;
+    } else if (sessionRole === "a002") {
+      // 기관 관리자면 기관 전체 리스트 (managerId = null 유지)
+    } else {
+      return res.status(403).json({ message: "조회 권한이 없습니다." });
+    }
 
     const filters = {
       managerName: req.query.managerName || "",
@@ -106,15 +129,29 @@ router.get("/general-list", async (req, res) => {
   }
 });
 
-// 지원결과서 반려 목록 조회
+// 💡 4. 지원결과서 반려 목록 조회
 router.get("/rejected-list", async (req, res) => {
   try {
+    // 🌟 [보안 검사]
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const role = req.query.role;
 
-    const instiId = "INST0000";
-    const managerId = role === "manager" ? "IUSR0003" : null;
+    // 🌟 [핵심 변경] 위 general-list와 완벽하게 동일한 권한/기관 분기 처리!
+    const sessionRole = req.session.loginInstUser.role;
+    const instiId = req.session.loginInstUser.institution_id;
+    let managerId = null;
+
+    if (sessionRole === "a003") {
+      managerId = req.session.loginInstUser.I_UserId;
+    } else if (sessionRole === "a002") {
+      // managerId = null 유지
+    } else {
+      return res.status(403).json({ message: "조회 권한이 없습니다." });
+    }
 
     const filters = {
       managerName: req.query.managerName || "",

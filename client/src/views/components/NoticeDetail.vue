@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import RoleHeader from "./RoleHeader.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -17,7 +18,7 @@ const fetchNoticeDetail = async () => {
   if (!noticeId) return;
 
   try {
-    const response = await axios.get("http://localhost:3000/user/auth/me", {
+    const response = await axios.get(`/api/notice/${noticeId}`, {
       withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
     });
     notice.value = response.data;
@@ -31,7 +32,7 @@ const fetchNoticeDetail = async () => {
 // 🌟 2. 세션 확인 함수 추가
 const checkSession = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/user/auth/me");
+    const response = await axios.get("/api/user/auth/me");
     if (response.data.isLogin) {
       const user = response.data.user;
       if (user.role === "a001") currentUserRole.value = "시스템관리자";
@@ -49,7 +50,7 @@ const deleteNotice = async () => {
 
   try {
     const noticeId = route.params.noticeId;
-    await axios.delete(`http://localhost:3000/notice/${noticeId}`);
+    await axios.delete(`/api/notice/${noticeId}`);
     alert("삭제가 완료되었습니다.");
     router.push("/notice/list");
   } catch (error) {
@@ -93,6 +94,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12 col-lg-8 mx-auto">
         <div class="card mb-4 shadow-sm">

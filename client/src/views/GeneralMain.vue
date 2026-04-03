@@ -2,49 +2,69 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import AuthorsTable from "./components/AuthorsMainTable.vue";
-// 💡 방금 만든 자동화 페이징 컴포넌트 불러오기 (경로 주의!)
 import MainPagination from "../components/MainPagination.vue";
-import GeneralHeader from "./components/RoleHeader.vue";
+import RoleHeader from "./components/RoleHeader.vue";
 
-// 💡 상태 바구니 3형제 준비
-const listData = ref([]); // 표에 그릴 10개 알맹이 데이터
-const totalCount = ref(0); // 전체 데이터 개수 (페이징용)
-const currentPage = ref(1); // 현재 보고 있는 페이지 번호
+const listData = ref([]);
+const totalCount = ref(0);
+const currentPage = ref(1);
 
-// 데이터를 가져오는 함수 (인자로 페이지 번호를 받음)
-const fetchSurveyList = async (page = 1) => {
+// 🌟 1. 진짜 정보 바구니 (기관 ID와 이름)
+const currentInstiId = ref("");
+const currentUserName = ref("");
+
+// 🌟 2. 세션 확인 함수
+const checkSession = async () => {
   try {
-    // 💡 백엔드에 ?page=번호 형태로 요청 날리기!
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      // 기관 관리자는 소속 기관 ID가 필요함!
+      currentInstiId.value = response.data.user.institutionId;
+      currentUserName.value = response.data.user.name;
+    } else {
+      alert("로그인이 필요합니다.");
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+const fetchSurveyList = async (page = 1) => {
+  if (!currentInstiId.value) return; // 기관 ID 없으면 중지
+
+  try {
+    // 🌟 3. 하드코딩된 INST0000 대신 변수 사용 및 /api 적용
     const response = await axios.get(
-      "http://localhost:3000/main/general/INST0000",
+      `/api/main/general/${currentInstiId.value}`,
       {
         params: { page: page, limit: 5 },
       },
     );
 
-    // 💡 백엔드가 준 포장지({ data, totalCount }) 뜯어서 각 바구니에 담기
-    listData.value = response.data.data; // 10개짜리 배열
-    totalCount.value = response.data.totalCount; // 총 개수 숫자
-    currentPage.value = page; // 화면에 현재 페이지 갱신
+    listData.value = response.data.data;
+    totalCount.value = response.data.totalCount;
+    currentPage.value = page;
   } catch (error) {
     console.error("기관 관리자 데이터 통신 에러:", error);
   }
 };
 
-// 화면 켜질 때 1페이지 데이터 가져오기
-onMounted(() => {
-  fetchSurveyList(1);
+onMounted(async () => {
+  // 🌟 4. 세션부터 확인 후 데이터 로출
+  await checkSession();
+  if (currentInstiId.value) {
+    fetchSurveyList(1);
+  }
 });
 
-// 💡 하단 페이징 컴포넌트에서 "2번 버튼 눌렀어요!" 하고 신호가 오면 실행됨
 const handlePageChange = (newPage) => {
-  fetchSurveyList(newPage); // 해당 페이지 번호로 백엔드 다시 찌르기!
+  fetchSurveyList(newPage);
 };
 </script>
 
 <template>
   <div class="py-4 container-fluid">
-    <GeneralHeader userRole="GENERAL" userName="고동현" />
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <authors-table
@@ -54,7 +74,6 @@ const handlePageChange = (newPage) => {
           :currentPage="currentPage"
           :limit="5"
         />
-
         <main-pagination
           :totalCount="totalCount"
           :limit="5"

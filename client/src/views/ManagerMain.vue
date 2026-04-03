@@ -2,49 +2,77 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import AuthorsTable from "./components/AuthorsMainTable.vue";
-// 💡 방금 만든 자동화 페이징 컴포넌트 불러오기 (경로 주의!)
 import MainPagination from "../components/MainPagination.vue";
-import ManagerHeader from "./components/RoleHeader.vue";
+import RoleHeader from "./components/RoleHeader.vue";
 
-// 💡 상태 바구니 3형제 준비
-const listData = ref([]); // 표에 그릴 10개 알맹이 데이터
-const totalCount = ref(0); // 전체 데이터 개수 (페이징용)
-const currentPage = ref(1); // 현재 보고 있는 페이지 번호
+// 💡 상태 바구니 준비
+const listData = ref([]);
+const totalCount = ref(0);
+const currentPage = ref(1);
+
+// 🌟 1. 내 진짜 정보를 담을 바구니 추가! (하드코딩 제거용)
+const currentUserId = ref("");
+const currentUserName = ref("");
+
+// 🌟 2. 세션에서 내 진짜 정보 꺼내오는 함수
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      // 내 진짜 아이디와 이름을 바구니에 담기
+      currentUserId.value = response.data.user.userId;
+      currentUserName.value = response.data.user.name;
+    } else {
+      alert("로그인이 필요합니다.");
+      // location.href = "/user/login"; // 필요 시 로그인 창으로 이동
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
 
 // 데이터를 가져오는 함수 (인자로 페이지 번호를 받음)
 const fetchSurveyList = async (page = 1) => {
+  // 내 아이디가 없으면 백엔드 요청을 보내지 않음 (방어 코드)
+  if (!currentUserId.value) return;
+
   try {
-    // 💡 백엔드에 ?page=번호 형태로 요청 날리기!
+    // 🌟 3. 하드코딩 제거! "IUSR0003" 대신 `${currentUserId.value}` 변수 사용!
+    // 프록시 설정에 맞게 /api 로 시작하도록 수정
     const response = await axios.get(
-      "http://localhost:3000/main/manager/IUSR0003",
+      `/api/main/manager/${currentUserId.value}`,
       {
         params: { page: page, limit: 5 },
       },
     );
 
-    // 💡 백엔드가 준 포장지({ data, totalCount }) 뜯어서 각 바구니에 담기
-    listData.value = response.data.data; // 10개짜리 배열
-    totalCount.value = response.data.totalCount; // 총 개수 숫자
-    currentPage.value = page; // 화면에 현재 페이지 갱신
+    listData.value = response.data.data;
+    totalCount.value = response.data.totalCount;
+    currentPage.value = page;
   } catch (error) {
     console.error("기관 담당자 데이터 통신 에러:", error);
   }
 };
 
-// 화면 켜질 때 1페이지 데이터 가져오기
-onMounted(() => {
-  fetchSurveyList(1);
+// 화면 켜질 때 실행
+onMounted(async () => {
+  // 🌟 4. 무조건 세션부터 확인해서 내 ID를 먼저 알아낸 다음!
+  await checkSession();
+
+  // 내 ID를 알아냈다면 1페이지 데이터를 가져오기!
+  if (currentUserId.value) {
+    fetchSurveyList(1);
+  }
 });
 
-// 💡 하단 페이징 컴포넌트에서 "2번 버튼 눌렀어요!" 하고 신호가 오면 실행됨
 const handlePageChange = (newPage) => {
-  fetchSurveyList(newPage); // 해당 페이지 번호로 백엔드 다시 찌르기!
+  fetchSurveyList(newPage);
 };
 </script>
 
 <template>
   <div class="py-4 container-fluid">
-    <ManagerHeader userRole="MANAGER" userName="고동현" />
+    <RoleHeader />
 
     <div class="row">
       <div class="col-12">

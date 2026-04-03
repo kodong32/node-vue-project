@@ -2,6 +2,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
+import RoleHeader from "./RoleHeader.vue";
 
 // 💡 1. 빈 바구니 준비 (하드코딩 제거)
 const currentUserRole = ref("");
@@ -23,7 +24,7 @@ const filters = ref({
 // 💡 2. 데이터 불러오기 함수 (기존과 동일)
 const fetchNoticeList = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/notice/list", {
+    const response = await axios.get("/api/notice/list", {
       params: {
         page: currentPage.value,
         limit: limit.value,
@@ -46,7 +47,7 @@ const fetchNoticeList = async () => {
 // 🌟 3. 세션 확인 및 진짜 정보 세팅 함수 (새로 추가!)
 const checkSessionAndFetch = async () => {
   try {
-    const response = await axios.get("http://localhost:3000/user/auth/me", {
+    const response = await axios.get("/api/user/auth/me", {
       withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
     });
     if (response.data.isLogin) {
@@ -111,6 +112,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-lg-3 col-md-4 mb-4">
         <div class="card position-sticky top-1">

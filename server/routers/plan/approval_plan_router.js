@@ -3,12 +3,19 @@ const express = require("express");
 const router = express.Router();
 const service = require("../../services/approval_plan_service.js");
 
-// 1. 대기 목록 조회 API
+// 💡 1. 대기 목록 조회 API
 router.get("/list", async (req, res) => {
   try {
+    // 🌟 [보안 및 세션 검사] 로그인이 안 되어있으면 접근 차단
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const instiId = "INST0000"; // 🚨 임시 하드코딩 (관리자 소속 기관)
+
+    // 🌟 [핵심 변경] 하드코딩(INST0000) 제거! 세션에서 로그인한 사람의 '기관 ID' 꺼내기
+    const instiId = req.session.loginInstUser.institution_id;
 
     const filters = {
       managerName: req.query.managerName || "",
@@ -28,12 +35,18 @@ router.get("/list", async (req, res) => {
   }
 });
 
-// 2. 승인 API (PUT 요청)
+// 💡 2. 승인 API (PUT 요청)
 router.put("/approve/:planId", async (req, res) => {
   try {
+    // 🌟 [보안 및 세션 검사]
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const planId = req.params.planId;
-    // 🚨 [임시 하드코딩] 나중에 세션에서 실제 로그인한 관리자 ID 가져오기!
-    const adminId = "IUSR0001"; // 승인하는 관리자 ID 예시
+
+    // 🌟 [핵심 변경] 하드코딩(IUSR0001) 제거! 세션에서 결재자(관리자)의 진짜 '유저 ID' 꺼내기
+    const adminId = req.session.loginInstUser.I_UserId;
 
     await service.handleApprove(planId, adminId);
     res.status(200).json({ message: "승인 완료" });
@@ -42,13 +55,19 @@ router.put("/approve/:planId", async (req, res) => {
   }
 });
 
-// 3. 반려 API (PUT 요청 - body에 반려 사유 포함)
+// 💡 3. 반려 API (PUT 요청 - body에 반려 사유 포함)
 router.put("/reject/:planId", async (req, res) => {
   try {
+    // 🌟 [보안 및 세션 검사]
+    if (!req.session.loginInstUser) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+
     const planId = req.params.planId;
     const { rejectReason } = req.body;
-    // 🚨 [임시 하드코딩] 세션 연동 전까지 쓸 임시 결재자 ID
-    const adminId = "IUSR0001";
+
+    // 🌟 [핵심 변경] 하드코딩 제거! 반려 처리하는 결재자 '유저 ID' 꺼내기
+    const adminId = req.session.loginInstUser.I_UserId;
 
     await service.handleReject(planId, adminId, rejectReason);
     res.status(200).json({ message: "반려 완료" });

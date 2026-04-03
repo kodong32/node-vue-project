@@ -5,6 +5,7 @@ import { useRouter } from "vue-router";
 import axios from "axios";
 import ApprovalPlanCardList from "@/views/components/ApprovalPlanCardList.vue";
 import { Modal } from "bootstrap";
+import RoleHeader from "./RoleHeader.vue";
 
 const router = useRouter();
 
@@ -15,36 +16,50 @@ const searchFilters = ref({
   supportName: "",
 });
 
+// 🌟 헤더에 띄울 진짜 내 이름 바구니
+const currentUserName = ref("");
+
 // 모달 인스턴스와 데이터
 let searchModalInstance = null;
 let rejectModalInstance = null;
 
-const targetPlanId = ref(""); // 반려할 계획서 ID 저장
-const rejectReasonText = ref(""); // 입력한 반려 사유
+const targetPlanId = ref("");
+const rejectReasonText = ref("");
 
-// 1. 대기 목록 불러오기
+// 🌟 0. 세션에서 내 이름 꺼내기
+const checkSession = async () => {
+  try {
+    const response = await axios.get("/api/user/auth/me");
+    if (response.data.isLogin) {
+      currentUserName.value = response.data.user.name;
+    }
+  } catch (error) {
+    console.error("세션 확인 실패:", error);
+  }
+};
+
+// 💡 1. 대기 목록 불러오기 (프록시 /api 적용 완료!)
 const fetchPendingPlans = async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:3000/approval/plan/list",
-      {
-        params: { page: 1, limit: 10, ...searchFilters.value },
-      },
-    );
+    const response = await axios.get("/api/approval/plan/list", {
+      params: { page: 1, limit: 10, ...searchFilters.value },
+    });
     planList.value = response.data.data ? response.data.data : response.data;
   } catch (error) {
     console.error("대기 목록 로딩 실패:", error);
   }
 };
 
-// 2. 승인 처리 로직
+// 💡 2. 승인 처리 로직 (프록시 /api 적용 완료!)
 const handleApprove = async (planId) => {
   if (!confirm("이 지원계획서를 승인하시겠습니까?")) return;
 
   try {
-    await axios.put(`http://localhost:3000/approval/plan/approve/${planId}`);
+    // 🌟 백엔드가 세션에서 내 아이디를 알아서 꺼내므로, 여기선 글 ID(planId)만 보내면 끝!
+    await axios.put(`/api/approval/plan/approve/${planId}`);
+
     alert("승인이 완료되었습니다.");
-    router.push("/general/plan"); // 💡 승인 후 전체 조회 페이지로 이동!
+    router.push("/general/plan");
   } catch (error) {
     alert("승인 처리 중 오류가 발생했습니다.");
     console.error(error);
@@ -54,11 +69,11 @@ const handleApprove = async (planId) => {
 // 3. 반려 모달 띄우기
 const openRejectModal = (planId) => {
   targetPlanId.value = planId;
-  rejectReasonText.value = ""; // 사유 초기화
+  rejectReasonText.value = "";
   if (rejectModalInstance) rejectModalInstance.show();
 };
 
-// 4. 반려 처리 로직
+// 💡 4. 반려 처리 로직 (프록시 /api 적용 완료!)
 const submitReject = async () => {
   if (!rejectReasonText.value.trim()) {
     alert("반려 사유를 입력해주세요.");
@@ -66,15 +81,13 @@ const submitReject = async () => {
   }
 
   try {
-    await axios.put(
-      `http://localhost:3000/approval/plan/reject/${targetPlanId.value}`,
-      {
-        rejectReason: rejectReasonText.value,
-      },
-    );
+    // 🌟 여기도 프록시 적용!
+    await axios.put(`/api/approval/plan/reject/${targetPlanId.value}`, {
+      rejectReason: rejectReasonText.value,
+    });
     alert("반려 처리가 완료되었습니다.");
     if (rejectModalInstance) rejectModalInstance.hide();
-    router.push("/general/plan"); // 💡 반려 후 전체 조회 페이지로 이동!
+    router.push("/general/plan");
   } catch (error) {
     alert("반려 처리 중 오류가 발생했습니다.");
     console.error(error);
@@ -95,8 +108,11 @@ const resetSearch = () => {
   if (searchModalInstance) searchModalInstance.hide();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 🌟 세션부터 확인해서 이름 세팅 후, 리스트 불러오기!
+  await checkSession();
   fetchPendingPlans();
+
   const searchEl = document.getElementById("searchModal");
   if (searchEl) searchModalInstance = new Modal(searchEl);
   const rejectEl = document.getElementById("rejectModal");
@@ -106,6 +122,7 @@ onMounted(() => {
 
 <template>
   <div class="container-fluid py-4">
+    <RoleHeader />
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
