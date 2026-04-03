@@ -14,10 +14,12 @@ router.get("/user", async (req, res) => {
       });
     }
 
+    console.log("세션 유저:", req.session.loginInstUser);
+
     const user = req.session.loginInstUser;
 
     //권한 체크
-    if (user.roll && !["a002", "a003"].includes(user.roll)) {
+    if (user.role && !["a002", "a003"].includes(user.role)) {
       return res.status(403).send({
         success: false,
         message: "권한 없음",

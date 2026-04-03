@@ -7,15 +7,15 @@
     <section class="search-filter-box">
       <div class="filter-row">
         <div class="input-item">
-          <label>기관담당자 :</label>
+          <label>지원대상자 :</label>
           <select class="form-select" v-model="filters.manager">
             <option value="">전체</option>
             <option
-              v-for="manager in managerList"
-              :key="manager.id"
-              :value="manager.id"
+              v-for="support in supportList"
+              :key="support.id"
+              :value="support.id"
             >
-              {{ manager.name }}
+              {{ support.support_name }}
             </option>
           </select>
         </div>
@@ -70,7 +70,7 @@
         <thead>
           <tr>
             <th width="60">번호</th>
-            <th width="120">일반이용자명</th>
+            <th width="120">지원대상자명</th>
             <th width="180">상담일시</th>
             <th width="100">상담유형</th>
             <th width="100">상담장소</th>
@@ -83,9 +83,9 @@
         <tbody>
           <template v-for="group in paginatedGroups" :key="group.support_id">
             <tr class="group-header">
-              <td colspan="8" class="fw-bold bg-light">
+              <!-- <td colspan="8" class="fw-bold bg-light">
                 {{ group.support_name }} ({{ group.user_name }})
-              </td>
+              </td> -->
             </tr>
 
             <tr
@@ -93,10 +93,9 @@
               :key="info.counsult_id"
               @click="goToDetail(info.counsult_id)"
             >
-              <td>{{ index + 1 }}</td>
+              <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
 
-              <td>{{ info.support_name }}</td>
-
+              <td>{{ info.user_name }}</td>
               <td>
                 {{ dateFormat(info.counsult_date, info.counsult_startTime) }}
               </td>
@@ -178,7 +177,7 @@ import { useRouter } from "vue-router";
 
 const consults = ref([]);
 const router = useRouter();
-const managerList = ref([]);
+const supportList = ref([]);
 const consultList = ref([]);
 
 // 페이지 갯수 제한
@@ -206,13 +205,18 @@ const appliedFilters = ref({
 //전체 데이터 가져오기
 const consultAll = async () => {
   try {
-    const resp = await fetch("http://localhost:3000/consult/user", {
+    const resp = await fetch("/api/consult/user", {
       credentials: "include",
     });
 
+    if (!resp.ok) {
+      const errData = await resp.json();
+      throw new Error(errData.message || "서버 오류");
+    }
+
     const list = await resp.json();
 
-    const data = list.data?.data || list.data || [];
+    const data = list.data || [];
 
     consults.value = data;
 
@@ -220,15 +224,16 @@ const consultAll = async () => {
     const unique = [
       ...new Map(
         consults.value.map((c) => [
-          c.I_UserId + "_" + c.manager_type,
+          c.support_id,
           {
-            id: c.I_UserId + "_" + c.manager_type,
-            name: `${c.manager_type} : ${c.name}`,
+            id: c.support_id,
+            support_name: c.user_name,
+            name: c.user_name,
           },
         ]),
       ).values(),
     ];
-    managerList.value = unique;
+    supportList.value = unique;
 
     // 상담유형 리스트
     const uniqueMethods = [
@@ -238,12 +243,28 @@ const consultAll = async () => {
   } catch (err) {
     console.log(err);
     consults.value = [];
-    managerList.value = [];
+    supportList.value = [];
     consultList.value = [];
   }
 };
 
+// 로그인한 사용자 ID
+const currentUserId = ref("");
+
+// 예: onBeforeMount에서 서버로부터 로그인 정보 가져오기
 onBeforeMount(async () => {
+  //로그인한 사용자 정보
+  try {
+    const authResp = await fetch("/api/auth/me", { credentials: "include" });
+    if (authResp.ok) {
+      const authData = await authResp.json();
+      currentUserId.value = authData.user?.I_UserId || "";
+    }
+  } catch (err) {
+    console.log("auth/me error:", err);
+  }
+
+  //전체 상담 데이터
   await consultAll();
 });
 
@@ -266,21 +287,27 @@ const dateFormat = (dateVal, timeVal) => {
   return `${year}-${month}-${day} ${time}`;
 };
 
-//필터처리
+//필터처리filteredConsults
 const filteredConsults = computed(() => {
   return consults.value.filter((c) => {
+    // 로그인한 사용자 필터
+    if (currentUserId.value && c.I_UserId !== currentUserId.value) return false;
+
+    // 지원대상자 필터
     if (
       appliedFilters.value.manager &&
-      c.I_UserId + "_" + c.manager_type !== appliedFilters.value.manager
+      c.support_id !== appliedFilters.value.manager
     )
       return false;
 
+    // 상담유형 필터
     if (
       appliedFilters.value.type !== "all" &&
       c.counsult_method !== appliedFilters.value.type
     )
       return false;
 
+    // 기간 필터
     if (appliedFilters.value.startDate && appliedFilters.value.endDate) {
       const consultDate = new Date(c.counsult_date);
       const start = new Date(appliedFilters.value.startDate);
@@ -289,6 +316,7 @@ const filteredConsults = computed(() => {
       if (consultDate < start || consultDate > end) return false;
     }
 
+    // 이름 필터
     if (
       appliedFilters.value.userName &&
       !c.user_name.includes(appliedFilters.value.userName)
@@ -323,13 +351,36 @@ const groupedConsults = computed(() => {
 
 //그룹 기준 페이징
 const paginatedGroups = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
-  return groupedConsults.value.slice(start, start + pageSize);
+  const result = [];
+  let count = 0; // 현재 페이지에 들어간 건수
+  const startIndex = (currentPage.value - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+
+  // 전체 그룹 순회
+  for (const group of groupedConsults.value) {
+    const newGroup = { ...group, list: [] };
+
+    for (const item of group.list) {
+      if (count >= startIndex && count < endIndex) {
+        newGroup.list.push(item);
+      }
+      count++;
+      if (count >= endIndex) break;
+    }
+
+    if (newGroup.list.length > 0) {
+      result.push(newGroup);
+    }
+
+    if (count >= endIndex) break;
+  }
+
+  return result;
 });
 
-// 그룹 기준
+// 그룹 기준 총페이지
 const totalPages = computed(() => {
-  return Math.ceil(groupedConsults.value.length / pageSize);
+  return Math.ceil(filteredConsults.value.length / pageSize);
 });
 
 //페이지 번호 리스트
@@ -351,43 +402,6 @@ const applyFilter = () => {
 
   currentPage.value = 1;
 };
-
-// const getManager = async () => {
-//   try {
-//     if (!institutionId.value) {
-//       managerList.value = [];
-//       resetManager();
-//       return;
-//     }
-
-//     const result = await fetch(
-//       `/api/user/managerList?counsultId=${encodeURIComponent(institutionId.value)}`,
-//       {
-//         method: "GET",
-//         credentials: "include",
-//       },
-//     ).then((resp) => resp.json());
-
-//     console.log("manager list result :", result);
-
-//     if (result.status === "Success") {
-//       managerList.value = result.data || [];
-
-//       if (managerList.value.length > 0) {
-//         const firstManager = managerList.value[0];
-//         selectedManagerId.value = firstManager.I_UserId;
-//         setSelectedManager(firstManager);
-//       } else {
-//         resetSelectedManager();
-//       }
-//     } else {
-//       managerList.value = [];
-//       resetSelectedManager();
-//     }
-//   } catch (err) {
-//     console.log("getManager", err);
-//   }
-// };
 
 //초기화 버튼
 const resetFilter = () => {

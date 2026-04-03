@@ -97,19 +97,30 @@ SELECT
     m.created_at, 
     m.reason,
     q.question_id, 
-    q.titleCode, 
+    q.titleCode,
     q.question_no, 
     q.question_text, 
     q.answer_type,
-    a.answer
+    a.answer,
+    s.support_id,
+    s.G_UserId AS supportUserId,
+    s.I_UserId1,
+    s.I_UserId2,
+    s.name AS supportName,
+     i1.name AS 담당자1_이름,
+    i2.name AS 담당자2_이름,
+    it.institution_id,
+    it.institution_name
 FROM Survey_Tbl m
 LEFT JOIN SurveyItem_Tbl q ON m.Ver_Id = q.Ver_Id
+LEFT JOIN SurveyUserAnswer_Tbl a ON q.question_id = a.question_id AND a.J_ID = m.J_ID
 LEFT JOIN GeneralUser_Tbl u ON m.G_UserId = u.G_UserId
-LEFT JOIN SurveyUserAnswer_Tbl a 
-    ON q.question_id = a.question_id 
-    AND a.J_ID = m.J_ID
-WHERE m.J_ID = ?
-ORDER BY q.titleCode, q.question_no ASC
+LEFT JOIN Support_Tbl s ON s.G_UserId = u.G_UserId
+LEFT JOIN InstiUser_Tbl i1 ON i1.I_UserId = s.I_UserId1
+LEFT JOIN InstiUser_Tbl i2 ON i2.I_UserId = s.I_UserId2
+LEFT JOIN Institution_Tbl it ON it.institution_id = u.institution_id
+WHERE m.J_ID = ? AND m.G_UserId = ?
+ORDER BY q.titleCode, q.question_no ASC;
 `;
 
 //타이틀 코드

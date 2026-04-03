@@ -139,11 +139,11 @@ const items = async (Ver_Id) => {
 };
 
 //상세조회
-const surveyDetail = async (id) => {
+const surveyDetail = async (surveyId, userId) => {
   let conn = null;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(surveySql.surveyDetail, [id]);
+    let rows = await conn.query(surveySql.surveyDetail, [surveyId, userId]);
     return rows;
   } catch (err) {
     console.log(err);

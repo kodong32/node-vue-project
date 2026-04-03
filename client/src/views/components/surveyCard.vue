@@ -522,7 +522,7 @@ const serveyAdd = async () => {
 
       if (answerResponse.ok) {
         alert("조사지 등록이 완료되었습니다.");
-        router.push({ name: "userSurveySelect", params: { no: data.J_ID } });
+        router.push({ name: "userSurveySelect", params: { id: data.J_ID } });
       } else {
         alert("상세 답변 등록 중 오류가 발생했습니다.");
       }

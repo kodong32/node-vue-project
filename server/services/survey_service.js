@@ -80,8 +80,8 @@ const items = async (Ver_Id) => {
 };
 
 //상세조회
-const surveyDetail = async (id) => {
-  let detail = await surveyMapper.surveyDetail(id);
+const surveyDetail = async (surveyId, userId) => {
+  let detail = await surveyMapper.surveyDetail(surveyId, userId);
   return detail;
 };
 

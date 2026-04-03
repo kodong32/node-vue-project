@@ -99,11 +99,38 @@ router.get("/items/:Ver_Id", async (req, res) => {
 //건별조회
 router.get("/surveySelect/:id", async (req, res) => {
   try {
-    const id = req.params.id;
-    const result = await surveyService.surveyDetail(id);
+    const userRole = req.session.role;
+    const userId = req.session.userId;
+    const surveyId = req.params.id;
+
+    let result;
+
+    //권한
+    if (userRole === "a001") {
+      // 시스템 관리자: 모든 설문 조회 가능
+      result = await surveyService.surveyDetail(surveyId);
+    } else if (userRole === "a002" || userRole === "a003") {
+      // 기관 관리자 / 담당자: 소속 기관 설문 조회 가능
+      result = await surveyService.surveyDetail(
+        surveyId,
+        null,
+        req.session.institutionId,
+      );
+    } else if (userRole === "a004") {
+      // 일반 사용자: 본인 설문만 조회 가능
+      result = await surveyService.surveyDetail(surveyId, userId);
+    } else {
+      return res.status(403).json({ message: "권한이 없습니다." });
+    }
+
+    if (!result || result.length === 0) {
+      return res.status(403).json({ message: "권한이 없습니다." });
+    }
+
     res.json(result);
   } catch (err) {
     console.error("건별조회 실패:", err);
+    res.status(500).json;
   }
 });
 

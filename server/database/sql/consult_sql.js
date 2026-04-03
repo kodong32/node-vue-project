@@ -34,12 +34,11 @@ SELECT
   i.approval,
   i.roll
 FROM ConsultRecord_Tbl c
-LEFT JOIN Support_Tbl s 
-       ON c.support_id = s.support_id
-      AND (s.I_UserId1 = ? OR s.I_UserId2 = ?)
+LEFT JOIN Support_Tbl s ON c.support_id = s.support_id
 LEFT JOIN GeneralUser_Tbl g ON g.G_UserID = s.G_UserID
 LEFT JOIN InstiUser_Tbl i ON i.I_UserId = c.I_UserId
 LEFT JOIN Institution_Tbl it ON i.institution_id = it.institution_id
+WHERE c.I_UserId = ?
 ORDER BY c.counsult_id DESC;
 `;
 

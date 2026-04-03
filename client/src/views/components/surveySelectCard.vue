@@ -106,9 +106,10 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const surveyData = ref([]); // 서버에서 받아온 문항 데이터
 const userName = ref("");
 const createdAt = ref("");
@@ -169,7 +170,9 @@ const groupedSections = computed(() => {
 //타이틀 정보
 const fetchTitles = async () => {
   try {
-    const response = await fetch("http://localhost:3000/survey/title");
+    const response = await fetch("http://localhost:3000/survey/title", {
+      credentials: "include",
+    });
     if (!response.ok) throw new Error("타이틀 로드 실패");
     allTitles.value = await response.json();
     console.log("타이틀:", allTitles.value);
@@ -181,11 +184,23 @@ const fetchTitles = async () => {
 //조사지 건별조회 데이터 가져오기
 const getSurveyDetail = async (id) => {
   try {
-    const response = await fetch(
-      `http://localhost:3000/survey/surveySelect/${id}`,
-    );
+    const response = await fetch(`/api/survey/surveySelect/${id}`, {
+      credentials: "include",
+    });
+
+    if (response.status === 403) {
+      alert("권한이 없습니다.");
+      router.push("/user");
+      return;
+    }
+
     const data = await response.json();
-    surveyData.value = data;
+    if (!Array.isArray(data)) {
+      console.error("서버 응답이 배열이 아닙니다:", data);
+      surveyData.value = [];
+      return;
+    }
+
     if (data.length > 0) {
       userName.value = data[0].userName;
       createdAt.value = data[0].created_at;
@@ -200,6 +215,7 @@ const fetchAnswers = async (id) => {
   try {
     const response = await fetch(
       `http://localhost:3000/survey/answerSelect/${id}`,
+      { credentials: "include" },
     );
     if (!response.ok) throw new Error("답변 로드 실패");
     const answerData = await response.json();
