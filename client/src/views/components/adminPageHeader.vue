@@ -78,7 +78,7 @@ const logout = async () => {
               </li>
 
               <li class="nav-item">
-                <router-link class="px-3 py-2 nav-link" to="/admin/notice">
+                <router-link class="px-3 py-2 nav-link" to="/notice/list">
                   공지사항
                 </router-link>
               </li>
