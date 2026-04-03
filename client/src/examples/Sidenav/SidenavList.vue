@@ -18,7 +18,7 @@
               :key="user.support_id"
               :value="user.support_id"
             >
-              {{ user.generalUser_name }}
+              {{ user.name }}
             </option>
           </select>
         </div>

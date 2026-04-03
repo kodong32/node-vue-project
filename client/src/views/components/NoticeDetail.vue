@@ -86,6 +86,13 @@ const hasFiles = computed(() => {
   );
 });
 
+const downloadFile = (fileName) => {
+  if (!fileName) return;
+  // 백엔드의 파일 다운로드 API 주소로 직접 연결 (브라우저가 알아서 다운로드 처리함)
+  const url = `/api/notice/download/${encodeURIComponent(fileName)}`;
+  window.location.href = url;
+};
+
 onMounted(() => {
   // 🌟 세션부터 확인하고 상세 정보를 가져옴
   checkSession();
@@ -175,30 +182,39 @@ onMounted(() => {
                   <button
                     v-if="notice.file1"
                     class="btn btn-sm btn-light border mb-0"
+                    @click="downloadFile(notice.file1)"
                   >
                     <i class="fas fa-download me-1"></i> {{ notice.file1 }}
                   </button>
+
                   <button
                     v-if="notice.file2"
                     class="btn btn-sm btn-light border mb-0"
+                    @click="downloadFile(notice.file2)"
                   >
                     <i class="fas fa-download me-1"></i> {{ notice.file2 }}
                   </button>
+
                   <button
                     v-if="notice.file3"
                     class="btn btn-sm btn-light border mb-0"
+                    @click="downloadFile(notice.file3)"
                   >
                     <i class="fas fa-download me-1"></i> {{ notice.file3 }}
                   </button>
+
                   <button
                     v-if="notice.file4"
                     class="btn btn-sm btn-light border mb-0"
+                    @click="downloadFile(notice.file4)"
                   >
                     <i class="fas fa-download me-1"></i> {{ notice.file4 }}
                   </button>
+
                   <button
                     v-if="notice.file5"
                     class="btn btn-sm btn-light border mb-0"
+                    @click="downloadFile(notice.file5)"
                   >
                     <i class="fas fa-download me-1"></i> {{ notice.file5 }}
                   </button>

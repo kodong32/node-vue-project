@@ -463,7 +463,10 @@ const serveyAdd = async () => {
     if (!idResponse.ok) throw new Error("새 아이디 생성 실패");
     const newJId = await idResponse.text();
 
-    const flatAnswers = answers.value.flat(2);
+    const safeRequest = additionalRequest.value
+      ? additionalRequest.value.replace(/,/g, " ")
+      : "";
+    const finalAnswerList = [...flatAnswers, safeRequest];
 
     let data = {
       J_ID: newJId,
@@ -472,7 +475,7 @@ const serveyAdd = async () => {
       support_id: selectedUser.support_id,
       result: null,
       reason: null,
-      answerList: flatAnswers,
+      answerList: finalAnswerList,
       created_at: new Date().toISOString().split("T")[0],
       updated_at: new Date().toISOString().split("T")[0],
     };
@@ -489,7 +492,7 @@ const serveyAdd = async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           J_ID: data.J_ID,
-          answerList: flatAnswers,
+          answerList: finalAnswerList,
           extraInputs: extraInputs.value.flat(2),
         }),
       });

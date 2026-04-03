@@ -16,6 +16,14 @@ const getBadgeClass = (stateName) => {
   if (stateName === "반려") return "bg-danger";
   return "bg-warning"; // 승인요청중 (대기)
 };
+
+const downloadFile = (fileName) => {
+  if (!fileName) return;
+
+  const url = `/api/result/plan/download/${encodeURIComponent(fileName)}`;
+
+  window.location.href = url;
+};
 </script>
 
 <template>
@@ -109,28 +117,34 @@ const getBadgeClass = (stateName) => {
           </div>
 
           <div class="mt-4 pt-3 border-top">
-            <span class="text-dark text-sm font-weight-bold me-2"
-              ><i class="fas fa-paperclip me-1"></i>첨부파일</span
-            >
+            <span class="text-dark text-sm font-weight-bold me-2">
+              <i class="fas fa-paperclip me-1"></i>첨부파일
+            </span>
+
             <a
               v-if="item.file1"
-              :href="item.file1"
+              href="#"
+              @click.prevent="downloadFile(item.file1)"
               class="text-primary text-sm me-3"
-              target="_blank"
-              >{{ item.file1 }}</a
             >
+              {{ item.file1 }}
+            </a>
+
             <a
               v-if="item.file2"
-              :href="item.file2"
+              href="#"
+              @click.prevent="downloadFile(item.file2)"
               class="text-primary text-sm"
-              target="_blank"
-              >{{ item.file2 }}</a
             >
+              {{ item.file2 }}
+            </a>
+
             <span
               v-if="!item.file1 && !item.file2"
               class="text-secondary text-sm"
-              >첨부파일 없음</span
             >
+              첨부파일 없음
+            </span>
           </div>
         </div>
       </div>

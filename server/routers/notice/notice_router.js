@@ -5,6 +5,7 @@ const noticeService = require("../../services/notice_service.js");
 
 // 🌟 새로 만든 공지사항 전용 파일 업로드 미들웨어 불러오기
 const uploadNotice = require("../../middlewares/uploadFile_notice.js");
+const downloadFileNotice = require("../../middlewares/downloadFile_notice.js");
 
 // 💡 1. 공지사항 목록 조회 (GET /notice/list)
 router.get("/list", async (req, res) => {
@@ -78,6 +79,8 @@ router.post(
     }
   },
 );
+
+router.get("/download/:fileName", downloadFileNotice);
 
 // 💡 4. 공지사항 수정 (PUT /notice/:id)
 router.put(

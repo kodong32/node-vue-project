@@ -8,7 +8,7 @@
           >
             <h5 class="mb-0 font-weight-bolder text-white">
               <i class="ni ni-paper-diploma me-2"></i>
-              {{ userName }}님 설문 결과 조회
+              {{ supportName }}님 설문 결과 조회
             </h5>
             <div class="ms-auto text-sm font-weight-bold">
               등록일 : {{ dateFormat(createdAt) }}
@@ -63,7 +63,21 @@
                         <div class="text-sm font-weight-bold text-dark">
                           {{ q.question_text }}
                         </div>
+
+                        <div
+                          v-if="q.hasExtraInput"
+                          class="extra-input-wrapper mt-2"
+                        >
+                          <textarea
+                            class="form-control border-dark-strong custom-textarea bg-light"
+                            :value="q.extra_reason"
+                            placeholder="입력된 내용이 없습니다."
+                            rows="3"
+                            readonly
+                          ></textarea>
+                        </div>
                       </td>
+
                       <td class="text-center border-end align-middle">
                         <div
                           class="check-box-square mx-auto"
@@ -94,6 +108,22 @@
           </div>
         </template>
 
+        <div class="mt-5 section-container">
+          <div class="section-title-wrapper d-flex align-items-center mb-2">
+            <span class="dot-icon me-2">●</span>
+            <h6 class="mb-0 font-weight-bolder text-dark">추가 요청사항</h6>
+          </div>
+          <div
+            class="comment-container p-3 bg-white shadow-sm border-radius-md border-custom"
+          >
+            <textarea
+              class="form-control border-0 bg-transparent text-dark no-resize shadow-none p-0"
+              rows="4"
+              :value="additionalRequest"
+              readonly
+            ></textarea>
+          </div>
+        </div>
         <div class="d-flex justify-content-center mt-5 mb-5">
           <button class="btn btn-dark px-6 shadow-sm" @click="goBack">
             목록으로 돌아가기
@@ -113,14 +143,28 @@ const emit = defineEmits(["loaded"]);
 
 const route = useRoute();
 const surveyData = ref([]); // 서버에서 받아온 문항 데이터
-const userName = ref("");
+const additionalRequest = ref(""); // 추가 요청사항 저장용
+const supportName = ref("");
 const createdAt = ref("");
 const allTitles = ref([]);
 
 const router = useRouter();
 
 const goBack = () => {
-  router.push({ name: "userMain" });
+  const roleCode =
+    sessionStorage.getItem("userRole") || sessionStorage.getItem("roleCode");
+
+  if (roleCode === "a001") {
+    router.push({ name: "adminSurveyList" });
+  } else if (roleCode === "a002") {
+    router.push({ name: "generalMain" });
+  } else if (roleCode === "a003") {
+    router.push({ name: "managerMain" });
+  } else if (roleCode === "a004") {
+    router.push({ name: "userMain" });
+  } else {
+    router.back();
+  }
 };
 
 //타이틀 매핑 -> 서버 데이터를 (Section > Sub > Question)로 변환
@@ -206,7 +250,7 @@ const getSurveyDetail = async (id) => {
     );
 
     if (!response.ok) {
-      if (response.status === 403) alert("권.한.없.음");
+      if (response.status === 403) alert("권한이 없습니다.");
       return;
     }
 
@@ -215,12 +259,13 @@ const getSurveyDetail = async (id) => {
 
     if (data && data.length > 0) {
       surveyData.value = data;
-
-      userName.value = data[0].userName || "성함 없음";
+      supportName.value = data[0].supportName || "성함 없음";
       createdAt.value = data[0].created_at;
       emit("loaded", {
         supportId: data[0].support_id,
       });
+
+      additionalRequest.value = data[0].request || "입력된 내용이 없습니다.";
     } else {
       console.warn("데이터가 비어있습니다.");
       surveyData.value = [];
@@ -238,16 +283,19 @@ const fetchAnswers = async (id) => {
       { credentials: "include" },
     );
     if (!response.ok) throw new Error("답변 로드 실패");
+
     const answerData = await response.json();
     console.log("답변데이터:", answerData);
 
-    surveyData.value.forEach((q, idx) => {
-      if (answerData.length > 0 && answerData[0].answer) {
-        const ansArray = answerData[0].answer.split(",");
-        q.answer = ansArray[idx];
-      }
-      // console.log(surveyData.value.map((q) => q.question_no + ":" + q.answer));
-    });
+    if (answerData.length > 0 && answerData[0].answer) {
+      const ansArray = answerData[0].answer.split(",");
+      const lastElement = ansArray.pop();
+      additionalRequest.value = lastElement || "입력된 내용이 없습니다.";
+
+      surveyData.value.forEach((q, idx) => {
+        q.answer = ansArray[idx] || "데이터 없음";
+      });
+    }
   } catch (error) {
     console.error(error);
   }
@@ -276,6 +324,26 @@ const dateFormat = (dateVal) => {
 </script>
 
 <style scoped>
+/* 추가할 스타일 */
+.extra-input-wrapper {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.custom-textarea {
+  font-size: 13px;
+  resize: none;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #f8f9fa; /* 조회용이므로 약간 어두운 배경 */
+}
+
+/* 기존 border-dark-strong이 등록페이지에 있다면 동일하게 추가 */
+.border-dark-strong {
+  border: 1px solid #ced4da !important;
+}
+
 .survey-main-table th,
 .survey-main-table td {
   border: 1px solid #dee2e6; /* 위/아래/좌/우 모두 선 */
@@ -434,5 +502,25 @@ const dateFormat = (dateVal) => {
 .check-box-square.is-checked {
   background-color: #2dce89; /* 선택 시 녹색 배경 */
   border-color: #2dce89;
+}
+
+.border-custom {
+  border: 1px solid #dee2e6 !important;
+}
+
+.comment-container {
+  min-height: 120px;
+  border-radius: 8px;
+}
+
+.no-resize {
+  resize: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 텍스트박스 배경을 살짝 회색으로 하여 조회용임을 표시 (선택사항) */
+.comment-container.bg-white {
+  background-color: #fcfcfc !important;
 }
 </style>
