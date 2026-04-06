@@ -12,7 +12,7 @@ const selectedIds = ref([]);
 // 🔍 검색 및 필터 상태
 const searchKeyword = ref("");
 const isWaitOnly = ref(false); // 대기 토글
-const selectedRole = ref(""); // 역할 필터 (전체, 기관관리자, 기관담당자)
+// 🌟 역할 필터(selectedRole) 변수 삭제 완료!
 
 const fetchUserList = async (page = 1) => {
   try {
@@ -22,7 +22,7 @@ const fetchUserList = async (page = 1) => {
         limit: 10,
         name: searchKeyword.value || null,
         isWaitOnly: isWaitOnly.value,
-        role: selectedRole.value || null, // 역할 필터 추가
+        // 🌟 role 파라미터 전송 삭제 완료!
       },
     });
     userList.value = response.data.data || [];
@@ -33,8 +33,8 @@ const fetchUserList = async (page = 1) => {
   }
 };
 
-// 필터 변경 시 자동 검색
-watch([isWaitOnly, selectedRole], () => {
+// 🌟 역할 필터가 사라졌으므로 watch에서도 제거 완료!
+watch([isWaitOnly], () => {
   fetchUserList(1);
 });
 
@@ -47,10 +47,10 @@ const toggleSelectAll = (event) => {
     : [];
 };
 
-// 🌟 선택 승인 (등록 버튼)
+// 선택 승인 (등록 버튼)
 const approveSelected = async () => {
   if (selectedIds.value.length === 0)
-    return alert("승인할 소속원을 선택해주세요.");
+    return alert("승인할 관리자를 선택해주세요.");
   if (!confirm(`선택한 ${selectedIds.value.length}명을 승인하시겠습니까?`))
     return;
 
@@ -67,7 +67,7 @@ const approveSelected = async () => {
 // 선택 삭제
 const deleteSelected = async () => {
   if (selectedIds.value.length === 0)
-    return alert("삭제할 소속원을 선택해주세요.");
+    return alert("삭제할 관리자를 선택해주세요.");
   if (!confirm("정말 삭제하시겠습니까?")) return;
 
   try {
@@ -79,6 +79,45 @@ const deleteSelected = async () => {
     fetchUserList(currentPage.value);
   } catch (error) {
     alert("삭제 중 오류가 발생했습니다.");
+  }
+};
+
+// 🌟 모달 관련 상태 변수
+const isModalOpen = ref(false);
+const editForm = ref({
+  userId: "",
+  id: "", // 아이디 (수정불가용)
+  name: "",
+  tel: "",
+});
+
+// 🌟 모달 열기 (클릭한 줄의 데이터를 폼에 복사)
+const openEditModal = (item) => {
+  editForm.value = {
+    userId: item.user_id,
+    id: item.id,
+    name: item.name,
+    tel: item.tel,
+  };
+  isModalOpen.value = true; // 모달 띄우기!
+};
+
+// 🌟 모달 닫기
+const closeEditModal = () => {
+  isModalOpen.value = false;
+};
+
+// 🌟 수정 데이터 서버로 전송
+const submitEdit = async () => {
+  if (!confirm("이대로 수정하시겠습니까?")) return;
+
+  try {
+    await axios.put("/api/admin/instiuser/edit", editForm.value);
+    alert("수정이 완료되었습니다.");
+    closeEditModal(); // 모달 닫기
+    fetchUserList(currentPage.value); // 목록 새로고침
+  } catch (error) {
+    alert("수정 중 오류가 발생했습니다.");
   }
 };
 
@@ -96,7 +135,7 @@ onMounted(() => fetchUserList(1));
             class="card-header pb-0 d-flex justify-content-between align-items-center"
           >
             <div class="d-flex align-items-center gap-3">
-              <h6 class="mb-0">기관소속원 정보</h6>
+              <h6 class="mb-0">기관관리자 정보</h6>
 
               <div
                 class="form-check form-switch mb-0 d-flex align-items-center"
@@ -118,7 +157,7 @@ onMounted(() => fetchUserList(1));
               <input
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="이름 검색"
+                placeholder="기관명 검색"
                 v-model="searchKeyword"
                 @keyup.enter="applySearch"
                 style="width: 200px"
@@ -180,16 +219,6 @@ onMounted(() => fetchUserList(1));
                     <th
                       class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
                     >
-                      역할
-                    </th>
-                    <th
-                      class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                    >
-                      가입일
-                    </th>
-                    <th
-                      class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
-                    >
                       사용승인
                     </th>
                     <th
@@ -202,10 +231,10 @@ onMounted(() => fetchUserList(1));
                 <tbody>
                   <tr v-if="userList.length === 0">
                     <td
-                      colspan="10"
+                      colspan="8"
                       class="text-center py-4 text-secondary text-sm"
                     >
-                      소속원이 없습니다.
+                      등록된 기관관리자가 없습니다.
                     </td>
                   </tr>
                   <tr v-for="(item, index) in userList" :key="item.user_id">
@@ -216,6 +245,7 @@ onMounted(() => fetchUserList(1));
                           type="checkbox"
                           :value="item.user_id"
                           v-model="selectedIds"
+                          :disabled="item.state === '승인'"
                         />
                       </div>
                     </td>
@@ -235,12 +265,6 @@ onMounted(() => fetchUserList(1));
                       <p class="mb-0">{{ item.tel }}</p>
                     </td>
                     <td class="align-middle text-center text-xs">
-                      <p class="mb-0">{{ item.role }}</p>
-                    </td>
-                    <td class="align-middle text-center text-secondary text-xs">
-                      {{ item.join_date }}
-                    </td>
-                    <td class="align-middle text-center text-xs">
                       <span
                         class="badge badge-sm"
                         :class="
@@ -254,9 +278,11 @@ onMounted(() => fetchUserList(1));
                     <td class="align-middle text-center">
                       <a
                         href="#"
+                        @click.prevent="openEditModal(item)"
                         class="text-secondary font-weight-bold text-xs"
-                        ><i class="fas fa-external-link-alt"></i
-                      ></a>
+                      >
+                        <i class="fas fa-external-link-alt"></i>
+                      </a>
                     </td>
                   </tr>
                 </tbody>
@@ -283,4 +309,64 @@ onMounted(() => fetchUserList(1));
       </div>
     </div>
   </div>
+
+  <div v-if="isModalOpen" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">기관관리자 정보 수정</h5>
+        <button class="btn btn-link text-dark p-0 m-0" @click="closeEditModal">
+          <i class="fas fa-times fs-5"></i>
+        </button>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-sm">아이디 (수정불가)</label>
+        <input
+          type="text"
+          class="form-control"
+          v-model="editForm.id"
+          disabled
+        />
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-sm">이름</label>
+        <input type="text" class="form-control" v-model="editForm.name" />
+      </div>
+      <div class="mb-4">
+        <label class="form-label text-sm">연락처</label>
+        <input type="text" class="form-control" v-model="editForm.tel" />
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary mb-0" @click="closeEditModal">
+          취소
+        </button>
+        <button class="btn btn-primary mb-0" @click="submitEdit">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
+<style scoped>
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* 사이드바나 헤더보다 위에 뜨도록 설정 */
+}
+.custom-modal-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+</style>

@@ -64,7 +64,7 @@ const logout = async () => {
                   class="px-3 py-2 nav-link"
                   to="/admin/instiuser/list"
                 >
-                  기관소속원
+                  기관관리자
                 </router-link>
               </li>
 
