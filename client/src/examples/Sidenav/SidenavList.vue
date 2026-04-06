@@ -230,21 +230,20 @@ onMounted(() => {
 }
 
 .sidebar-layout-container {
-  display: flex; /* 또는 grid */
+  display: flex;
 }
 
 .sidebar {
-  position: fixed; /* 화면 고정 */
+  position: fixed;
   width: 250px;
   height: 100vh;
-  z-index: 100; /* main-content보다 위로 올라옴 */
+  z-index: 100;
 }
 
 .main-content {
-  margin-left: 250px; /* 사이드바 공간 확보 */
+  margin-left: 250px;
 }
 
-/* 사이드바는 고정 */
 .sidebar-layout-container {
   position: fixed;
   top: 85px;
@@ -257,37 +256,33 @@ onMounted(() => {
   overflow-y: auto;
 }
 
-/* main-content는 사이드바만큼 밀기 */
 .main-content {
-  margin-left: 260px; /* 사이드바 너비 */
+  margin-left: 260px;
   padding: 2rem;
 }
-/* 1. 사이드바 위치 및 레이아웃 설정 */
 .sidebar-layout-container {
   position: fixed !important;
-  top: 85px !important; /* 상단바 높이에 맞춰 조정 */
+  top: 85px !important;
   left: 0 !important;
   width: 260px !important;
   height: calc(100vh - 85px) !important;
-  z-index: 2000 !important; /* 다른 레이어 위로 올림 */
+  z-index: 2000 !important;
   background-color: #ffffff !important;
   border-right: 1px solid #e9ecef !important;
   overflow-y: auto !important;
 
-  /* 스크롤바 숨김 처리 */
-  -ms-overflow-style: none; /* IE, Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .sidebar-layout-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
-/* 2. 입력창 공통 스타일 */
 .custom-input {
   display: block !important;
   width: 100% !important;
-  background-color: #f8f9fa !important; /* 읽기 전용 느낌 */
+  background-color: #f8f9fa !important;
   border: 1px solid #d2d6da !important;
   border-radius: 8px !important;
   padding: 0.5rem 0.75rem !important;
@@ -295,7 +290,6 @@ onMounted(() => {
   color: #495057 !important;
 }
 
-/* 포커스 시 스타일 */
 .custom-input:focus {
   background-color: #ffffff !important;
   border-color: #5e72e4 !important;
@@ -303,7 +297,6 @@ onMounted(() => {
   outline: none !important;
 }
 
-/* 3. 구분선 스타일 */
 .horizontal.dark {
   background-image: linear-gradient(
     to right,
@@ -316,7 +309,6 @@ onMounted(() => {
   opacity: 0.5;
 }
 
-/* 4. 텍스트 및 라벨 스타일 */
 .form-label {
   margin-bottom: 0.25rem;
 }
@@ -325,16 +317,8 @@ onMounted(() => {
   font-size: 0.75rem !important;
 }
 
-/* 5. 메인 콘텐츠와의 간격 조정 */
 :deep(.content-area) {
-  margin-left: 260px !important; /* 사이드바 공간 확보 */
+  margin-left: 260px !important;
   padding: 2rem !important;
 }
-
-/* 6. 반응형 대응 제거: 항상 보이도록 처리 */
-/* @media (max-width: 1199.98px) {
-  .sidebar-layout-container {
-    display: none !important;
-  }
-} */
 </style>

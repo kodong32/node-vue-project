@@ -98,4 +98,41 @@ router.post("/consultAdd", async (req, res) => {
   res.send({ status: "success", counsult_no: newCID, result });
 });
 
+// 상담기록 수정
+router.put("/consult/:id", async (req, res) => {
+  try {
+    if (!req.session.loginInstUser || !req.session.loginInstUser.I_UserId) {
+      return res.status(401).send({
+        success: false,
+        message: "로그인 필요",
+      });
+    }
+
+    const data = {
+      ...req.body,
+      counsult_id: req.params.id,
+    };
+
+    const result = await consultService.consultUpdate(data);
+
+    res.send({
+      success: true,
+      message: "수정 완료",
+      result,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({
+      success: false,
+      message: "수정 실패",
+    });
+  }
+});
+
+//상담기록 삭제
+// router.delete("/user/:no", async (req, res) => {
+//   let result = await consultService.remove();
+//   res.send(result);
+// });
+
 module.exports = router;

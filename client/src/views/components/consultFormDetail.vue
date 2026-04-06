@@ -101,15 +101,7 @@
               readonly
             />
           </div>
-          <div class="info-item">
-            <label>지원자 회원번호</label>
-            <input
-              type="text"
-              :value="d.support_id"
-              class="form-input bg-light"
-              readonly
-            />
-          </div>
+
           <div class="info-item">
             <label>정담당자</label>
             <input
@@ -152,9 +144,9 @@
       </section>
 
       <footer class="d-flex justify-content-center gap-3 mt-5 pt-4">
-        <RouterLink to="/manager/consult" class="btn-action btn-prev"
-          >목록으로</RouterLink
-        >
+        <RouterLink to="/manager/consult" class="btn-action btn-prev">
+          목록으로
+        </RouterLink>
       </footer>
     </div>
   </main>

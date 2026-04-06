@@ -1,0 +1,7 @@
+export default [
+  {
+    path: "/consult/update/:no",
+    name: "managerConsultUpdate",
+    component: () => import("@/views/consultUpdate.vue"),
+  },
+];

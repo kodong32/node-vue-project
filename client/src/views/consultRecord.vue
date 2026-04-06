@@ -76,26 +76,19 @@
             <th width="100">상담장소</th>
             <th>상담내용</th>
             <th width="140">기관 담당자</th>
-            <th width="120">수정/삭제</th>
+            <th width="120">수정</th>
           </tr>
         </thead>
 
         <tbody>
-          <template v-for="group in paginatedGroups" :key="group.support_id">
-            <tr class="group-header">
-              <!-- <td colspan="8" class="fw-bold bg-light">
-                {{ group.support_name }} ({{ group.user_name }})
-              </td> -->
-            </tr>
-
-            <tr
-              v-for="(info, index) in group.list"
-              :key="info.counsult_id"
-              @click="goToDetail(info.counsult_id)"
-            >
+          <template
+            v-for="(info, index) in paginatedList"
+            :key="info.counsult_id"
+          >
+            <tr @click="goToDetail(info.counsult_id)">
               <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
 
-              <td>{{ info.user_name }}</td>
+              <td>{{ info.support_name }}</td>
               <td>
                 {{ dateFormat(info.counsult_date, info.counsult_startTime) }}
               </td>
@@ -109,23 +102,26 @@
                 [서비스욕구]: {{ info.counsult_content3 }}<br />
                 [종합의견]: {{ info.counsult_content4 }}
               </td>
-              <td>
+
+              <td style="text-align: left">
                 <div>
-                  <span
-                    :style="{
-                      color: info.manager_type === '정' ? 'green' : 'orange',
-                      fontWeight: 'bold',
-                    }"
-                  >
-                    {{ info.manager_type }}
-                  </span>
-                  : {{ info.name }}
+                  <span style="color: green; font-weight: bold">정</span>
+                  : {{ info.manager_main_name || "없음" }}
+                </div>
+
+                <div>
+                  <span style="color: orange; font-weight: bold">부</span>
+                  : {{ info.manager_sub_name || "없음" }}
                 </div>
               </td>
 
               <td>
-                <button class="btn-outline-edit">수정</button>
-                <button class="btn-outline-delete">삭제</button>
+                <button
+                  class="btn-outline-edit"
+                  @click.stop="goToUpdate(info.counsult_id)"
+                >
+                  수정
+                </button>
               </td>
             </tr>
           </template>
@@ -180,6 +176,10 @@ const router = useRouter();
 const supportList = ref([]);
 const consultList = ref([]);
 
+const goToUpdate = (id) => {
+  router.push({ name: "managerConsultUpdate", params: { no: id } });
+};
+
 // 페이지 갯수 제한
 const currentPage = ref(1);
 const pageSize = 5;
@@ -223,14 +223,15 @@ const consultAll = async () => {
     // 담당자 리스트 생성
     const unique = [
       ...new Map(
-        consults.value.map((c) => [
-          c.support_id,
-          {
-            id: c.support_id,
-            support_name: c.user_name,
-            name: c.user_name,
-          },
-        ]),
+        consults.value.map((c) => {
+          return [
+            c.support_id,
+            {
+              id: c.support_id,
+              support_name: c.support_name,
+            },
+          ];
+        }),
       ).values(),
     ];
     supportList.value = unique;
@@ -295,8 +296,8 @@ const filteredConsults = computed(() => {
 
     // 지원대상자 필터
     if (
-      appliedFilters.value.manager &&
-      c.support_id !== appliedFilters.value.manager
+      appliedFilters.value.userName &&
+      !c.support_name.includes(appliedFilters.value.userName)
     )
       return false;
 
@@ -316,71 +317,29 @@ const filteredConsults = computed(() => {
       if (consultDate < start || consultDate > end) return false;
     }
 
-    // 이름 필터
-    if (
-      appliedFilters.value.userName &&
-      !c.user_name.includes(appliedFilters.value.userName)
-    )
-      return false;
-
     return true;
   });
 });
 
-//지원대상자 그룹화
-const groupedConsults = computed(() => {
-  const map = {};
-
-  filteredConsults.value.forEach((item) => {
-    const key = item.support_id;
-
-    if (!map[key]) {
-      map[key] = {
-        support_id: item.support_id,
-        support_name: item.support_name,
-        user_name: item.user_name,
-        list: [],
-      };
-    }
-
-    map[key].list.push(item);
+const sortedConsults = computed(() => {
+  return [...filteredConsults.value].sort((a, b) => {
+    const dateA = new Date(
+      `${a.counsult_date} ${a.counsult_startTime || "00:00"}`,
+    );
+    const dateB = new Date(
+      `${b.counsult_date} ${b.counsult_startTime || "00:00"}`,
+    );
+    return dateB - dateA;
   });
-
-  return Object.values(map);
 });
 
-//그룹 기준 페이징
-const paginatedGroups = computed(() => {
-  const result = [];
-  let count = 0; // 현재 페이지에 들어간 건수
-  const startIndex = (currentPage.value - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-
-  // 전체 그룹 순회
-  for (const group of groupedConsults.value) {
-    const newGroup = { ...group, list: [] };
-
-    for (const item of group.list) {
-      if (count >= startIndex && count < endIndex) {
-        newGroup.list.push(item);
-      }
-      count++;
-      if (count >= endIndex) break;
-    }
-
-    if (newGroup.list.length > 0) {
-      result.push(newGroup);
-    }
-
-    if (count >= endIndex) break;
-  }
-
-  return result;
+const paginatedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  return sortedConsults.value.slice(start, start + pageSize);
 });
 
-// 그룹 기준 총페이지
 const totalPages = computed(() => {
-  return Math.ceil(filteredConsults.value.length / pageSize);
+  return Math.ceil(sortedConsults.value.length / pageSize);
 });
 
 //페이지 번호 리스트
@@ -395,8 +354,6 @@ const changePage = (page) => {
 };
 
 const applyFilter = () => {
-  console.log("검색 필터 적용:", filters.value);
-
   //입력값 → 실제 필터로 복사
   appliedFilters.value = { ...filters.value };
 

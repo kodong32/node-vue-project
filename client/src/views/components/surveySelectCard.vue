@@ -59,47 +59,53 @@
                       <td class="text-center question-no border-end">
                         {{ q.question_no }}
                       </td>
-                      <td class="ps-3 py-3 text-start border-end">
-                        <div class="text-sm font-weight-bold text-dark">
-                          {{ q.question_text }}
-                        </div>
 
-                        <div
-                          v-if="q.hasExtraInput"
-                          class="extra-input-wrapper mt-2"
-                        >
-                          <textarea
-                            class="form-control border-dark-strong custom-textarea bg-light"
-                            :value="q.extra_reason"
-                            placeholder="입력된 내용이 없습니다."
-                            rows="3"
-                            readonly
-                          ></textarea>
-                        </div>
-                      </td>
+                      <template v-if="q.hasExtraInput">
+                        <td colspan="4" class="ps-3 py-3 text-start border-end">
+                          <div class="text-sm font-weight-bold text-dark mb-2">
+                            {{ q.question_text }}
+                          </div>
+                          <div class="extra-input-wrapper w-100">
+                            <textarea
+                              class="form-control border-dark-strong custom-textarea-full bg-light"
+                              :value="q.extra_reason"
+                              placeholder="입력된 내용이 없습니다."
+                              rows="3"
+                              readonly
+                            ></textarea>
+                          </div>
+                        </td>
+                      </template>
 
-                      <td class="text-center border-end align-middle">
-                        <div
-                          class="check-box-square mx-auto"
-                          :class="{ 'is-checked': q.answer === '예' }"
-                        >
-                          <i
-                            v-if="q.answer === '예'"
-                            class="fa fa-check text-xs"
-                          ></i>
-                        </div>
-                      </td>
-                      <td class="text-center align-middle">
-                        <div
-                          class="check-box-square mx-auto"
-                          :class="{ 'is-checked': q.answer === '아니오' }"
-                        >
-                          <i
-                            v-if="q.answer === '아니오'"
-                            class="fa fa-check text-xs"
-                          ></i>
-                        </div>
-                      </td>
+                      <template v-else>
+                        <td class="ps-3 py-3 text-start border-end">
+                          <div class="text-sm font-weight-bold text-dark">
+                            {{ q.question_text }}
+                          </div>
+                        </td>
+                        <td class="text-center border-end align-middle">
+                          <div
+                            class="check-box-square mx-auto"
+                            :class="{ 'is-checked': q.answer === '예' }"
+                          >
+                            <i
+                              v-if="q.answer === '예'"
+                              class="fa fa-check text-xs"
+                            ></i>
+                          </div>
+                        </td>
+                        <td class="text-center align-middle">
+                          <div
+                            class="check-box-square mx-auto"
+                            :class="{ 'is-checked': q.answer === '아니오' }"
+                          >
+                            <i
+                              v-if="q.answer === '아니오'"
+                              class="fa fa-check text-xs"
+                            ></i>
+                          </div>
+                        </td>
+                      </template>
                     </tr>
                   </tbody>
                 </template>
@@ -180,7 +186,7 @@ const getTitleByCode = (code) => {
 };
 //데이터 대 -> 중 구조로 변환
 const groupedSections = computed(() => {
-  if (!surveyData.value.length) return []; // 데이터 없으면 빈 배열
+  if (!surveyData.value.length) return [];
 
   const sections = [];
 
@@ -221,7 +227,6 @@ const groupedSections = computed(() => {
     sub.questions.push(item);
   });
 
-  console.log("최종 그룹화된 데이터:", sections);
   return sections;
 });
 
@@ -233,7 +238,6 @@ const fetchTitles = async () => {
     });
     if (!response.ok) throw new Error("타이틀 로드 실패");
     allTitles.value = await response.json();
-    console.log("타이틀:", allTitles.value);
   } catch (error) {
     console.error(error);
   }
@@ -255,20 +259,25 @@ const getSurveyDetail = async (id) => {
     }
 
     const data = await response.json();
-    console.log("조회된 원본 데이터:", data);
 
     if (data && data.length > 0) {
+      data.forEach((item) => {
+        if (
+          item.titleCode === "T010" &&
+          (String(item.question_no) === "2" ||
+            String(item.question_text) === "2")
+        ) {
+          item.hasExtraInput = true;
+        } else {
+          item.hasExtraInput = false;
+        }
+      });
       surveyData.value = data;
       supportName.value = data[0].supportName || "성함 없음";
       createdAt.value = data[0].created_at;
-      emit("loaded", {
-        supportId: data[0].support_id,
-      });
+      emit("loaded", { supportId: data[0].support_id });
 
       additionalRequest.value = data[0].request || "입력된 내용이 없습니다.";
-    } else {
-      console.warn("데이터가 비어있습니다.");
-      surveyData.value = [];
     }
   } catch (error) {
     console.error("데이터 로드 실패:", error);
@@ -285,15 +294,23 @@ const fetchAnswers = async (id) => {
     if (!response.ok) throw new Error("답변 로드 실패");
 
     const answerData = await response.json();
-    console.log("답변데이터:", answerData);
 
     if (answerData.length > 0 && answerData[0].answer) {
       const ansArray = answerData[0].answer.split(",");
-      const lastElement = ansArray.pop();
+
+      const lastElement = ansArray[ansArray.length - 1];
       additionalRequest.value = lastElement || "입력된 내용이 없습니다.";
 
       surveyData.value.forEach((q, idx) => {
-        q.answer = ansArray[idx] || "데이터 없음";
+        const val = ansArray[idx] ? ansArray[idx].trim() : "";
+        q.answer = val;
+
+        if (
+          q.titleCode === "T010" &&
+          (String(q.question_no) === "2" || String(q.question_text) === "2")
+        ) {
+          q.extra_reason = val;
+        }
       });
     }
   } catch (error) {

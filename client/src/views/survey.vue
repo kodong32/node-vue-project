@@ -6,7 +6,7 @@
 
     <main class="flex-grow-1 main-content-area">
       <RoleHeader />
-      <SurveyCard />
+      <SurveyCard :ver-id="$route.params.id || 'FORM0004'" />
     </main>
   </div>
 </template>

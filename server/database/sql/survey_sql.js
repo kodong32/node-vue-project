@@ -77,13 +77,19 @@ LIMIT 1`;
 //시스템 관리자 문항 가져오기
 const items = `
 SELECT 
-    i.question_id, 
-    i.answer_type, 
+    i.question_id,
+    i.question_text,
+    i.answer_type,
+    i.titleCode,
     f.use_yn,
-    f.Ver_Id as Form_Ver_Id
+    f.Ver_Id as Form_Ver_Id,
+    t.title AS S_Name,
+    t.parentCode
 FROM SurveyItem_Tbl i
 LEFT JOIN SurveyForm_Tbl f ON i.Ver_Id = f.Ver_Id
-WHERE i.Ver_Id = ?;
+LEFT JOIN SurveyTitle_Tbl t ON i.titleCode = t.titleCode
+WHERE i.Ver_Id = ?
+ORDER BY i.question_id ASC;
 `;
 
 //상세조회

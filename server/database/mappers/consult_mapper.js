@@ -90,6 +90,7 @@ const manager = async () => {
 const consultAdd = async (info) => {
   let conn = null;
   try {
+    console.log(info);
     conn = await pool.getConnection();
     let rows = await conn.query(consultSql.consultAdd, [
       info.counsult_id,
@@ -108,6 +109,7 @@ const consultAdd = async (info) => {
       info.counsult_content3,
       info.counsult_content4,
     ]);
+    console.log("📌 쿼리 결과:", rows);
     return rows;
   } catch (err) {
     console.log(err);
@@ -158,6 +160,79 @@ const consultDetail = async (j_Code) => {
   }
 };
 
+// 상담기록 수정
+const consultUpdate = async (info) => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+
+    let rows = await conn.query(consultSql.consultUpdate, [
+      info.counsult_date,
+      info.counsult_startTime,
+      info.counsult_endTime,
+      info.counsult_method,
+      info.counsult_loc,
+      info.counsult_content,
+      info.counsult_content2,
+      info.counsult_content3,
+      info.counsult_content4,
+      info.counsult_id,
+    ]);
+
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+//상담기록 삭제
+// const remove = async (
+//   counsult_id,
+//   J_ID,
+//   I_UserId,
+//   support_id,
+//   counsult_date,
+//   write_date,
+//   counsult_loc,
+//   counsult_startTime,
+//   counsult_endTime,
+//   counsult_content,
+//   updated_at,
+//   counsult_method,
+//   counsult_content2,
+//   counsult_content3,
+//   counsult_content4,
+// ) => {
+//   let conn = null;
+//   try {
+//     conn = await pool.getConnection();
+//     let rows = await conn.query(consultSql.remove, [
+//       counsult_id,
+//       J_ID,
+//       I_UserId,
+//       support_id,
+//       counsult_date,
+//       write_date,
+//       counsult_loc,
+//       counsult_startTime,
+//       counsult_endTime,
+//       counsult_content,
+//       updated_at,
+//       counsult_method,
+//       counsult_content2,
+//       counsult_content3,
+//       counsult_content4,
+//     ]);
+//     return rows;
+//   } catch (err) {
+//     console.log(err);
+//   } finally {
+//     if (conn) conn.release();
+//   }
+// };
+
 module.exports = {
   consultList,
   description,
@@ -169,4 +244,5 @@ module.exports = {
   consultCount,
   consultDetail,
   descriptionMiddle,
+  consultUpdate,
 };

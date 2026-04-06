@@ -37,36 +37,25 @@
             </div>
           </div>
           <div class="info-item">
-            <label>장애 유형(대분류)</label>
-            <select
-              v-model="form.disabilityType"
-              class="form-input custom-select"
-            >
-              <option value="">유형 선택</option>
-              <option
-                v-for="item in disabilityTypes"
-                :key="item.code"
-                :value="item.code"
-              >
-                {{ item.description }}
-              </option>
-            </select>
+            <label>장애유형(대분류)</label>
+            <input
+              type="text"
+              :value="disabilityTypeName"
+              class="form-input bg-light"
+              placeholder="지원대상자를 선택하면 자동 입력됩니다"
+              readonly
+            />
           </div>
+
           <div class="info-item">
-            <label>장애 유형(중분류)</label>
-            <select
-              v-model="form.consultMiddle"
-              class="form-input custom-select"
-            >
-              <option value="">유형 선택</option>
-              <option
-                v-for="item in consultMiddle"
-                :key="item.code"
-                :value="item.code"
-              >
-                {{ item.description }}
-              </option>
-            </select>
+            <label>장애유형(중분류)</label>
+            <input
+              type="text"
+              :value="consultMiddleNames"
+              class="form-input bg-light"
+              placeholder="지원대상자를 선택하면 자동 입력됩니다"
+              readonly
+            />
           </div>
           <div class="info-item">
             <label>상담 장소</label>
@@ -88,13 +77,14 @@
               @change="handleUserChange"
               class="form-input custom-select"
             >
-              <option value="">대상자 선택</option>
+              <option value="">지원대상자 선택</option>
+
               <option
                 v-for="user in uniqueUserList"
-                :key="user.I_UserId"
-                :value="user.I_UserId"
+                :key="user.support_id"
+                :value="user.support_id"
               >
-                {{ user.user_name }}
+                {{ user.support_name }}
               </option>
             </select>
           </div>
@@ -104,7 +94,7 @@
               type="text"
               v-model="form.guardianName"
               class="form-input bg-light"
-              placeholder="대상자를 선택하면 자동 입력됩니다"
+              placeholder="지원대상자를 선택하면 자동 입력됩니다"
               readonly
             />
           </div>
@@ -122,47 +112,27 @@
               </option>
             </select>
           </div>
-          <div class="info-item">
-            <label>지원자 회원번호</label>
-            <input
-              type="text"
-              :value="generatedMemberId"
-              class="form-input bg-light"
-              readonly
-            />
-          </div>
+
           <div class="info-item">
             <label>정담당자</label>
-            <select
-              v-model="form.managerMainId"
-              class="form-input custom-select"
-            >
-              <option value="">담당자 선택</option>
-              <option
-                v-for="m in filteredMainManagers"
-                :key="m.I_UserId"
-                :value="m.I_UserId"
-              >
-                {{ m.name }}
-              </option>
-            </select>
+            <input
+              type="text"
+              :value="managerMainName"
+              class="form-input bg-light"
+              placeholder="지원대상자를 선택하면 자동 입력됩니다"
+              readonly
+            />
           </div>
 
           <div class="info-item">
             <label>부담당자</label>
-            <select
-              v-model="form.managerSubId"
-              class="form-input custom-select"
-            >
-              <option value="">담당자 선택</option>
-              <option
-                v-for="m in filteredSubManagers"
-                :key="m.I_UserId"
-                :value="m.I_UserId"
-              >
-                {{ m.name }}
-              </option>
-            </select>
+            <input
+              type="text"
+              :value="managerSubName"
+              class="form-input bg-light"
+              placeholder="지원대상자를 선택하면 자동 입력됩니다"
+              readonly
+            />
           </div>
         </div>
       </section>
@@ -201,36 +171,23 @@
 import { ref, onMounted, computed } from "vue";
 import RoleHeader from "../components/RoleHeader.vue";
 
-//서브 담당자 에외하고, 메인 담당자 선택용 리스트 생성
-const filteredMainManagers = computed(() => {
-  return managerList.value.filter(
-    (m) => m.I_UserId !== form.value.managerSubId,
-  );
-});
-
-//메인 담당자 에외하고, 서브 담당자 선택용 리스트 생성
-const filteredSubManagers = computed(() => {
-  return managerList.value.filter(
-    (m) => m.I_UserId !== form.value.managerMainId,
-  );
-});
-
 const form = ref({
   consultDate: "",
   writeDate: "",
   startTime: "",
   endTime: "",
-  disabilityType: "",
+  disabilityTypes: "",
   consultMiddle: "",
   location: "",
   targetId: "",
+  support_id: "",
   targetName: "",
   guardianName: "",
+  managerMainId: "",
+  managerSubId: "",
   method: "",
   memberId: "",
   manager: "",
-  managerMainId: "",
-  managerSubId: "",
   details: {
     basic: "",
     content: "",
@@ -254,34 +211,94 @@ const methods = ref([]);
 const consultList = ref([]);
 const managerList = ref([]);
 
-//지원대상자 회원번호 자동증가
-const generatedMemberId = computed(() => {
-  const nextIndex = consultList.value.length + 1;
-  return `G${String(nextIndex).padStart(4, "0")}`;
+//장애유형 대분류 이름으로 변환
+const disabilityTypeName = computed(() => {
+  if (!form.value.targetId) return;
+  const type = form.value.disabilityTypes;
+
+  if (!type) return "없음";
+  return type;
+});
+
+//장애유형 중분류 이름으로 변환
+const consultMiddleNames = computed(() => {
+  if (!form.value.consultMiddle) return "";
+
+  const codes = form.value.consultMiddle.split(",");
+
+  return codes
+    .map((code) => {
+      return consultMiddle.value.find((c) => c.j_Code === code)?.description;
+    })
+    .filter(Boolean)
+    .join(", ");
+});
+
+// 정담당자 이름 변환
+const managerMainName = computed(() => {
+  if (!form.value.targetId) return;
+
+  const targetId = form.value.managerMainId;
+  if (!targetId || !managerList.value.length) return "없음";
+
+  const found = managerList.value.find(
+    (m) => String(m.I_UserId || m.user_id).trim() === String(targetId).trim(),
+  );
+
+  return found ? found.name || found.user_name : "없음";
+});
+
+// 부담당자 이름 변환
+const managerSubName = computed(() => {
+  if (!form.value.targetId) return;
+
+  const targetId = form.value.managerSubId;
+  if (!targetId || !managerList.value.length) return "없음";
+
+  const found = managerList.value.find(
+    (m) => String(m.I_UserId || m.user_id).trim() === String(targetId).trim(),
+  );
+
+  return found ? found.name || found.user_name : "없음";
 });
 
 //지원대상자 선택
 const handleUserChange = () => {
-  const user = userList.value.find((u) => u.I_UserId === form.value.targetId);
+  const user = userList.value.find(
+    (u) => String(u.support_id) === String(form.value.targetId),
+  );
 
   if (user) {
-    form.value.targetName = user.user_name;
-    form.value.guardianName = user.support_name;
+    form.value.targetName = user.support_name;
+    form.value.guardianName = user.user_name;
     form.value.support_id = user.support_id;
+
+    form.value.disabilityTypes = user.disabilityType || "";
+    form.value.consultMiddle = user.consultMiddle || "";
+
+    form.value.managerMainId = user.managerMainId || "";
+    form.value.managerSubId = user.managerSubId || "";
   } else {
     form.value.targetName = "";
     form.value.guardianName = "";
     form.value.support_id = "";
+
+    form.value.disabilityTypes = "";
+    form.value.consultMiddle = "";
+    form.value.managerMainId = "";
+    form.value.managerSubId = "";
   }
 };
 
 //지원대상자 선택 (아이디 기준으로 중복되는 이름 제거)
 const uniqueUserList = computed(() => {
+  if (!userList.value || !Array.isArray(userList.value)) return [];
+
   const seen = new Set();
 
   return userList.value.filter((user) => {
-    if (seen.has(user.I_UserId)) return false;
-    seen.add(user.I_UserId);
+    if (seen.has(user.support_id)) return false;
+    seen.add(user.support_id);
     return true;
   });
 });
@@ -295,7 +312,7 @@ const fetchConsultList = async () => {
       consultList.value = data;
     }
   } catch (error) {
-    console.error("목록 로드 실패:", error);
+    console.error(error);
   }
 };
 
@@ -305,9 +322,9 @@ const fetchDisabilityTypes = async () => {
     const response = await fetch("/api/consult/disability-types");
     if (!response.ok) throw new Error("네트워크 응답 에러");
     const data = await response.json();
-    disabilityTypes.value = data;
+    disabilityTypes.value = Array.isArray(data) ? data : data.data || [];
   } catch (error) {
-    console.error("데이터 로드 실패:", error);
+    console.error(error);
   }
 };
 
@@ -319,7 +336,7 @@ const fetchConsultMiddle = async () => {
     const data = await response.json();
     consultMiddle.value = data;
   } catch (error) {
-    console.error("데이터 로드 실패:", error);
+    console.error(error);
   }
 };
 
@@ -330,10 +347,16 @@ const fetchUsers = async () => {
     if (!response.ok) throw new Error("사용자 로드 에러");
     const data = await response.json();
 
-    userList.value = data.data;
-    console.log("data", data);
+    if (Array.isArray(data)) {
+      userList.value = data;
+    } else if (data && Array.isArray(data.data)) {
+      userList.value = data.data;
+    } else {
+      userList.value = [];
+    }
   } catch (error) {
-    console.error(error);
+    console.error("데이터 로드 중 오류:", error);
+    userList.value = [];
   }
 };
 
@@ -347,7 +370,7 @@ const fetchPlaces = async () => {
       (p) => p.counsult_loc && p.counsult_loc.trim() !== "",
     );
   } catch (error) {
-    console.error("장소 데이터 로드 실패:", error);
+    console.error(error);
   }
 };
 
@@ -359,7 +382,7 @@ const fetchMethod = async () => {
     const data = await response.json();
     methods.value = data;
   } catch (error) {
-    console.error("장소 데이터 로드 실패:", error);
+    console.error(error);
   }
 };
 
@@ -368,14 +391,13 @@ const fetchManagersList = async () => {
   try {
     const response = await fetch("/api/consult/manager");
     if (response.ok) {
-      const data = await response.json();
-      managerList.value = data;
+      const result = await response.json();
+      managerList.value = Array.isArray(result) ? result : result.data || [];
     }
   } catch (error) {
-    console.error("담당자 목록 로드 실패:", error);
+    console.error("담당자 로드 에러:", error);
   }
 };
-
 onMounted(() => {
   fetchConsultList();
   fetchDisabilityTypes();
@@ -394,14 +416,16 @@ const resetCancel = () => {
       writeDate: "",
       startTime: "",
       endTime: "",
-      disabilityType: "",
+      disabilityTypes: "",
       location: "",
+      targetId: "",
+      support_id: "",
       targetName: "",
       guardianName: "",
-      method: "",
-      memberId: "",
       managerMainId: "",
       managerSubId: "",
+      method: "",
+      memberId: "",
       details: {
         basic: "",
         content: "",
@@ -422,27 +446,36 @@ const now = new Date().toISOString().slice(0, 10);
 
 const consultAdd = async () => {
   try {
-    if (
-      !form.value.consultDate ||
-      !form.value.writeDate ||
-      !form.value.startTime ||
-      !form.value.endTime ||
-      !form.value.disabilityType ||
-      !form.value.location ||
-      !form.value.targetId ||
-      !form.value.method ||
-      !form.value.managerMainId
-    ) {
-      alert("기본 정보를 모두 입력해주세요.");
+    const requiredFields = {
+      consultDate: "상담일자",
+      writeDate: "작성일자",
+      startTime: "시작시간",
+      endTime: "종료시간",
+      location: "상담장소",
+      targetId: "지원대상자",
+      method: "상담방법",
+    };
+
+    for (const [key, label] of Object.entries(requiredFields)) {
+      if (!form.value[key]) {
+        alert(`${label}의 정보가 입력되지 않았습니다.`);
+        return;
+      }
+    }
+
+    if (!form.value.managerMainId) {
+      alert("정담당자가 없는 대상자는 등록할 수 없습니다.");
       return;
     }
 
     const currentManagerId = localStorage.getItem("userId") || "SUV0000";
 
+    console.log("managerMainId:", form.value.managerMainId);
+    console.log("support_id:", form.value.support_id);
     let data = {
-      // counsult_id: info.counsult_id,
+      // counsult_id
       J_ID: currentManagerId,
-      I_UserId: form.value.targetId,
+      I_UserId: form.value.managerMainId,
       support_id: form.value.support_id,
 
       counsult_date: form.value.consultDate,
@@ -457,35 +490,31 @@ const consultAdd = async () => {
       updated_at: form.value.updatedDate || now,
       counsult_method: form.value.method,
     };
-
-    if (!data.I_UserId) {
-      alert("지원대상자를 선택해주세요.");
-      return;
-    }
-
+    console.log("📌 실제 전송 데이터:", data);
     let response = await fetch("/api/consult/consultAdd", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) {
-      throw new Error("서버 응답 실패");
-    }
+    if (!response.ok) throw new Error("서버 응답 실패");
 
     const result = await response.json();
 
-    if (result.status == "success") {
+    if (result.status === "success") {
+      alert("상담 기록이 성공적으로 등록되었습니다.");
+
       router.push({
         name: "managerConsult",
         params: { no: result.counsult_no },
       });
     } else {
-      console.error("등록 실패:", result);
+      alert("등록 실패: " + (result.message || "알 수 없는 오류"));
       isPrinted.value = true;
     }
   } catch (err) {
-    console.error("에러 발생:", err);
+    console.error("등록 중 에러 발생:", err);
+    alert("상담기록 등록이 실패하였습니다.");
   }
 };
 </script>
@@ -649,6 +678,7 @@ const consultAdd = async () => {
 .time-picker-custom {
   cursor: pointer;
   position: relative;
+  min-width: 140px;
 }
 
 .time-picker-custom::-webkit-calendar-picker-indicator {

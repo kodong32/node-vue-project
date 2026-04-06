@@ -32,14 +32,24 @@ SELECT
   i.id,
   i.tel,
   i.approval,
-  i.roll
+  i.roll,
+  i1.I_UserId AS managerMainId,
+  i2.I_UserId AS managerSubId,
+  i1.name AS manager_main_name,
+i2.name AS manager_sub_name,
+  dm.description AS disabilityType,
+  s.middle AS consultMiddle
 FROM ConsultRecord_Tbl c
 LEFT JOIN Support_Tbl s ON c.support_id = s.support_id
 LEFT JOIN GeneralUser_Tbl g ON g.G_UserID = s.G_UserID
 LEFT JOIN InstiUser_Tbl i ON i.I_UserId = c.I_UserId
 LEFT JOIN Institution_Tbl it ON i.institution_id = it.institution_id
+LEFT JOIN InstiUser_Tbl i1 ON i1.I_UserId = s.I_UserId1
+LEFT JOIN InstiUser_Tbl i2 ON i2.I_UserId = s.I_UserId2
+LEFT JOIN DisMajor_Tbl dm ON dm.b_Code = s.major
 WHERE c.I_UserId = ?
-ORDER BY c.counsult_id DESC;
+ORDER BY STR_TO_DATE(c.counsult_date, '%Y-%m-%d') DESC,
+         c.counsult_startTime DESC;
 `;
 
 //폼 장애유형 대 선택
@@ -145,6 +155,28 @@ LEFT JOIN DisMajor_Tbl dm ON dm.b_Code = s.major
 WHERE c.counsult_id = ?;
 `;
 
+// 상담기록 수정
+const consultUpdate = `
+UPDATE ConsultRecord_Tbl
+SET
+  counsult_date = ?,
+  counsult_startTime = ?,
+  counsult_endTime = ?,
+  counsult_method = ?,
+  counsult_loc = ?,
+  counsult_content = ?,
+  counsult_content2 = ?,
+  counsult_content3 = ?,
+  counsult_content4 = ?
+WHERE counsult_id = ?;
+`;
+
+// //상담기록 삭제
+// const remove = `
+// DELETE FROM ConsultRecord_Tbl
+// WHERE counsult_id = ?
+// `;
+
 module.exports = {
   consultList,
   description,
@@ -156,4 +188,5 @@ module.exports = {
   consultCount,
   consultDetail,
   descriptionMiddle,
+  consultUpdate,
 };

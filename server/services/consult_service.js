@@ -67,12 +67,6 @@ const counsultId = async () => {
   return newCID;
 };
 
-//상담기록 리스트 페이징 카운트
-const consultCount = async (info) => {
-  let count = await consultMapper.consultCount(info);
-  return count;
-};
-
 //건별조회
 const getMiddleDescriptions = async (codes) => {
   const allMiddle = await consultMapper.descriptionMiddle();
@@ -104,6 +98,45 @@ const consultDetail = async (counsultId) => {
   return [row];
 };
 
+// 상담기록 수정
+const consultUpdate = async (info) => {
+  let result = await consultMapper.consultUpdate(info);
+  return result;
+};
+
+//상담기록 삭제
+// const remove = async (counsult_id,
+//     J_ID,
+//     I_UserId,
+//     support_id,
+//     counsult_date,
+//     write_date,
+//     counsult_loc,
+//     counsult_startTime,
+//     counsult_endTime,
+//     counsult_content,
+//     updated_at,
+//     counsult_method,
+//     counsult_content2,
+//     counsult_content3,
+//     counsult_content4) {
+//       const result = await consultMapper.remove(counsult_id,
+//     J_ID,
+//     I_UserId,
+//     support_id,
+//     counsult_date,
+//     write_date,
+//     counsult_loc,
+//     counsult_startTime,
+//     counsult_endTime,
+//     counsult_content,
+//     updated_at,
+//     counsult_method,
+//     counsult_content2,
+//     counsult_content3,
+//     counsult_content4)
+//     return result}
+
 module.exports = {
   findAll,
   description,
@@ -114,4 +147,5 @@ module.exports = {
   counsultId,
   consultDetail,
   descriptionMiddle,
+  consultUpdate,
 };
