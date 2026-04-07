@@ -50,7 +50,6 @@
               type="text"
               :value="d.dis_major_desc"
               class="form-input bg-light"
-              placeholder="정보 없음"
               readonly
             />
           </div>
@@ -58,9 +57,9 @@
             <label>장애 유형(중분류)</label>
             <input
               type="text"
-              :value="d.dis_middle_desc"
+              :value="d.dis_middle_desc || ''"
               class="form-input bg-light"
-              placeholder="정보 없음"
+              :placeholder="d.dis_middle_desc ? '' : '정보 없음'"
               readonly
             />
           </div>
@@ -172,7 +171,42 @@ const consultDetail = async (no) => {
   try {
     const res = await fetch(`/api/consult/user/${no}`);
     const data = await res.json();
-    d.value = data[0] ?? {};
+    const result = Array.isArray(data) ? data[0] : data;
+
+    if (result) {
+      const majorNames = {
+        MJ001: "기질성 정신장애",
+        MJ002: "정신 및 행동장애",
+        MJ003: "조현병 및 망상장애",
+        MJ004: "기분 장애",
+        MJ005: "신경증성 및 신체형 장애",
+        MJ006: "생리 장애 및 행동증후군",
+        MJ007: "성인 인격 및 행동의 장애",
+        MJ008: "정신지체",
+        MJ009: "정신발달장애",
+        MJ010: "소아기 및 청소년기 행동 및 정서 장애",
+        MJ011: "상세불명의 정신장애",
+      };
+
+      let finalMajorDesc = result.dis_major_desc;
+
+      if (!finalMajorDesc && result.major_code) {
+        finalMajorDesc = result.major_code
+          .split(",")
+          .map((code) => {
+            const trimmed = code.trim();
+            return majorNames[trimmed] || trimmed;
+          })
+          .join(", ");
+      }
+
+      d.value = {
+        ...result,
+        dis_major_desc: finalMajorDesc || "유형 미정",
+        insti_name: result.insti_name || "미지정",
+        insti_sub_name: result.insti_sub_name || "미지정",
+      };
+    }
   } catch (err) {
     console.error("상담 상세 조회 실패:", err);
   }

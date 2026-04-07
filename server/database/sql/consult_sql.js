@@ -131,6 +131,8 @@ SELECT
   c.support_id,
   g.name AS user_name,
   s.name AS guardian_name,
+  s.major AS major_code,    
+  s.middle AS middle_code,
   c.counsult_date,
   c.write_date,
   c.counsult_loc,

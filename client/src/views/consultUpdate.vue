@@ -150,6 +150,21 @@ const originalForm = ref({});
 const methodList = ref([]);
 const placeList = ref([]);
 
+// 장애 유형 대분류 매핑 객체
+const majorMap = {
+  MJ001: "기질성 정신장애",
+  MJ002: "정신 및 행동장애",
+  MJ003: "조현병 및 망상장애",
+  MJ004: "기분 장애",
+  MJ005: "신경증성 및 신체형 장애",
+  MJ006: "생리 장애 및 행동증후군",
+  MJ007: "성인 인격 및 행동의 장애",
+  MJ008: "정신지체",
+  MJ009: "정신발달장애",
+  MJ010: "소아기 및 청소년기 행동 및 정서 장애",
+  MJ011: "상세불명의 정신장애",
+};
+
 const form = ref({
   counsult_id: consultId,
   counsult_date: "",
@@ -163,6 +178,8 @@ const form = ref({
   counsult_content4: "",
   manager_name: "",
   sub_manager_name: "",
+  dis_major_desc: "",
+  dis_middle_desc: "",
 });
 
 const sections = ref([
@@ -171,6 +188,18 @@ const sections = ref([
   { title: "서비스 욕구 및 지원 필요성", key: "counsult_content3" },
   { title: "담당자 종합 의견", key: "counsult_content4" },
 ]);
+
+// 코드를 한글로 변환
+const getMajorName = (codeStr) => {
+  if (!codeStr) return "유형 미정";
+  return codeStr
+    .split(",")
+    .map((code) => {
+      const trimmed = code.trim();
+      return majorMap[trimmed] || trimmed;
+    })
+    .join(", ");
+};
 
 // 데이터 불러오기
 const fetchDetail = async () => {
@@ -181,8 +210,8 @@ const fetchDetail = async () => {
     if (resp.status === 401) throw new Error("Unauthorized");
 
     const result = await resp.json();
-
     const data = Array.isArray(result) ? result[0] : result;
+
     if (data) {
       form.value = {
         ...data,
@@ -199,8 +228,10 @@ const fetchDetail = async () => {
 
         support_name: data.guardian_name || "",
         user_name: data.user_name || "",
-        dis_major_desc: data.dis_major_desc || "",
-        dis_middle_desc: data.dis_middle_desc || "",
+
+        dis_major_desc: getMajorName(data.major_code),
+        dis_middle_desc:
+          data.dis_middle_desc || data.dis_middle_raw || "정보 없음",
 
         manager_name: data.insti_name || "",
         sub_manager_name: data.insti_sub_name || "",
@@ -208,11 +239,16 @@ const fetchDetail = async () => {
       originalForm.value = JSON.parse(JSON.stringify(form.value));
     }
   } catch (err) {
-    console.error(err);
+    console.error("상세 데이터 로드 실패:", err);
   }
 };
 
 const updateConsult = async () => {
+  if (!form.value.manager_name || form.value.manager_name === "미지정") {
+    alert("정담당자가 지정되지 않아 수정할 수 없습니다.");
+    return;
+  }
+
   if (!confirm("수정하시겠습니까?")) return;
   try {
     const updateData = {
@@ -233,20 +269,22 @@ const updateConsult = async () => {
       credentials: "include",
       body: JSON.stringify(updateData),
     });
+
     if (resp.status === 401) {
       alert("로그인 정보가 없거나 세션이 만료되었습니다.");
       router.push({ name: "Login" });
       return;
     }
+
     const result = await resp.json();
     if (resp.ok && (result.success || result.affectedRows > 0)) {
-      alert("상담기록 수정이 완료했습니다.");
+      alert("상담기록 수정이 완료되었습니다.");
       router.push({ name: "managerConsult" });
     } else {
       alert("수정에 실패했습니다.");
     }
   } catch (err) {
-    console.error(err);
+    console.error("수정 처리 실패:", err);
   }
 };
 
@@ -258,16 +296,11 @@ const resetForm = () => {
 onMounted(async () => {
   await fetchDetail();
 
-  const mResp = await fetch("/api/consult/method", {
-    credentials: "include",
-  });
+  const mResp = await fetch("/api/consult/method", { credentials: "include" });
   methodList.value = await mResp.json();
 
-  const pResp = await fetch("/api/consult/place", {
-    credentials: "include",
-  });
+  const pResp = await fetch("/api/consult/place", { credentials: "include" });
   const rawPlace = await pResp.json();
-
   placeList.value = rawPlace.filter((p) => p.counsult_loc?.trim());
 });
 </script>
