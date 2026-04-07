@@ -6,7 +6,14 @@ SELECT sp.name as supportName,
     gu.name as generalName,
     sp.born as birthDate,
     sp.gender as genderCode,
-    dm.description as disMajorName,
+    
+    /* 🌟 [수정됨] 콤마로 묶인 장애유형 쪼개서 합치기 (별명은 원래대로 disMajorName 유지) */
+    (
+      SELECT GROUP_CONCAT(dm.description SEPARATOR ', ') 
+      FROM DisMajor_Tbl dm 
+      WHERE FIND_IN_SET(dm.b_Code, sp.major) > 0
+    ) as disMajorName,
+    
     sv.result as currentStatus, /* 현재 상태 코드 (예: f005) */
     (
       SELECT result_reason 
@@ -17,7 +24,7 @@ SELECT sp.name as supportName,
 FROM Survey_Tbl sv
 JOIN Support_Tbl sp ON sv.support_id = sp.support_id
 JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
-LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
+/* 🚨 쓸모없어진 LEFT JOIN DisMajor_Tbl 은 삭제 완료! */
 WHERE sv.J_ID = ?;
 `;
 
