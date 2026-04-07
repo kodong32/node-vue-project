@@ -13,6 +13,15 @@ const support = async () => {
   return list;
 };
 
+//getversion
+const getVersion = async () => {
+  let result = await surveyMapper.getVersion();
+  return {
+    status : "Success",
+    data : result
+  };
+};
+
 //폼 장애유형 대 선택
 const description = async () => {
   let major = await surveyMapper.description();
@@ -110,4 +119,5 @@ module.exports = {
   surveyDetail,
   title,
   answerSelect,
+  getVersion,
 };

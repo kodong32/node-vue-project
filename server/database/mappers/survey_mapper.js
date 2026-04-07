@@ -30,6 +30,24 @@ const support = async () => {
   }
 };
 
+//getVersion
+const getVersion = async () => {
+  let conn = null;
+  try { 
+    conn = await pool.getConnection();
+    let rows = await conn.query(surveySql.getVersion);
+    return rows;
+
+  } catch (err) {
+    console.log(err);
+    throw err;
+  } finally {
+    if(conn){
+      conn.release();
+    }
+  }
+};
+
 //폼 장애유형 대 선택
 const description = async () => {
   let conn = null;
@@ -104,6 +122,7 @@ const answerAdd = async (info) => {
     return rows;
   } catch (err) {
     console.log(err);
+    throw err;
   } finally {
     if (conn) conn.release();
   }
@@ -202,4 +221,5 @@ module.exports = {
   surveyDetail,
   title,
   answerSelect,
+  getVersion,
 };

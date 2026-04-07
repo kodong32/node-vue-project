@@ -21,6 +21,13 @@ router.get("/support", async (req, res) => {
   res.send(result);
 });
 
+//getFormvesion
+router.get("/getversion", async (req, res) => {
+  let result = await surveyService.getVersion();
+
+  res.send(result);
+});
+
 //폼 장애유형 대 선택
 router.get("/disability-types", async (req, res) => {
   let result = await surveyService.description();
@@ -63,19 +70,59 @@ router.get("/newId", async (req, res) => {
 });
 
 //등록시 답변 데이터
+// router.post("/answer", async (req, res) => {
+//   try {
+//     const { J_ID, answerList } = req.body;
+
+//     const lastRow = await surveyService.lastAnswer();
+//     const nextId = lastRow.length > 0 ? lastRow[0].answer_id + 1 : 1;
+
+//     const QuestionId = "ITEM0054";
+
+//     const info = [nextId, J_ID, QuestionId, answerList.join(",")];
+
+//     const result = await surveyService.answerAdd(info);
+//     res.json({ success: true, result });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send("저장 실패");
+//   }
+// });
 router.post("/answer", async (req, res) => {
   try {
     const { J_ID, answerList } = req.body;
 
     const lastRow = await surveyService.lastAnswer();
-    const nextId = lastRow.length > 0 ? lastRow[0].answer_id + 1 : 1;
 
-    const QuestionId = "ITEM0054";
+    let nextNum = 0;
 
-    const info = [nextId, J_ID, QuestionId, answerList.join(",")];
+    if (lastRow.length > 0) {
+      const lastId = lastRow[0].answer_id; // ANS0009
+      nextNum = parseInt(lastId.substring(3), 10);
+    }
 
-    const result = await surveyService.answerAdd(info);
-    res.json({ success: true, result });
+    const results = [];
+
+    for (const item of answerList) {
+      nextNum += 1;
+
+      const answer_id = "ANS" + String(nextNum).padStart(4, "0");
+
+      const info = [
+        answer_id,
+        J_ID,
+        item.question_id,
+        item.answer,
+      ];
+
+      console.log("insert:", info);
+
+      const result = await surveyService.answerAdd(info);
+      results.push(result);
+    }
+
+    res.json({ success: true, result: results });
+
   } catch (err) {
     console.error(err);
     res.status(500).send("저장 실패");
