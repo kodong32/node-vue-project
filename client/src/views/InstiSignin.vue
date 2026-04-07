@@ -28,18 +28,24 @@ const authStore = useInstiAuthStore();
 const loginId = ref("");
 const loginPw = ref("");
 const goMain = async () => {
-  // 스토어의 login 함수 호출
-  const isSuccess = await authStore.login(loginId.value, loginPw.value);
+  // 🌟 스토어에서 "SUCCESS", "UNAPPROVED", "FAIL" 중 하나를 받아옵니다.
+  const loginResult = await authStore.login(loginId.value, loginPw.value);
 
-  if (isSuccess) {
-    alert(`${authStore.user.name}님, 환영합니다!`); // DB에서 가져온 이름 활용
-    // console.log("role:", authStore.user.roll);
+  if (loginResult === "SUCCESS") {
+    // 1. 완벽한 합격
+    alert(`${authStore.user.name}님, 환영합니다!`);
+
+    // 권한에 따라 메인 페이지 분기
     if (authStore.user.roll === "a002") {
       router.push("/general"); // 기관 관리자 메인 페이지로 이동
     } else {
       router.push("/manager"); // 기관 담당자 메인 페이지로 이동
     }
+  } else if (loginResult === "UNAPPROVED") {
+    // 2. 🌟 가입은 했으나 미승인(대기) 상태일 때
+    alert("승인 후 로그인 가능합니다.");
   } else {
+    // 3. ID나 PW가 틀렸을 때
     alert("아이디 또는 비밀번호가 올바르지 않습니다.");
   }
 };

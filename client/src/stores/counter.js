@@ -33,13 +33,16 @@ export const useInstiAuthStore = defineStore("instiAuth", {
           this.user = response.data.user; // 유저 정보 저장
           this.roll = response.data.roll;
           this.isLoggedIn = true; // 로그인 상태 true
-          return true; // 컴포넌트에 성공 알림
+          return "SUCCESS"; // 컴포넌트에 성공 알림
         } else {
-          return false; // 아이디/비밀번호 불일치
+          if (response.data.reason === "unapproved") {
+            return "UNAPPROVED"; // 가입은 했으나 미승인(g002, g003) 상태
+          }
+          return "FAIL"; // 아이디/비밀번호 불일치
         }
       } catch (error) {
         console.error("로그인 요청 중 오류 발생:", error);
-        return false;
+        return "FAIL";
       }
     },
     async logout() {
@@ -83,23 +86,26 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(id, password) {
       try {
-        // 백엔드 주소로 POST 요청 보냄
         const response = await axios.post("/api/user/login", {
           id: id,
           password: password,
         });
 
-        // 백엔드가 준 결과(result) 확인
+        // 백엔드(res.send(result))가 준 결과 확인
         if (response.data.success) {
-          this.user = response.data.user; // 유저 정보 저장
-          this.isLoggedIn = true; // 로그인 상태 true
-          return true; // 컴포넌트에 성공 알림
+          this.user = response.data.user;
+          this.isLoggedIn = true;
+          return "SUCCESS"; // 🌟 1. 로그인 성공
         } else {
-          return false; // 아이디/비밀번호 불일치
+          // 🌟 [핵심] 백엔드 서비스가 꼬리표로 달아준 reason 확인!
+          if (response.data.reason === "unapproved") {
+            return "UNAPPROVED"; // 🌟 2. 가입은 했으나 미승인(g002, g003) 상태
+          }
+          return "FAIL"; // 🌟 3. 아이디/비번 틀림
         }
       } catch (error) {
         console.error("로그인 요청 중 오류 발생:", error);
-        return false;
+        return "FAIL";
       }
     },
     async logout() {

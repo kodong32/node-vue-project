@@ -26,6 +26,32 @@ const createUser = async (userObj) => {
     document2,
   } = userObj;
   try {
+    if (!document1 || !document2) {
+      return {
+        status: "Failed",
+        message: "증빙서류를 모두 업로드해주세요.",
+      };
+    }
+    if (!email || email.trim() === "") {
+      return {
+        status: "Failed",
+        message: "이메일을 입력해주세요.",
+      };
+    }
+    if (!id || id.trim() === "") {
+      return { status: "Failed", message: "아이디를 입력해주세요." };
+    }
+
+    if (!password || password.trim() === "") {
+      return { status: "Failed", message: "비밀번호를 입력해주세요." };
+    }
+
+    if (!name || name.trim() === "") {
+      return { status: "Failed", message: "이름을 입력해주세요." };
+    }
+    if (!tel || tel.trim() === "") {
+      return { status: "Failed", message: "연락처를 입력해주세요." };
+    }
     let G_UserId;
     const lastUserId = await userMapper.getLastUserId();
     if (!lastUserId) {
@@ -60,7 +86,7 @@ const createUser = async (userObj) => {
     };
   } catch (err) {
     if (err.code !== "ER_DUP_ENTRY") {
-      return { status: "Failed", message: err.message };
+      return { status: "Failed", message: "모든 항목을 입력해주세요." };
     }
     if (retry == 2) {
       return { status: "Failed", message: "PK 중복으로 인한 등록 실패" };
@@ -71,7 +97,25 @@ const createUser = async (userObj) => {
 //기관이용자 회원가입<김경환, mapper에 있는 함수를 라우터에 결과 전달>(김경환 2026.03.24 수정 및 pk 증가로직 추가)
 const createInstiUser = async (userObj) => {
   const { institution_id, name, id, password, tel, roll } = userObj;
+
   try {
+    // 🌟 [추가] 기관 선택 여부 확인
+    if (!institution_id) {
+      return { status: "Failed", message: "소속 기관을 선택해주세요." };
+    }
+    if (!id || id.trim() === "") {
+      return { status: "Failed", message: "아이디를 입력해주세요." };
+    }
+    if (!password || password.trim() === "") {
+      return { status: "Failed", message: "비밀번호를 입력해주세요." };
+    }
+    if (!name || name.trim() === "") {
+      return { status: "Failed", message: "이름을 입력해주세요." };
+    }
+    if (!tel || tel.trim() === "") {
+      return { status: "Failed", message: "연락처를 입력해주세요." };
+    }
+
     let I_UserId;
     const lastInstiId = await userMapper.getLastInstiId();
     if (!lastInstiId) {
@@ -80,26 +124,36 @@ const createInstiUser = async (userObj) => {
       const num = parseInt(lastInstiId.I_UserId.substring(4), 10);
       I_UserId = "IUSR" + String(num + 1).padStart(4, "0");
     }
-    //기관 비밀번호 암호화
+
+    // 기관 비밀번호 암호화
     const salt = await bcrypt.genSalt(10);
     const hasgedPw = await bcrypt.hash(password, salt);
 
     let insertData = [I_UserId, institution_id, name, id, hasgedPw, tel, roll];
-    console.log(insertData);
 
     let result = await userMapper.insertInstiUser(insertData);
+
     return {
       status: result.affectedRows > 0 ? "success" : "fail",
       I_UserId,
     };
   } catch (err) {
-    if (err.code !== "ER_DUP_ENTRY") {
-      //"ER_DUP_ENTRY" 중복 값에 대한 mariadb 에러코드
-      return { status: "Failed", message: err.message };
+    console.error("기관 유저 가입 에러:", err);
+
+    // 🌟 [수정] DB 에러(중복 아이디 등) 발생 시 처리 다듬기
+    if (err.code === "ER_DUP_ENTRY") {
+      // 아이디(또는 연락처)가 이미 DB에 있을 때 뜨는 에러입니다.
+      return {
+        status: "Failed",
+        message: "이미 사용 중인 아이디거나 중복된 데이터입니다.",
+      };
     }
-    if (retry == 2) {
-      return { status: "Failed", message: "PK 중복으로 인한 등록 실패" };
-    }
+
+    // 기존의 원인 불명 retry 로직 삭제 후 깔끔하게 서버 에러 반환
+    return {
+      status: "Failed",
+      message: "서버 오류로 인해 등록에 실패했습니다.",
+    };
   }
 };
 
@@ -337,37 +391,25 @@ const searchInstitutions = async (searchInfo) => {
 
 //로그인 정보 확인(김경환 2026.03.25)(김경환 20260330 일부 수정 및 추가) //
 const confirmUser = async (id, password) => {
-  // let infos = await userMapper.confirmUser(id);
-  // if (!infos || infos.length === 0) {
-  //   return { success: false };
-  // }
-
-  // let pwMatch = await bcrypt.compare(password, infos[0].password);
-
-  // if (pwMatch) {
-  //   return {
-  //     success: true,
-  //     user: infos[0],
-  //   };
-  // } else {
-  //   return { success: false };
-  // }
-  //bcrypt 임시방편(암호화 여부 관계없이 로그인) 해결 시 해당 부분 주석
   let user = await userMapper.confirmUser(id);
 
   if (!user) return { success: false };
 
   let isMatch;
-
-  // bcrypt 암호화 여부 확인
   if (user.password && user.password.startsWith("$2b$")) {
     isMatch = await bcrypt.compare(password, user.password);
   } else {
-    // 예전 평문 계정
     isMatch = password === user.password;
   }
 
+  // 🌟 [문지기 역할 추가!] 비밀번호가 맞았더라도 여기서 한 번 더 검사합니다.
   if (isMatch) {
+    if (user.approval === "g002" || user.approval === "g003") {
+      // 성공(true)을 주면 안 되고, 실패(false)와 함께 'unapproved'라는 꼬리표를 달아줍니다!
+      return { success: false, reason: "unapproved" };
+    }
+
+    // g001(승인)인 사람만 진짜 성공 처리!
     return { success: true, user };
   }
 

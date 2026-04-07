@@ -35,6 +35,14 @@ const goLogin = () => {
 
 //기관이용자의 정보를 db에 전송시키는 함수(김경환 2026.03.25)
 const addInstiUserInfo = async () => {
+  // 🌟 1. [프론트 방어막] 백엔드 가기 전에 빈칸이면 여기서 바로 컷!
+  if (!instiUserInfo.id.trim()) return alert("아이디를 입력해주세요.");
+  if (!instiUserInfo.password.trim()) return alert("비밀번호를 입력해주세요.");
+  if (!instiUserInfo.name.trim()) return alert("이름을 입력해주세요.");
+  if (!instiUserInfo.tel.trim()) return alert("연락처를 입력해주세요.");
+  if (!guardianEditInfo.institution_id)
+    return alert("소속 기관을 선택해주세요.");
+
   let data = {
     institution_id: guardianEditInfo.institution_id,
     name: instiUserInfo.name,
@@ -45,19 +53,26 @@ const addInstiUserInfo = async () => {
   };
   console.log(data);
 
-  let result = await fetch(`/api/user/instiUsers`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .catch((err) => console.log(err));
-  if (result.status == "success") {
-    router.push({ name: "userLogin", params: { no: result.I_UserId } });
-  } else {
-    isPrinted.value = true;
+  try {
+    let response = await fetch(`/api/user/instiUsers`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    let result = await response.json();
+
+    if (result.status === "success" || result.status === "Success") {
+      alert("회원가입 신청이 완료되었습니다. 승인 후 로그인 가능합니다.");
+      router.push({ name: "userLogin", params: { no: result.I_UserId } });
+    } else {
+      // 🌟 2. [백엔드 대답 처리] 백엔드가 보내준 message를 그대로 경고창에 띄움!
+      alert(result.message || "회원가입에 실패했습니다.");
+      isPrinted.value = true;
+    }
+  } catch (err) {
+    console.error(err);
+    alert("서버 통신 중 오류가 발생했습니다.");
   }
 };
 

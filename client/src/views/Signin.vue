@@ -27,17 +27,24 @@ import { useAuthStore } from "@/stores/counter";
 const authStore = useAuthStore();
 const loginId = ref("");
 const loginPw = ref("");
-const goMain = async () => {
-  // 스토어의 login 함수 호출
-  const isSuccess = await authStore.login(loginId.value, loginPw.value);
 
-  if (isSuccess) {
-    alert(`${authStore.user.name}님, 환영합니다!`); // DB에서 가져온 이름 활용
-    router.push("/user"); // 메인 페이지로 이동
+const goMain = async () => {
+  // 스토어에서 "SUCCESS", "UNAPPROVED", "FAIL" 셋 중 하나를 받아옵니다.
+  const loginResult = await authStore.login(loginId.value, loginPw.value);
+
+  if (loginResult === "SUCCESS") {
+    // 1. 완벽한 합격
+    alert(`${authStore.user.name}님, 환영합니다!`);
+    router.push("/user");
+  } else if (loginResult === "UNAPPROVED") {
+    // 2. 🌟 드디어 우리가 원하던 미승인 알림창!
+    alert("승인 후 로그인 가능합니다.");
   } else {
+    // 3. ID나 PW가 틀렸거나 없는 유저일 때
     alert("아이디 또는 비밀번호가 올바르지 않습니다.");
   }
 };
+
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
   store.state.showNavbar = false;
@@ -52,6 +59,12 @@ onBeforeUnmount(() => {
   store.state.showFooter = true;
   body.classList.add("bg-gray-100");
 });
+
+// const APPROVAL = {
+//   AGREE: "g001", // 승인
+//   WAIT: "g002", // 보류
+//   REJECT: "g003", // 거절
+// };
 </script>
 <template>
   <div class="container top-0 position-sticky z-index-sticky">

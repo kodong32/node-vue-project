@@ -38,7 +38,7 @@ const insertUser = async (userInfo) => {
   try {
     conn = await pool.getConnection();
     let result = await conn.query(userSql.insertUser, userInfo);
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (err) {
     console.log(err);

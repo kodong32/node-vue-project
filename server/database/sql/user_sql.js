@@ -142,10 +142,9 @@ WHERE support_id = ?
 
 //회원 로그인 확인(김경환 2026.03.25)
 const confirmUser = `
-SELECT G_UserId, institution_id, name, id, password, tel, email, zipCode, address, document1, document2
-FROM GeneralUser_Tbl       
-WHERE id = ? 
-AND approval = 'g001'
+  SELECT G_UserId, institution_id, name, id, password, tel, email, zipCode, address, document1, document2, approval 
+  FROM GeneralUser_Tbl       
+  WHERE id = ? 
 `;
 
 //일반 회원탈퇴
@@ -156,7 +155,7 @@ WHERE G_UserId = ?
 `;
 
 const confirmInstiUser = `
-SELECT I_UserId ,institution_id ,name, id, password, tel, roll
+SELECT I_UserId ,institution_id ,name, id, password, tel, roll, approval
 FROM InstiUser_Tbl
 WHERE id = ?
 `;
@@ -379,7 +378,8 @@ AND institution_id = ?
 
 const agreeInstiUser = `
 UPDATE InstiUser_Tbl
-SET approval = 'g001'
+SET approval = 'g001',
+  roll = 'a003'
 WHERE I_UserId = ?
 `;
 

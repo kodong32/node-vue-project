@@ -171,13 +171,15 @@ router.get(`/institution`, async (req, res) => {
   res.send(result);
 });
 
-//로그인확인(김경환 2026.03.25)
+// 로그인확인(김경환 2026.03.25)
 router.post(`/login`, async (req, res) => {
   let body = req.body;
-  console.log(body);
+  // console.log("🔑 로그인 시도 ID:", body.id);
+
+  // 서비스에서 성공여부와 이유(reason)를 받아옴
   let result = await userService.confirmUser(body.id, body.password);
 
-  //session추가 26.03.27 고동현
+  // session추가 26.03.27 고동현
   if (result.success) {
     req.session.user = {
       G_UserId: result.user.G_UserId,
@@ -188,8 +190,16 @@ router.post(`/login`, async (req, res) => {
       email: result.user.email,
       role: "a004",
     };
+    console.log("✅ session user :", req.session.user);
+  } else {
+    // 실패 시 왜 실패했는지 콘솔에 출력 (디버깅용)
+    console.log(
+      "❌ 로그인 불가 사유:",
+      result.reason || "비밀번호/아이디 불일치",
+    );
   }
-  console.log("session user :", req.session.user);
+
+  // 🌟 프론트엔드로 성공/실패 여부와 사유(reason)를 담아서 보냅니다!
   res.send(result);
 });
 
@@ -233,6 +243,12 @@ router.post(`/ilogin`, async (req, res) => {
       tel: result.user.tel,
       role: result.user.roll,
     };
+    console.log("✅ session loginInstUser :", req.session.loginInstUser);
+  } else {
+    console.log(
+      "❌ 기관 로그인 불가 사유:",
+      result.reason || "비밀번호/아이디 불일치",
+    );
   }
   res.send(result);
 });

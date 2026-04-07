@@ -38,7 +38,7 @@ const multiFiles = (event) => {
       return;
     }
     const isSameFile = tempFiles.some(
-      (file) => file.name === newFile.name && file.size === newFile.size
+      (file) => file.name === newFile.name && file.size === newFile.size,
     );
     if (isSameFile) {
       alert(`중복된 파일입니다. 다시 확인해주세요.`);
@@ -164,6 +164,7 @@ const addUserInfo = async () => {
 
     if (result.status === "success") {
       router.push({ name: "userLogin", params: { no: result.G_UserId } });
+      alert("회원가입 신청이 완료되었습니다. 승인 후 로그인 가능합니다.");
     } else {
       isPrinted.value = true;
       alert(result.message || "회원가입 실패");
@@ -294,7 +295,16 @@ const sigunguMap = {
     "중랑구",
   ],
   대구: ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군"],
-  경기: ["수원시", "성남시", "용인시", "부천시", "안산시", "안양시", "화성시", "평택시"],
+  경기: [
+    "수원시",
+    "성남시",
+    "용인시",
+    "부천시",
+    "안산시",
+    "안양시",
+    "화성시",
+    "평택시",
+  ],
 };
 
 const guardianEditInfo = reactive({
@@ -388,7 +398,7 @@ onBeforeUnmount(() => {
     <div
       class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
       style="
-        background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg');
+        background-image: url(&quot;https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg&quot;);
         background-position: top;
       "
     >
@@ -417,7 +427,9 @@ onBeforeUnmount(() => {
                   <argon-button>일반이용자</argon-button>
                 </div>
                 <div class="col-auto">
-                  <argon-button color="dark" @click="goInsti()">기관직원</argon-button>
+                  <argon-button color="dark" @click="goInsti()"
+                    >기관직원</argon-button
+                  >
                 </div>
               </div>
             </div>
@@ -450,7 +462,10 @@ onBeforeUnmount(() => {
                     중복확인
                   </argon-button>
                 </div>
-                <p v-if="message" :style="{ color: isDuplicate ? 'red' : 'green' }">
+                <p
+                  v-if="message"
+                  :style="{ color: isDuplicate ? 'red' : 'green' }"
+                >
                   {{ message }}
                 </p>
                 <argon-input
@@ -485,7 +500,9 @@ onBeforeUnmount(() => {
                 <div class="row">
                   <div class="col-md-12">
                     <label class="form-control-label">주소</label>
-                    <div class="row g-2 mb-2 align-items-stretch justify-content-start">
+                    <div
+                      class="row g-2 mb-2 align-items-stretch justify-content-start"
+                    >
                       <div class="col-4">
                         <argon-input
                           class="mb-0"
@@ -498,7 +515,10 @@ onBeforeUnmount(() => {
                       </div>
 
                       <div class="col-auto d-flex">
-                        <argon-button class="mb-0 px-3" @click.prevent="openPostcode()">
+                        <argon-button
+                          class="mb-0 px-3"
+                          @click.prevent="openPostcode()"
+                        >
                           주소 검색
                         </argon-button>
                       </div>
@@ -588,7 +608,10 @@ onBeforeUnmount(() => {
                   class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                   style="background-color: rgba(0, 0, 0, 0.45); z-index: 2000"
                 >
-                  <div class="card shadow-lg" style="width: 700px; max-width: 90%">
+                  <div
+                    class="card shadow-lg"
+                    style="width: 700px; max-width: 90%"
+                  >
                     <div
                       class="card-header d-flex justify-content-between align-items-center"
                     >
@@ -610,7 +633,11 @@ onBeforeUnmount(() => {
                             @change="onChangeSido"
                           >
                             <option value="">선택</option>
-                            <option v-for="item in sidoList" :key="item" :value="item">
+                            <option
+                              v-for="item in sidoList"
+                              :key="item"
+                              :value="item"
+                            >
                               {{ item }}
                             </option>
                           </select>
@@ -618,9 +645,16 @@ onBeforeUnmount(() => {
 
                         <div class="col-md-4">
                           <label class="form-control-label">구 / 군</label>
-                          <select class="form-select" v-model="institutionSearch.sigungu">
+                          <select
+                            class="form-select"
+                            v-model="institutionSearch.sigungu"
+                          >
                             <option value="">선택</option>
-                            <option v-for="item in sigunguList" :key="item" :value="item">
+                            <option
+                              v-for="item in sigunguList"
+                              :key="item"
+                              :value="item"
+                            >
                               {{ item }}
                             </option>
                           </select>
@@ -645,7 +679,10 @@ onBeforeUnmount(() => {
                         >
                           닫기
                         </argon-button>
-                        <argon-button color="dark" @click.prevent="searchInstitution">
+                        <argon-button
+                          color="dark"
+                          @click.prevent="searchInstitution"
+                        >
                           검색
                         </argon-button>
                       </div>
@@ -675,7 +712,10 @@ onBeforeUnmount(() => {
                           </thead>
                           <tbody>
                             <tr v-if="!institutionList.length">
-                              <td colspan="3" class="text-center text-muted py-3">
+                              <td
+                                colspan="3"
+                                class="text-center text-muted py-3"
+                              >
                                 검색 결과가 없습니다.
                               </td>
                             </tr>
