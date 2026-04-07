@@ -213,6 +213,7 @@ router.put("/withdraw", async (req, res) => {
 
 //Router Gaurd에서 일반이용자 로그인 여부 확인을 위한 session Check Api 26.03.27 고동현추가
 router.get("/session-check", (req, res) => {
+
   if (req.session.user) {
     res.send({
       success: true,
