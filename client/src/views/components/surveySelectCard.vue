@@ -65,7 +65,7 @@
                           <div class="text-sm font-weight-bold text-dark mb-2">
                             {{ q.question_text }}
                           </div>
-                          <div class="extra-input-wrapper w-100">
+                          <!-- <div class="extra-input-wrapper w-100">
                             <textarea
                               class="form-control border-dark-strong custom-textarea-full bg-light"
                               :value="q.extra_reason"
@@ -73,7 +73,7 @@
                               rows="3"
                               readonly
                             ></textarea>
-                          </div>
+                          </div> -->
                         </td>
                       </template>
 
@@ -185,12 +185,60 @@ const getTitleByCode = (code) => {
   return found || null;
 };
 //데이터 대 -> 중 구조로 변환
+// const groupedSections = computed(() => {
+//   if (!surveyData.value.length) return [];
+
+//   const sections = [];
+
+//   surveyData.value.forEach((item) => {
+//     const currentTitleInfo = getTitleByCode(item.titleCode);
+
+//     const parentCode = currentTitleInfo?.parentCode || "ETC";
+//     const parentName = currentTitleInfo?.parentCode
+//       ? getTitleByCode(currentTitleInfo.parentCode)?.title
+//       : "기타 항목";
+
+//     // 1. 대분류
+//     let section = sections.find((s) => s.titleCode === parentCode);
+//     if (!section) {
+//       section = {
+//         titleCode: parentCode,
+//         titleName: parentName || "기타",
+//         subs: [],
+//       };
+//       sections.push(section);
+//     }
+
+//     // 2. 중분류
+//     const subTitleName = currentTitleInfo
+//       ? currentTitleInfo.title
+//       : "상세 항목";
+//     let sub = section.subs.find((s) => s.subTitle === subTitleName);
+//     if (!sub) {
+//       sub = {
+//         subTitle: subTitleName,
+//         description: "",
+//         questions: [],
+//       };
+//       section.subs.push(sub);
+//     }
+
+//     // 3. 문항 추가
+//     sub.questions.push(item);
+//   });
+
+//   return sections;
+// });
+
 const groupedSections = computed(() => {
   if (!surveyData.value.length) return [];
 
   const sections = [];
 
   surveyData.value.forEach((item) => {
+    // 추가 요청사항은 하단 textarea로 따로 보여줄 거라 표에서는 제외
+    if (item.titleCode === "T004") return;
+
     const currentTitleInfo = getTitleByCode(item.titleCode);
 
     const parentCode = currentTitleInfo?.parentCode || "ETC";
@@ -198,7 +246,6 @@ const groupedSections = computed(() => {
       ? getTitleByCode(currentTitleInfo.parentCode)?.title
       : "기타 항목";
 
-    // 1. 대분류
     let section = sections.find((s) => s.titleCode === parentCode);
     if (!section) {
       section = {
@@ -209,10 +256,7 @@ const groupedSections = computed(() => {
       sections.push(section);
     }
 
-    // 2. 중분류
-    const subTitleName = currentTitleInfo
-      ? currentTitleInfo.title
-      : "상세 항목";
+    const subTitleName = currentTitleInfo ? currentTitleInfo.title : "상세 항목";
     let sub = section.subs.find((s) => s.subTitle === subTitleName);
     if (!sub) {
       sub = {
@@ -223,12 +267,12 @@ const groupedSections = computed(() => {
       section.subs.push(sub);
     }
 
-    // 3. 문항 추가
     sub.questions.push(item);
   });
 
   return sections;
 });
+
 
 //타이틀 정보
 const fetchTitles = async () => {
@@ -244,6 +288,44 @@ const fetchTitles = async () => {
 };
 
 //조사지 건별조회 데이터 가져오기
+// const getSurveyDetail = async (id) => {
+//   try {
+//     const response = await fetch(
+//       `http://localhost:3000/survey/surveySelect/${id}`,
+//       {
+//         credentials: "include",
+//       },
+//     );
+
+//     if (!response.ok) {
+//       if (response.status === 403) alert("권한이 없습니다.");
+//       return;
+//     }
+
+//     const data = await response.json();
+//     if (data && data.length > 0) {
+//       data.forEach((item) => {
+//         if (
+//           item.titleCode === "T010" &&
+//           (String(item.question_no) === "2" ||
+//             String(item.question_text) === "2")
+//         ) {
+//           item.hasExtraInput = true;
+//         } else {
+//           item.hasExtraInput = false;
+//         }
+//       });
+//       surveyData.value = data;
+//       supportName.value = data[0].supportName || "성함 없음";
+//       createdAt.value = data[0].created_at;
+//       emit("loaded", { supportId: data[0].support_id });
+
+//       additionalRequest.value = data[0].request || "입력된 내용이 없습니다.";
+//     }
+//   } catch (error) {
+//     console.error("데이터 로드 실패:", error);
+//   }
+// };
 const getSurveyDetail = async (id) => {
   try {
     const response = await fetch(
@@ -259,7 +341,6 @@ const getSurveyDetail = async (id) => {
     }
 
     const data = await response.json();
-
     if (data && data.length > 0) {
       data.forEach((item) => {
         if (
@@ -272,12 +353,14 @@ const getSurveyDetail = async (id) => {
           item.hasExtraInput = false;
         }
       });
+
       surveyData.value = data;
       supportName.value = data[0].supportName || "성함 없음";
       createdAt.value = data[0].created_at;
       emit("loaded", { supportId: data[0].support_id });
 
-      additionalRequest.value = data[0].request || "입력된 내용이 없습니다.";
+      // 추가 요청사항은 fetchAnswers()에서 T004 answer로 세팅
+      additionalRequest.value = "입력된 내용이 없습니다.";
     }
   } catch (error) {
     console.error("데이터 로드 실패:", error);
@@ -285,6 +368,38 @@ const getSurveyDetail = async (id) => {
 };
 
 //조사지 답변 데이터
+// const fetchAnswers = async (id) => {
+//   try {
+//     const response = await fetch(
+//       `http://localhost:3000/survey/answerSelect/${id}`,
+//       { credentials: "include" },
+//     );
+//     if (!response.ok) throw new Error("답변 로드 실패");
+
+//     const answerData = await response.json();
+
+//     if (answerData.length > 0 && answerData[0].answer) {
+//       const ansArray = answerData[0].answer.split(",");
+
+//       const lastElement = ansArray[ansArray.length - 1];
+//       additionalRequest.value = lastElement || "입력된 내용이 없습니다.";
+
+//       surveyData.value.forEach((q, idx) => {
+//         const val = ansArray[idx] ? ansArray[idx].trim() : "";
+//         q.answer = val;
+
+//         if (
+//           q.titleCode === "T010" &&
+//           (String(q.question_no) === "2" || String(q.question_text) === "2")
+//         ) {
+//           q.extra_reason = val;
+//         }
+//       });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
 const fetchAnswers = async (id) => {
   try {
     const response = await fetch(
@@ -295,23 +410,37 @@ const fetchAnswers = async (id) => {
 
     const answerData = await response.json();
 
-    if (answerData.length > 0 && answerData[0].answer) {
-      const ansArray = answerData[0].answer.split(",");
+    console.log("답변데이터:", answerData);
 
-      const lastElement = ansArray[ansArray.length - 1];
-      additionalRequest.value = lastElement || "입력된 내용이 없습니다.";
+    if (!answerData || answerData.length === 0) {
+      additionalRequest.value = "입력된 내용이 없습니다.";
+      return;
+    }
 
-      surveyData.value.forEach((q, idx) => {
-        const val = ansArray[idx] ? ansArray[idx].trim() : "";
-        q.answer = val;
+    const answerMap = new Map();
 
-        if (
-          q.titleCode === "T010" &&
-          (String(q.question_no) === "2" || String(q.question_text) === "2")
-        ) {
-          q.extra_reason = val;
-        }
-      });
+    answerData.forEach((item) => {
+      answerMap.set(item.question_id, item.answer);
+    });
+
+    surveyData.value.forEach((q) => {
+      const val = answerMap.get(q.question_id) || "";
+      q.answer = val;
+
+      // 추가 입력 처리
+      if (q.hasExtraInput) {
+        q.extra_reason = val;
+      }
+
+      // 추가 요청사항(T004)은 별도 textarea에 표시
+      if (q.titleCode === "T004") {
+        additionalRequest.value = val || "입력된 내용이 없습니다.";
+      }
+    });
+
+    // 혹시 T004 답변이 없으면 기본 문구
+    if (!additionalRequest.value) {
+      additionalRequest.value = "입력된 내용이 없습니다.";
     }
   } catch (error) {
     console.error(error);

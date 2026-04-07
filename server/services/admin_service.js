@@ -90,6 +90,17 @@ const SurveyInsert = async (surveyObj) => {
         item.answer_type
       ]);
     };
+    currentNum += 1;
+    const extraQuestionId = "ITEM" + String(currentNum).padStart(4, "0");
+
+    itemDataList.push([
+      extraQuestionId,
+      Ver_Id,
+      "T004",
+      1,
+      "추가 요청사항",
+      "e002"
+    ]);
     const result = await adminMapper.insertSurveyAll(FormData, itemDataList);
     if (result.status !== "Success") {
       return result;
@@ -106,6 +117,8 @@ const SurveyInsert = async (surveyObj) => {
     };
   }
 };
+
+
 
 
 //조사지 ListUP
@@ -145,19 +158,19 @@ const getSurveyDetail = async (verId) => {
 };
 
 //이전버전 data 불러오기
-const getCurrentSurveyDetail = async () =>{
+const getCurrentSurveyDetail = async () => {
   const rows = await adminMapper.getCurrentSurveyDetail();
 
-  if(!rows || rows.length === 0){
+  if (!rows || rows.length === 0) {
     return {
-      status : "Failed",
-      message : "현재 사용중인 조사지가 없습니다.",
+      status: "Failed",
+      message: "현재 사용중인 조사지가 없습니다.",
     }
   }
-  
+
   return {
-    status : "Success",
-    data : rows,
+    status: "Success",
+    data: rows,
   }
 };
 
@@ -165,19 +178,19 @@ const getCurrentSurveyDetail = async () =>{
 const getLatestVersion = async () => {
   const rows = await adminMapper.getLatestVersion();
 
-  if(!rows || rows.length === 0) {
+  if (!rows || rows.length === 0) {
     return {
-      stats : "Failed",
-      message : "등록된 조사지가 없습니다."
+      stats: "Failed",
+      message: "등록된 조사지가 없습니다."
     }
   }
-  
+
   return {
-    status : "Success",
-    data : rows,
+    status: "Success",
+    data: rows,
   }
 };
 
 module.exports = {
-  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion,getSurveyDetail, getCurrentSurveyDetail, getLatestVersion
+  SurveyInsert, sysAdminLogin, getSurveyVersionList, setActiveVersion, getSurveyDetail, getCurrentSurveyDetail, getLatestVersion
 };

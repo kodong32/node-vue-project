@@ -384,30 +384,60 @@ const removeInput = (sub, index) => {
   sub.inputs.splice(index, 1);
 };
 
+// const bindPrevVersionToSections = (rows) => {
+//   allSections.value.forEach((section) => {
+//     section.subs.forEach((sub) => {
+//       sub.inputs = [] ;
+//     })
+//   });
+
+//   rows.forEach((row) => {
+//     allSections.value.forEach((section) => {
+//       section.subs.forEach((sub) => {
+//         if(sub.titleCode === row.titleCode){
+//           sub.inputs.push({
+//             text : row.question_text || "",
+//             answerType : row.answer_type || "e001",
+//             questionNo : row.question_no || 0,
+//           });
+//         }
+//       });
+//     });
+//   });
+  
+//   allSections.value.forEach((section) => {
+//     section.subs.forEach((sub) => {
+//       sub.inputs.sort((a,b) => a.questionNo - b.questionNo);
+//     });
+//   });
+// };
+
 const bindPrevVersionToSections = (rows) => {
   allSections.value.forEach((section) => {
     section.subs.forEach((sub) => {
-      sub.inputs = [] ;
-    })
+      sub.inputs = [];
+    });
   });
 
   rows.forEach((row) => {
+    if (row.titleCode === "T004") return;
+
     allSections.value.forEach((section) => {
       section.subs.forEach((sub) => {
-        if(sub.titleCode === row.titleCode){
+        if (sub.titleCode === row.titleCode) {
           sub.inputs.push({
-            text : row.question_text || "",
-            answerType : row.answer_type || "e001",
-            questionNo : row.question_no || 0,
+            text: row.question_text || "",
+            answerType: row.answer_type || "e001",
+            questionNo: row.question_no || 0,
           });
         }
       });
     });
   });
-  
+
   allSections.value.forEach((section) => {
     section.subs.forEach((sub) => {
-      sub.inputs.sort((a,b) => a.questionNo - b.questionNo);
+      sub.inputs.sort((a, b) => a.questionNo - b.questionNo);
     });
   });
 };

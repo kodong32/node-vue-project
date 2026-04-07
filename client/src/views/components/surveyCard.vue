@@ -19,9 +19,7 @@
           <div class="card-body p-4 pt-5">
             <template v-for="(section, sIdx) in allSections" :key="sIdx">
               <div class="section-container mb-5">
-                <div
-                  class="section-title-wrapper d-flex align-items-center mb-2"
-                >
+                <div class="section-title-wrapper d-flex align-items-center mb-2">
                   <span class="dot-icon me-2">●</span>
                   <h6 class="mb-0 font-weight-bolder text-dark">
                     {{ section.titleName }}
@@ -37,16 +35,11 @@
                       <col style="width: 70px" />
                     </colgroup>
 
-                    <template
-                      v-for="(sub, subIdx) in section.subs"
-                      :key="subIdx"
-                    >
+                    <template v-for="(sub, subIdx) in section.subs" :key="subIdx">
                       <thead class="sub-group-header">
                         <tr>
                           <th colspan="2" class="text-start ps-3 py-2">
-                            <span class="sub-title-text">{{
-                              sub.subTitle
-                            }}</span>
+                            <span class="sub-title-text">{{ sub.subTitle }}</span>
                             <span
                               class="sub-desc-text ms-3 text-xs text-secondary font-weight-normal"
                             >
@@ -54,9 +47,7 @@
                             </span>
                           </th>
                           <th class="text-center text-sm border-start">예</th>
-                          <th class="text-center text-sm border-start">
-                            아니오
-                          </th>
+                          <th class="text-center text-sm border-start">아니오</th>
                         </tr>
                       </thead>
 
@@ -71,17 +62,10 @@
                           </td>
 
                           <template v-if="q.hasExtraInput">
-                            <td
-                              colspan="4"
-                              class="ps-3 py-3 text-start border-end"
-                            >
-                              <div
-                                class="text-sm font-weight-bold text-dark mb-2"
-                              >
+                            <td colspan="4" class="ps-3 py-3 text-start border-end">
+                              <div class="text-sm font-weight-bold text-dark mb-2">
                                 {{
-                                  typeof q === "string"
-                                    ? q
-                                    : q.question_text || q.text
+                                  typeof q === "string" ? q : q.question_text || q.text
                                 }}
                               </div>
                               <div class="extra-input-wrapper w-100">
@@ -99,9 +83,7 @@
                             <td class="ps-3 py-3 text-start border-end">
                               <div class="text-sm font-weight-bold text-dark">
                                 {{
-                                  typeof q === "string"
-                                    ? q
-                                    : q.question_text || q.text
+                                  typeof q === "string" ? q : q.question_text || q.text
                                 }}
                               </div>
                             </td>
@@ -136,9 +118,7 @@
               <div class="section-title-box mb-2">
                 <div class="d-flex align-items-center">
                   <span class="dot-icon me-2">●</span>
-                  <h6 class="mb-0 font-weight-bolder text-dark">
-                    추가 요청사항
-                  </h6>
+                  <h6 class="mb-0 font-weight-bolder text-dark">추가 요청사항</h6>
                 </div>
               </div>
               <div
@@ -187,9 +167,7 @@
       <div v-if="isModalOpen" class="modal-overlay">
         <div class="modal-content-wrapper shadow-lg">
           <div class="header-bg p-3 px-4 position-relative">
-            <h5 class="mb-0 font-weight-bolder text-white">
-              조사지 신청 내용 확인
-            </h5>
+            <h5 class="mb-0 font-weight-bolder text-white">조사지 신청 내용 확인</h5>
             <div class="date-center">
               <span class="text-white text-sm font-weight-bold opacity-9">
                 등록일 : {{ selectedUserInfo?.dateFormat || "-" }}
@@ -209,14 +187,9 @@
               </div>
 
               <div class="table-responsive mb-4">
-                <table
-                  class="table align-items-center mb-0 custom-bordered-table"
-                >
+                <table class="table align-items-center mb-0 custom-bordered-table">
                   <tbody>
-                    <template
-                      v-for="(sub, subIdx) in section.subs"
-                      :key="'ms' + subIdx"
-                    >
+                    <template v-for="(sub, subIdx) in section.subs" :key="'ms' + subIdx">
                       <tr class="sub-header-row bg-white">
                         <td
                           class="text-success font-weight-bolder text-sm ps-3 py-2 border-bottom-dark"
@@ -274,9 +247,7 @@
                         </td>
 
                         <template v-else>
-                          <td
-                            class="text-sm text-dark text-wrap py-2 ps-3 align-middle"
-                          >
+                          <td class="text-sm text-dark text-wrap py-2 ps-3 align-middle">
                             {{ q.question_text || q.text }}
                           </td>
                           <td
@@ -293,9 +264,7 @@
                             style="width: 70px"
                           >
                             <div
-                              v-if="
-                                answers[sIdx]?.[subIdx]?.[qIdx] === '아니오'
-                              "
+                              v-if="answers[sIdx]?.[subIdx]?.[qIdx] === '아니오'"
                               class="selected-dot mx-auto"
                             ></div>
                           </td>
@@ -318,10 +287,7 @@
           <div
             class="modal-footer d-flex justify-content-center bg-white border-top py-3"
           >
-            <button
-              class="btn btn-success px-5 py-2 me-2 shadow-sm"
-              @click="serveyAdd()"
-            >
+            <button class="btn btn-success px-5 py-2 me-2 shadow-sm" @click="serveyAdd()">
               등록
             </button>
             <button
@@ -345,7 +311,7 @@ import { watch } from "vue";
 
 const router = useRouter();
 const surveyStore = useSurveyStore();
-
+const extraRequestQuestionId = ref("");
 const isModalOpen = ref(false);
 const additionalRequest = ref("");
 const uniqueUserList = ref([]);
@@ -360,8 +326,9 @@ const props = defineProps({
   },
 });
 console.log("props", props);
-
+const newVerId = ref("");
 const Ver_Id = computed(() => props.verId);
+
 console.log("Ver_Id", Ver_Id);
 
 const getSectionTitle = (code) => {
@@ -401,21 +368,97 @@ const createInitialAnswers = () =>
       sub.questions.map((q) => {
         // 타입이 체크박스면 초기값을 빈 배열[]로, 나머지는 null로 설정
         return q.input_type === "checkbox" ? [] : null;
-      }),
-    ),
+      })
+    )
   );
 
 //설문 문항
-const fetchSurveyItems = async () => {
+// const fetchSurveyItems = async (Ver_Id) => {
+//   try {
+//     newVerId.value = Ver_Id;
+//     const res = await fetch(`/api/survey/items/${Ver_Id}`);
+//     if (res.ok) {
+//       const rawData = await res.json();
+//       // console.log(`${Ver_Id.value} 문항 로드 완료`);
+//       console.log(rawData);
+//       const grouped = [];
+
+//       rawData.forEach((item) => {
+//         const sInfo = getSectionTitle(item.titleCode);
+//         let section = grouped.find((s) => s.titleCode === sInfo.code);
+
+//         if (!section) {
+//           section = {
+//             titleCode: sInfo.code,
+//             titleName: sInfo.name,
+//             subs: [],
+//           };
+//           grouped.push(section);
+//         }
+
+//         const currentSubTitle = item.S_Name || "기본 항목";
+//         let sub = section.subs.find((sb) => sb.subTitle === currentSubTitle);
+
+//         if (!sub) {
+//           let displayDesc = "";
+//           if (sInfo.code === "T001") {
+//             displayDesc = "지원이 필요한 서비스 항목입니다.";
+//           } else {
+//             displayDesc = item.S_Desc || "";
+//           }
+
+//           sub = {
+//             subTitle: currentSubTitle,
+//             description: displayDesc,
+//             questions: [],
+//           };
+//           section.subs.push(sub);
+//         }
+
+//         const isEmergencySection = item.titleCode === "T010";
+//         const isQuestionTwo = String(item.question_text) === "2";
+
+//         if (isEmergencySection && isQuestionTwo) {
+//           item.hasExtraInput = true;
+//         } else {
+//           item.hasExtraInput = false;
+//         }
+
+//         sub.questions.push(item);
+//       });
+
+//       allSections.value = grouped;
+
+//       answers.value = allSections.value.map((section) =>
+//         section.subs.map((sub) => new Array(sub.questions.length).fill(null))
+//       );
+
+//       extraInputs.value = allSections.value.map((section) =>
+//         section.subs.map((sub) => sub.questions.map(() => ({ reason: "", date: "" })))
+//       );
+//     }
+//   } catch (err) {
+//     console.error("문항 로드 실패:", err);
+//   }
+// };
+const fetchSurveyItems = async (Ver_Id) => {
   try {
-    const res = await fetch(`/api/survey/items/${Ver_Id.value}`);
+    newVerId.value = Ver_Id;
+    extraRequestQuestionId.value = "";
+
+    const res = await fetch(`/api/survey/items/${Ver_Id}`);
     if (res.ok) {
       const rawData = await res.json();
-      console.log(`${Ver_Id.value} 문항 로드 완료`);
+      console.log("survey items rawData:", rawData);
 
       const grouped = [];
 
       rawData.forEach((item) => {
+        if (item.titleCode === "T004") {
+          extraRequestQuestionId.value = item.question_id;
+          return;
+        }
+
         const sInfo = getSectionTitle(item.titleCode);
         let section = grouped.find((s) => s.titleCode === sInfo.code);
 
@@ -450,11 +493,7 @@ const fetchSurveyItems = async () => {
         const isEmergencySection = item.titleCode === "T010";
         const isQuestionTwo = String(item.question_text) === "2";
 
-        if (isEmergencySection && isQuestionTwo) {
-          item.hasExtraInput = true;
-        } else {
-          item.hasExtraInput = false;
-        }
+        item.hasExtraInput = isEmergencySection && isQuestionTwo;
 
         sub.questions.push(item);
       });
@@ -462,13 +501,19 @@ const fetchSurveyItems = async () => {
       allSections.value = grouped;
 
       answers.value = allSections.value.map((section) =>
-        section.subs.map((sub) => new Array(sub.questions.length).fill(null)),
+        section.subs.map((sub) => new Array(sub.questions.length).fill(null))
       );
 
       extraInputs.value = allSections.value.map((section) =>
         section.subs.map((sub) =>
-          sub.questions.map(() => ({ reason: "", date: "" })),
-        ),
+          sub.questions.map(() => ({ reason: "", date: "" }))
+        )
+      );
+
+      console.log("extraRequestQuestionId:", extraRequestQuestionId.value);
+      console.log(
+        "일반 질문 개수:",
+        allSections.value.flatMap((s) => s.subs).flatMap((sub) => sub.questions).length
       );
     }
   } catch (err) {
@@ -477,9 +522,116 @@ const fetchSurveyItems = async () => {
 };
 
 //조사지 등록
+// const serveyAdd = async () => {
+//   const selectedUser = uniqueUserList.value.find(
+//     (u) => u.support_id === surveyStore.selectedUserId
+//   );
+
+//   if (!selectedUser) {
+//     alert("지원대상자를 선택해주세요.");
+//     return;
+//   }
+
+//   //답변 담는 함수
+//   const finalAnswerList = [];
+//   allSections.value.forEach((section, sIdx) => {
+//     section.subs.forEach((sub, subIdx) => {
+//       sub.questions.forEach((q, qIdx) => {
+//         if (q.hasExtraInput) {
+//           finalAnswerList.push(q.extra_reason || "");
+//         } else {
+//           const val = answers.value[sIdx][subIdx][qIdx];
+//           finalAnswerList.push(val || "");
+//         }
+//       });
+//     });
+//   });
+
+//   // 답변 필수 체크
+//   const isAllAnswered = allSections.value.every((section, sIdx) => {
+//     return section.subs.every((sub, subIdx) => {
+//       return sub.questions.every((q, qIdx) => {
+//         if (q.hasExtraInput) {
+//           return q.extra_reason && q.extra_reason.trim().length > 0;
+//         } else {
+//           return (
+//             answers.value[sIdx][subIdx][qIdx] !== null &&
+//             answers.value[sIdx][subIdx][qIdx] !== ""
+//           );
+//         }
+//       });
+//     });
+//   });
+
+//   if (!isAllAnswered) {
+//     console.log("현재 수집된 답변 리스트:", finalAnswerList);
+//     alert("작성하지 않은 문항이 있습니다.");
+//     return;
+//   }
+
+//   try {
+//     const idResponse = await fetch("/api/survey/newId");
+//     if (!idResponse.ok) throw new Error("새 아이디 생성 실패");
+//     const newJId = await idResponse.text();
+
+//     //추가 요청 사항
+//     const safeRequest = additionalRequest.value
+//       ? additionalRequest.value.replace(/,/g, " ")
+//       : "";
+
+//     finalAnswerList.push(safeRequest);
+
+//     let data = {
+//       J_ID: newJId,
+//       // Ver_Id: Ver_Id.value,
+//       Ver_Id : newVerId.value,
+//       G_UserId: selectedUser.G_UserId,
+//       support_id: selectedUser.support_id,
+//       result: null,
+//       reason: null,
+//       answerList: finalAnswerList,
+//       created_at: new Date().toISOString().split("T")[0],
+//       updated_at: new Date().toISOString().split("T")[0],
+//     };
+
+//     let response = await fetch("/api/survey/add", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(data),
+//     });
+
+//     if (response.ok) {
+//       const answerResponse = await fetch("/api/survey/answer", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           J_ID: data.J_ID,
+//           answerList: finalAnswerList,
+//           extraInputs: extraInputs.value.flat(2),
+//         }),
+//       });
+
+//       if (answerResponse.ok) {
+//         alert("조사지 등록이 완료되었습니다.");
+//         surveyStore.selectedUserId = "";
+//         router.push({ name: "userSurveySelect", params: { id: data.J_ID } });
+//       } else {
+//         alert("상세 답변 등록 중 오류가 발생했습니다.");
+//       }
+//     } else {
+//       alert("조사지 등록 실패");
+//     }
+//   } catch (err) {
+//     console.error("등록 중 에러 발생:", err);
+//     alert("오류가 발생했습니다: " + err.message);
+//   }
+// };
+
+
+
 const serveyAdd = async () => {
   const selectedUser = uniqueUserList.value.find(
-    (u) => u.support_id === surveyStore.selectedUserId,
+    (u) => u.support_id === surveyStore.selectedUserId
   );
 
   if (!selectedUser) {
@@ -487,22 +639,6 @@ const serveyAdd = async () => {
     return;
   }
 
-  //답변 담는 함수
-  const finalAnswerList = [];
-  allSections.value.forEach((section, sIdx) => {
-    section.subs.forEach((sub, subIdx) => {
-      sub.questions.forEach((q, qIdx) => {
-        if (q.hasExtraInput) {
-          finalAnswerList.push(q.extra_reason || "");
-        } else {
-          const val = answers.value[sIdx][subIdx][qIdx];
-          finalAnswerList.push(val || "");
-        }
-      });
-    });
-  });
-
-  // 답변 필수 체크
   const isAllAnswered = allSections.value.every((section, sIdx) => {
     return section.subs.every((sub, subIdx) => {
       return sub.questions.every((q, qIdx) => {
@@ -519,26 +655,54 @@ const serveyAdd = async () => {
   });
 
   if (!isAllAnswered) {
-    console.log("현재 수집된 답변 리스트:", finalAnswerList);
     alert("작성하지 않은 문항이 있습니다.");
     return;
   }
+
+  const finalAnswerList = [];
+
+  allSections.value.forEach((section, sIdx) => {
+    section.subs.forEach((sub, subIdx) => {
+      sub.questions.forEach((q, qIdx) => {
+        let answerValue = "";
+
+        if (q.hasExtraInput) {
+          answerValue = q.extra_reason || "";
+        } else {
+          answerValue = answers.value[sIdx][subIdx][qIdx] || "";
+        }
+
+        finalAnswerList.push({
+          question_id: q.question_id,
+          answer: answerValue,
+        });
+      });
+    });
+  });
+
+  const safeRequest = additionalRequest.value
+    ? additionalRequest.value.replace(/,/g, " ")
+    : "";
+
+  if (extraRequestQuestionId.value) {
+    finalAnswerList.push({
+      question_id: extraRequestQuestionId.value,
+      answer: safeRequest,
+    });
+  }
+
+  console.log("extraRequestQuestionId:", extraRequestQuestionId.value);
+  console.log("additionalRequest:", additionalRequest.value);
+  console.log("finalAnswerList:", finalAnswerList);
 
   try {
     const idResponse = await fetch("/api/survey/newId");
     if (!idResponse.ok) throw new Error("새 아이디 생성 실패");
     const newJId = await idResponse.text();
 
-    //추가 요청 사항
-    const safeRequest = additionalRequest.value
-      ? additionalRequest.value.replace(/,/g, " ")
-      : "";
-
-    finalAnswerList.push(safeRequest);
-
-    let data = {
+    const data = {
       J_ID: newJId,
-      Ver_Id: Ver_Id.value,
+      Ver_Id: newVerId.value,
       G_UserId: selectedUser.G_UserId,
       support_id: selectedUser.support_id,
       result: null,
@@ -548,32 +712,32 @@ const serveyAdd = async () => {
       updated_at: new Date().toISOString().split("T")[0],
     };
 
-    let response = await fetch("/api/survey/add", {
+    const response = await fetch("/api/survey/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    if (response.ok) {
-      const answerResponse = await fetch("/api/survey/answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          J_ID: data.J_ID,
-          answerList: finalAnswerList,
-          extraInputs: extraInputs.value.flat(2),
-        }),
-      });
-
-      if (answerResponse.ok) {
-        alert("조사지 등록이 완료되었습니다.");
-        surveyStore.selectedUserId = "";
-        router.push({ name: "userSurveySelect", params: { id: data.J_ID } });
-      } else {
-        alert("상세 답변 등록 중 오류가 발생했습니다.");
-      }
-    } else {
+    if (!response.ok) {
       alert("조사지 등록 실패");
+      return;
+    }
+
+    const answerResponse = await fetch("/api/survey/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        J_ID: data.J_ID,
+        answerList: finalAnswerList,
+      }),
+    });
+
+    if (answerResponse.ok) {
+      alert("조사지 등록이 완료되었습니다.");
+      surveyStore.selectedUserId = "";
+      router.push({ name: "userSurveySelect", params: { id: data.J_ID } });
+    } else {
+      alert("상세 답변 등록 중 오류가 발생했습니다.");
     }
   } catch (err) {
     console.error("등록 중 에러 발생:", err);
@@ -586,15 +750,15 @@ watch(
   async (newVal) => {
     console.log("폼 버전 변경 감지:", newVal);
     if (newVal) {
-      await fetchSurveyItems();
+      await fetchSurveyItems(newVal);
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 const selectedUserInfo = computed(() => {
   const user = uniqueUserList.value.find(
-    (u) => u.support_id === surveyStore.selectedUserId,
+    (u) => u.support_id === surveyStore.selectedUserId
   );
 
   return {
@@ -606,9 +770,18 @@ const selectedUserInfo = computed(() => {
 
 onMounted(async () => {
   try {
+    const version = await fetch("/api/survey/getversion")
+      .then((resp) => resp.json())
+      .catch((err) => console.log(err));
+
+    if (version.status === "Success") {
+      console.log(version.data[0].Ver_Id);
+      await fetchSurveyItems(version.data[0].Ver_Id);
+    }
+
     const response = await fetch("/api/survey/support");
     if (response.ok) uniqueUserList.value = await response.json();
-    await fetchSurveyItems();
+    // await fetchSurveyItems(Ver_Id);
   } catch (err) {
     console.error(err);
   }

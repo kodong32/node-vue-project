@@ -28,6 +28,15 @@ FROM Support_Tbl s
 LEFT JOIN GeneralUser_Tbl g ON s.G_UserId = g.G_UserId
 `;
 
+//getVersion
+const getVersion =
+`
+SELECT
+   Ver_Id, Sys_Id, version, description, created_at, use_yn
+FROM SurveyForm_Tbl
+WHERE use_yn = 'Y'
+`;
+
 //폼 장애유형 대 선택
 const description = `
 SELECT b_Code AS code, description
@@ -158,4 +167,5 @@ module.exports = {
   surveyDetail,
   title,
   answerSelect,
+  getVersion
 };
