@@ -48,13 +48,22 @@ router.post(
       const body = req.body;
       const files = req.files || {};
 
-      // 🌟 [핵심 변경] 프론트에서 넘어온 가짜 명찰 무시하고, 백엔드 세션에서 직접 꺼내기!
-      if (req.session.loginInstUser) {
-        // 기관 이용자가 작성하는 경우 (시스템 관리자도 기관 테이블에 있다고 가정)
-        body.writerType = req.session.loginInstUser.role; // 권한 코드 (예: a001, a002)
-        body.writerId = req.session.loginInstUser.I_UserId; // 유저 ID (PK)
+      // 🌟 [수정] 여러 세션 이름표를 다 찾아보고, 없으면 프론트가 보낸 데이터(body) 사용!
+      const sessionUser =
+        req.session.loginInstUser ||
+        req.session.user ||
+        req.session.loginUser ||
+        req.session.admin ||
+        req.session.loginAdmin;
+
+      if (sessionUser) {
+        body.writerType = sessionUser.role;
+        body.writerId =
+          sessionUser.I_UserId || sessionUser.user_id || sessionUser.id;
+      } else if (body.writerId && body.writerRole) {
+        // 🌟 세션이 없어도 프론트에서 보낸 명찰이 있다면 인정해줌 (CORS 쿠키 유실 방어)
+        body.writerType = body.writerRole;
       } else {
-        // 🚨 세션이 없으면 에러 처리 (보안)
         return res
           .status(401)
           .json({ message: "로그인이 필요하거나 권한이 없습니다." });
@@ -94,8 +103,15 @@ router.put(
       const body = req.body;
       const files = req.files || {};
 
-      // 🌟 [보안 검사] 수정 요청을 보낸 사람의 세션이 있는지 확인
-      if (!req.session.loginInstUser) {
+      const sessionUser =
+        req.session.loginInstUser ||
+        req.session.user ||
+        req.session.loginUser ||
+        req.session.admin ||
+        req.session.loginAdmin;
+
+      // 🌟 [수정] 세션도 없고 프론트 데이터도 없으면 튕겨냄
+      if (!sessionUser && !body.writerId) {
         return res
           .status(401)
           .json({ message: "로그인이 필요하거나 권한이 없습니다." });
@@ -119,8 +135,15 @@ router.put(
 // 💡 5. 공지사항 삭제 (DELETE /notice/:id)
 router.delete("/:id", async (req, res) => {
   try {
-    // 🌟 [보안 검사] 삭제 요청을 보낸 사람의 세션이 있는지 확인
-    if (!req.session.loginInstUser) {
+    const sessionUser =
+      req.session.loginInstUser ||
+      req.session.user ||
+      req.session.loginUser ||
+      req.session.admin ||
+      req.session.loginAdmin;
+
+    // 🌟 [수정] 다양한 세션 이름표 허용
+    if (!sessionUser) {
       return res
         .status(401)
         .json({ message: "로그인이 필요하거나 권한이 없습니다." });
