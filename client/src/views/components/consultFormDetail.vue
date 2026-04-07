@@ -76,7 +76,7 @@
             <label>지원자명</label>
             <input
               type="text"
-              :value="d.user_name"
+              :value="d.guardian_name"
               class="form-input bg-light"
               readonly
             />
@@ -85,7 +85,7 @@
             <label>보호자명</label>
             <input
               type="text"
-              :value="d.guardian_name"
+              :value="d.user_name"
               class="form-input bg-light"
               placeholder="정보 없음"
               readonly

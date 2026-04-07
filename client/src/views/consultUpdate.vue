@@ -70,25 +70,15 @@
           <div class="info-item">
             <label>상담 유형</label>
             <select v-model="form.counsult_method" class="form-select">
-              <option
-                v-for="m in methodList"
-                :key="m.counsult_method"
-                :value="m.counsult_method"
-              >
-                {{ m.counsult_method }}
-              </option>
+              <option>대면상담</option>
+              <option>전화상담</option>
             </select>
           </div>
           <div class="info-item">
             <label>상담 장소</label>
             <select v-model="form.counsult_loc" class="form-select">
-              <option
-                v-for="place in placeList"
-                :key="place.counsult_loc"
-                :value="place.counsult_loc"
-              >
-                {{ place.counsult_loc }}
-              </option>
+              <option>센터</option>
+              <option>지원대상자집</option>
             </select>
           </div>
 

@@ -146,6 +146,20 @@ const consultCount = async () => {
   }
 };
 
+//지원대상자 조회
+const support = async () => {
+  let conn = null;
+  try {
+    conn = await pool.getConnection();
+    let rows = await conn.query(consultSql.support);
+    return rows;
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 //건별조회
 const consultDetail = async (j_Code) => {
   let conn = null;
@@ -245,4 +259,5 @@ module.exports = {
   consultDetail,
   descriptionMiddle,
   consultUpdate,
+  support,
 };

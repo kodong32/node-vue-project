@@ -173,6 +173,23 @@ SET
 WHERE counsult_id = ?;
 `;
 
+//지원대상자 조회
+const support = `
+SELECT 
+  s.support_id,
+  s.name AS support_name,
+  g.name AS guardian_name,
+  s.G_UserId,
+  s.major,
+  s.middle,
+  s.I_UserId1 AS managerMainId,
+  s.I_UserId2 AS managerSubId
+FROM Support_Tbl s
+LEFT JOIN GeneralUser_Tbl g 
+  ON g.G_UserID = s.G_UserId
+ORDER BY s.name;
+`;
+
 // //상담기록 삭제
 // const remove = `
 // DELETE FROM ConsultRecord_Tbl
@@ -191,4 +208,5 @@ module.exports = {
   consultDetail,
   descriptionMiddle,
   consultUpdate,
+  support,
 };

@@ -61,13 +61,10 @@
             <label>상담 장소</label>
             <select v-model="form.location" class="form-input custom-select">
               <option value="">장소 선택</option>
-              <option
-                v-for="place in placeList"
-                :key="place.counsult_loc"
-                :value="place.counsult_loc"
-              >
-                {{ place.counsult_loc }}
-              </option>
+              <option>센터</option>
+              <option>지원대상자집</option>
+              <option>외부장소</option>
+              <option>온라인</option>
             </select>
           </div>
           <div class="info-item">
@@ -103,13 +100,10 @@
             <label>상담 방법</label>
             <select v-model="form.method" class="form-input custom-select">
               <option value="">상담 방법 선택</option>
-              <option
-                v-for="method in methods"
-                :key="method.counsult_method"
-                :value="method.counsult_method"
-              >
-                {{ method.counsult_method }}
-              </option>
+              <option>방문상담</option>
+              <option>전화상담</option>
+              <option>채팅상담</option>
+              <option>영상통화</option>
             </select>
           </div>
 
@@ -213,11 +207,19 @@ const managerList = ref([]);
 
 //장애유형 대분류 이름으로 변환
 const disabilityTypeName = computed(() => {
-  if (!form.value.targetId) return;
-  const type = form.value.disabilityTypes;
+  if (!form.value.targetId || !form.value.disabilityTypes) return "";
 
-  if (!type) return "없음";
-  return type;
+  const codes = String(form.value.disabilityTypes).split(",");
+
+  return codes
+    .map((code) => {
+      const found = disabilityTypes.value.find(
+        (t) => String(t.code).trim() === String(code).trim(),
+      );
+      return found ? found.description : code;
+    })
+    .filter(Boolean)
+    .join(", ");
 });
 
 //장애유형 중분류 이름으로 변환
@@ -270,11 +272,12 @@ const handleUserChange = () => {
 
   if (user) {
     form.value.targetName = user.support_name;
-    form.value.guardianName = user.user_name;
+    form.value.guardianName =
+      user.guardian_name || user.guardianName || "정보 없음";
     form.value.support_id = user.support_id;
 
-    form.value.disabilityTypes = user.disabilityType || "";
-    form.value.consultMiddle = user.consultMiddle || "";
+    form.value.disabilityTypes = user.major || "";
+    form.value.consultMiddle = user.middle || "";
 
     form.value.managerMainId = user.managerMainId || "";
     form.value.managerSubId = user.managerSubId || "";
@@ -343,19 +346,14 @@ const fetchConsultMiddle = async () => {
 //지원대상자
 const fetchUsers = async () => {
   try {
-    const response = await fetch("/api/consult/user");
+    const response = await fetch("/api/consult/support");
+
     if (!response.ok) throw new Error("사용자 로드 에러");
     const data = await response.json();
 
-    if (Array.isArray(data)) {
-      userList.value = data;
-    } else if (data && Array.isArray(data.data)) {
-      userList.value = data.data;
-    } else {
-      userList.value = [];
-    }
+    userList.value = Array.isArray(data) ? data : data.data || [];
   } catch (error) {
-    console.error("데이터 로드 중 오류:", error);
+    console.error(error);
     userList.value = [];
   }
 };
@@ -468,10 +466,8 @@ const consultAdd = async () => {
       return;
     }
 
-    const currentManagerId = localStorage.getItem("userId") || "SUV0000";
+    const currentManagerId = localStorage.getItem("userId") || "SUV0001";
 
-    console.log("managerMainId:", form.value.managerMainId);
-    console.log("support_id:", form.value.support_id);
     let data = {
       // counsult_id
       J_ID: currentManagerId,
@@ -483,14 +479,18 @@ const consultAdd = async () => {
       counsult_loc: form.value.location,
       counsult_startTime: form.value.startTime,
       counsult_endTime: form.value.endTime,
+      counsult_method: form.value.method,
+
       counsult_content: form.value.details.basic,
       counsult_content2: form.value.details.content,
       counsult_content3: form.value.details.needs,
       counsult_content4: form.value.details.opinion,
+
       updated_at: form.value.updatedDate || now,
-      counsult_method: form.value.method,
     };
-    console.log("📌 실제 전송 데이터:", data);
+
+    console.log("실제 전송 데이터:", data);
+
     let response = await fetch("/api/consult/consultAdd", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -87,6 +87,13 @@ router.get("/manager", async (req, res) => {
   res.send(result);
 });
 
+//지원대상자 조회
+router.get("/support", async (req, res) => {
+  let result = await consultService.support();
+  // console.log("support", result);
+  res.send(result);
+});
+
 //상담기록 등록
 router.post("/consultAdd", async (req, res) => {
   let target = req.body;

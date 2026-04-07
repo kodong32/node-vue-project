@@ -104,6 +104,12 @@ const consultUpdate = async (info) => {
   return result;
 };
 
+// 지원대상자 조회
+const support = async () => {
+  let support = await consultMapper.support();
+  return support;
+};
+
 //상담기록 삭제
 // const remove = async (counsult_id,
 //     J_ID,
@@ -148,4 +154,5 @@ module.exports = {
   consultDetail,
   descriptionMiddle,
   consultUpdate,
+  support,
 };
