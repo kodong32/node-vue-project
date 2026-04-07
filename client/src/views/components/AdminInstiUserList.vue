@@ -121,6 +121,34 @@ const submitEdit = async () => {
   }
 };
 
+const formatPhoneNumber = (number) => {
+  if (!number) return "-";
+
+  const cleaned = number.replace(/\D/g, ""); // 숫자만 추출
+
+  if (cleaned.length === 11) {
+    return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+  } else if (cleaned.length === 10) {
+    if (cleaned.startsWith("02")) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "$1-$2-$3");
+    } else {
+      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+    }
+  } else if (cleaned.length === 9) {
+    return cleaned.replace(/(\d{2})(\d{3})(\d{4})/, "$1-$2-$3");
+  }
+  return number;
+};
+
+watch(
+  () => editForm.value.tel,
+  (newValue) => {
+    if (newValue) {
+      editForm.value.tel = newValue.replace(/[^0-9]/g, "");
+    }
+  },
+);
+
 onMounted(() => fetchUserList(1));
 </script>
 
@@ -262,7 +290,7 @@ onMounted(() => fetchUserList(1));
                       <p class="mb-0">{{ item.institution_name }}</p>
                     </td>
                     <td class="align-middle text-center text-xs">
-                      <p class="mb-0">{{ item.tel }}</p>
+                      <p class="mb-0">{{ formatPhoneNumber(item.tel) }}</p>
                     </td>
                     <td class="align-middle text-center text-xs">
                       <span

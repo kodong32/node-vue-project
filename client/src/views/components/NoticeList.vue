@@ -315,7 +315,7 @@ onMounted(() => {
                     <td class="align-middle text-center">
                       <span class="text-secondary text-xs font-weight-bold">
                         {{
-                          item.notice_type === "ALL"
+                          item.writer_type === "a001"
                             ? "시스템관리자"
                             : "기관관리자"
                         }}

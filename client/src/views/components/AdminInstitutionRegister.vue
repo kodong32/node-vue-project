@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import AdminHeader from "./adminPageHeader.vue";
 // Argon 컴포넌트 경로 (프로젝트 설정에 맞게 수정 필요)
@@ -20,6 +20,16 @@ const instInfo = reactive({
   tel: "",
   email: "", // 🚨 DB에 이메일 컬럼 추가 필요!
 });
+
+watch(
+  () => instInfo.tel,
+  (newValue) => {
+    if (newValue) {
+      // 정규식(Regex)을 사용해 숫자(0~9)가 아닌 모든 문자를 찾아 빈칸으로 날려버림
+      instInfo.tel = newValue.replace(/[^0-9]/g, "");
+    }
+  },
+);
 
 // 🌟 3. 카카오(Daum) 우편번호 검색 API API 호출
 const openPostcode = () => {
@@ -42,6 +52,9 @@ const registerInstitution = async () => {
   if (!zipCode.value || !mainAddress.value)
     return alert("주소를 검색하여 입력해주세요.");
   if (!instInfo.tel) return alert("대표번호를 입력해주세요.");
+  if (instInfo.tel.includes("-")) {
+    return alert("대표번호는 '-' 기호 없이 숫자만 입력해주세요.");
+  }
 
   // 백엔드로 보낼 데이터 조립
   const payload = {
@@ -151,7 +164,7 @@ const registerInstitution = async () => {
                 <div class="col-md-9">
                   <argon-input
                     type="tel"
-                    placeholder="예: 02-123-4567"
+                    placeholder="예: 0212345678 ('-' 없이 입력)"
                     v-model="instInfo.tel"
                     class="mb-0"
                   />

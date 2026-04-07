@@ -12,6 +12,7 @@ const router = useRouter();
 // 💡 1. 빈 바구니 준비
 const currentUserRole = ref("");
 const currentInstiId = ref("");
+const currentUserId = ref(""); // 🌟 [추가] 백엔드 401 에러 방지용 작성자 ID
 
 const isEditMode = computed(() => !!route.params.noticeId);
 
@@ -28,35 +29,95 @@ const formData = ref({
   file5: "",
 });
 
-const instiOptions = ref([
-  { value: "ALL", text: "전체 (시스템 공지)" },
-  { value: "INST0000", text: "대구발달장애센터" },
-  { value: "INST0001", text: "서울발달장애센터" },
-]);
+const instiOptions = ref([{ value: "ALL", text: "전체 (시스템 공지)" }]);
 
-// 🌟 2. 세션 확인 함수 추가
-const checkSession = async () => {
+const fetchInstitutions = async () => {
   try {
-    const response = await axios.get("/api/user/auth/me", {
-      withCredentials: true, // 이 옵션을 켜야 8080 포트에서 3000 포트로 세션 쿠키가 날아감!
+    const response = await axios.get("/api/admin/institution/list", {
+      params: { limit: 100, page: 1 },
+      withCredentials: true, // 🌟 세션 쿠키 확실히 전달!
     });
-    if (response.data.isLogin) {
-      const user = response.data.user;
-      if (user.role === "a001") currentUserRole.value = "시스템관리자";
-      else if (user.role === "a002") currentUserRole.value = "기관관리자";
 
-      currentInstiId.value = user.institutionId || "";
-
-      // 작성 모드일 때 기관 관리자라면 기본값을 본인 기관으로 세팅
-      if (!isEditMode.value) {
-        formData.value.noticeType =
-          currentUserRole.value === "시스템관리자"
-            ? "ALL"
-            : currentInstiId.value;
-      }
+    if (response.data && response.data.data) {
+      // 🌟 [수정 핵심] 이전 기관목록 코드를 보니 기관명이 inst.name 으로 들어오고 있었습니다!
+      const realOptions = response.data.data.map((inst) => ({
+        value: inst.institution_id,
+        text: inst.name || inst.institution_name || "이름 없음", // DB 컬럼명에 맞게 유연하게 처리
+      }));
+      instiOptions.value = [
+        { value: "ALL", text: "전체 (시스템 공지)" },
+        ...realOptions,
+      ];
     }
   } catch (error) {
-    console.error("세션 확인 실패:", error);
+    console.error("기관 목록 불러오기 실패:", error);
+  }
+};
+
+// 🌟 2. 세션 확인 함수 (관리자 체크 완벽 추가!)
+const checkSession = async () => {
+  try {
+    let isLogin = false;
+    let userRole = "";
+    let userId = "";
+    let instId = "";
+
+    // 1️⃣ 일반/기관 유저 세션 확인
+    try {
+      const userRes = await axios.get("/api/user/auth/me", {
+        withCredentials: true,
+      });
+      if (userRes.data.isLogin) {
+        isLogin = true;
+        const user = userRes.data.user;
+        userRole = user.role;
+        userId = user.id || user.user_id || "";
+        instId = user.institutionId || "";
+      }
+    } catch (err) {
+      console.log("일반/기관 세션 없음, 관리자 확인 진행");
+    }
+
+    // 2️⃣ 시스템 관리자 세션 확인
+    if (!isLogin) {
+      try {
+        const adminRes = await axios.get("/api/admin/me", {
+          withCredentials: true,
+        });
+        if (adminRes.data.status === "Success") {
+          isLogin = true;
+          userRole = "a001"; // 시스템 관리자 권한
+          // 관리자 ID가 세션에 없다면 최소한 'admin'이라는 글자라도 넣어서 401 방어!
+          userId = adminRes.data.admin?.id || adminRes.data.id || "admin";
+        }
+      } catch (err) {
+        console.log("시스템 관리자 세션 없음");
+      }
+    }
+
+    // 3️⃣ 로그인 정보가 확인되면 화면 세팅!
+    if (isLogin) {
+      currentUserId.value = userId;
+
+      if (userRole === "a001") {
+        currentUserRole.value = "시스템관리자";
+        fetchInstitutions(); // 기관 목록 불러오기!
+      } else if (userRole === "a002") {
+        currentUserRole.value = "기관관리자";
+      }
+
+      currentInstiId.value = instId;
+
+      if (!isEditMode.value) {
+        formData.value.noticeType = userRole === "a001" ? "ALL" : instId;
+      }
+    } else {
+      // 진짜 아무 로그인도 안 되어있을 때
+      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      router.push("/user/login");
+    }
+  } catch (error) {
+    console.error("세션 세팅 실패:", error);
   }
 };
 
@@ -109,7 +170,13 @@ const submitForm = async () => {
   form.append("noticeDate", formData.value.noticeDate);
   form.append("importantMark", formData.value.importantMark);
   form.append("noticeType", formData.value.noticeType);
-  // 🌟 writerType과 writerId는 백엔드가 세션에서 알아서 꺼내므로 여기서 전송 X!
+
+  // 🌟 [핵심] 401 권한 에러 방지: 백엔드가 폼 데이터에서 명시적으로 작성자를 찾을 수도 있으니 같이 쏴줍니다!
+  form.append(
+    "writerRole",
+    currentUserRole.value === "시스템관리자" ? "a001" : "a002",
+  );
+  form.append("writerId", currentUserId.value);
 
   if (uploadFiles.value.file1) form.append("file1", uploadFiles.value.file1);
   if (uploadFiles.value.file2) form.append("file2", uploadFiles.value.file2);
@@ -121,19 +188,29 @@ const submitForm = async () => {
     if (isEditMode.value) {
       await axios.put(`/api/notice/${route.params.noticeId}`, form, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true, // 🌟 필수!
       });
       alert("성공적으로 수정되었습니다!");
       router.push(`/notice/detail/${route.params.noticeId}`);
     } else {
       await axios.post("/api/notice/write", form, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true, // 🌟 필수!
       });
       alert("성공적으로 등록되었습니다!");
       router.push("/notice/list");
     }
   } catch (error) {
     console.error("저장 중 오류 발생:", error);
-    alert("처리 중 서버 오류가 발생했습니다.");
+
+    // 🌟 에러 추적을 위한 친절한 알림 추가
+    if (error.response && error.response.status === 401) {
+      alert(
+        `[401 권한 에러]\n백엔드 주소가 정확한지 확인해주세요!\n(예: /api/notice/write가 아니라 /api/admin/notice/write 일 수 있습니다.)`,
+      );
+    } else {
+      alert("처리 중 서버 오류가 발생했습니다.");
+    }
   }
 };
 
@@ -142,7 +219,6 @@ const goBack = () => {
 };
 
 onMounted(() => {
-  // 🌟 세션과 데이터 모두 준비!
   checkSession();
   fetchNoticeData();
 });

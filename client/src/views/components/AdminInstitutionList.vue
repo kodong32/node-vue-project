@@ -98,6 +98,26 @@ const deleteSelected = async () => {
   }
 };
 
+// 🌟 전화번호에 하이픈(-)을 자동으로 예쁘게 넣어주는 함수
+const formatPhoneNumber = (number) => {
+  if (!number) return "-";
+
+  const cleaned = number.replace(/\D/g, ""); // 숫자만 추출
+
+  if (cleaned.length === 11) {
+    return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+  } else if (cleaned.length === 10) {
+    if (cleaned.startsWith("02")) {
+      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "$1-$2-$3");
+    } else {
+      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+    }
+  } else if (cleaned.length === 9) {
+    return cleaned.replace(/(\d{2})(\d{3})(\d{4})/, "$1-$2-$3");
+  }
+  return number; // 길이에 맞지 않으면 원본 그대로 출력
+};
+
 onMounted(() => {
   fetchInstitutionList(1);
 });
@@ -230,7 +250,7 @@ onMounted(() => {
                       <p class="mb-0">{{ item.address }}</p>
                     </td>
                     <td class="align-middle text-center text-xs">
-                      <p class="mb-0">{{ item.tel }}</p>
+                      <p class="mb-0">{{ formatPhoneNumber(item.tel) }}</p>
                     </td>
                     <td
                       class="align-middle text-center text-xs text-primary text-decoration-underline"

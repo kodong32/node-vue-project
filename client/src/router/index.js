@@ -148,36 +148,58 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.path.startsWith("/notice")) {
+    let isLogin = false;
+    let role = null;
+
+    // 1️⃣ 일반/기관 유저 세션 확인
     try {
-      // 1️⃣ 먼저 일반/기관 유저인지 확인
       const response = await axios.get("/api/user/auth/me", {
         withCredentials: true,
       });
-      const result = response.data;
-
-      // 로그인이 되어있다면 무사 통과!
-      if (result.isLogin) {
-        return next();
+      if (response.data.isLogin) {
+        isLogin = true;
+        role = response.data.user.role;
       }
+    } catch (err) {
+      // 💡 여기서 에러가 나도(401 등) 로그인 페이지로 튕기지 않고 그냥 넘어갑니다!
+      console.log("일반/기관 유저 세션 없음, 관리자 확인으로 넘어감");
+    }
 
-      // 2️⃣ 위에서 로그인 안 됐다고 나오면, 시스템 관리자인지 한 번 더 확인!
-      const adminResponse = await axios.get("/api/admin/me", {
-        withCredentials: true,
-      });
-
-      // 시스템 관리자로 확인되면 무사 통과!
-      if (adminResponse.data.status === "Success") {
-        return next();
+    // 2️⃣ 일반 유저가 아니라면, 시스템 관리자 세션 확인
+    if (!isLogin) {
+      try {
+        const adminResponse = await axios.get("/api/admin/me", {
+          withCredentials: true,
+        });
+        if (adminResponse.data.status === "Success") {
+          isLogin = true;
+          role = "a001"; // 시스템 관리자 권한 세팅
+        }
+      } catch (err) {
+        console.log("시스템 관리자 세션 없음");
       }
+    }
 
-      // 3️⃣ 둘 다 아니면 진짜 비로그인 상태이므로 쫓아냄!
+    // 3️⃣ 둘 다 확인했는데도 로그인이 안 되어 있으면 쫓아냄!
+    if (!isLogin) {
       alert("공지사항을 보려면 로그인이 필요합니다.");
       return next("/user/login");
-    } catch (err) {
-      console.log("공지사항 가드 오류", err);
-      // 에러가 났을 때도 안전하게 로그인 창으로 보냄
-      return next("/user/login");
     }
+
+    // 4️⃣ [보안 추가] 작성 및 수정 페이지 권한 차단
+    // 시스템관리자(a001)와 기관관리자(a002)만 허용!
+    if (
+      to.path.startsWith("/notice/write") ||
+      to.path.startsWith("/notice/edit")
+    ) {
+      if (role !== "a001" && role !== "a002") {
+        alert("공지사항 작성 및 수정 권한이 없습니다.");
+        return next("/notice/list");
+      }
+    }
+
+    // 5️⃣ 모든 관문을 통과하면 무사 통과!
+    return next();
   }
 
   next();

@@ -105,30 +105,10 @@
                       <span class="ms-1">상담기록</span>
                     </button>
                   </li>
-
-                  <li class="nav-item">
-                    <button
-                      type="button"
-                      class="px-3 py-2 nav-link border-0 bg-transparent"
-                      @click="goHistory"
-                    >
-                      <span class="ms-1">히스토리</span>
-                    </button>
-                  </li>
                 </template>
 
                 <!-- 일반 사용자 전용 메뉴 -->
-                <template v-else-if="userRole === ROLE.USER">
-                  <li class="nav-item">
-                    <button
-                      type="button"
-                      class="px-3 py-2 nav-link border-0 bg-transparent"
-                      @click="goHistory"
-                    >
-                      <span class="ms-1">히스토리</span>
-                    </button>
-                  </li>
-                </template>
+                <template v-else-if="userRole === ROLE.USER"> </template>
               </ul>
             </div>
           </div>
@@ -310,18 +290,6 @@ const goManager = () => {
 
 const goConsult = () => {
   router.push("/manager/consult");
-};
-
-const goHistory = () => {
-  if (userType.value === "INST") {
-    // router.push("/manager/history");
-    return;
-  }
-
-  if (userType.value === "USER") {
-    // router.push("/user/history");
-    return;
-  }
 };
 
 const goMyPage = () => {
