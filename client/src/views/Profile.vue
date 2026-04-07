@@ -412,8 +412,6 @@ const addSupport = async () => {
 const updateSupport = async (supId) => {
   const data = {
     G_UserId: supInfo.G_UserId,
-    I_userId1: null,
-    I_userId2: null,
     name: supInfo.name,
     born: supInfo.born,
     gender: supInfo.gender,

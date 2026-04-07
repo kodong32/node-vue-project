@@ -44,7 +44,7 @@ SELECT
     sp.zipCode AS support_zipCode,
     sp.address AS support_address,
     sp.major AS support_major,
-    ds.description AS disname,
+    GROUP_CONCAT(ds.description ORDER BY ds.b_Code SEPARATOR ', ') AS disname,
     sp.middle AS support_middle,
     sp.sub AS support_sub,
     sp.I_UserId1,
@@ -63,13 +63,87 @@ INNER JOIN Support_Tbl sp
 INNER JOIN GeneralUser_Tbl g
     ON s.G_UserId = g.G_UserId
 LEFT JOIN DisMajor_Tbl ds
-    ON sp.major = ds.b_Code
+    ON FIND_IN_SET(ds.b_Code, sp.major) > 0
 WHERE
     (sp.I_UserId1 = ? OR sp.I_UserId2 = ?)
-    AND result IS NOT NULL
-    AND result != "f005"
+    AND s.result IS NOT NULL
+    AND s.result != 'f005'
+GROUP BY
+    s.J_ID,
+    s.Ver_Id,
+    s.G_UserId,
+    s.support_id,
+    s.result,
+    s.reason,
+    s.created_at,
+    s.updated_at,
+    sp.name,
+    sp.born,
+    sp.gender,
+    sp.relation,
+    sp.zipCode,
+    sp.address,
+    sp.major,
+    sp.middle,
+    sp.sub,
+    sp.I_UserId1,
+    sp.I_UserId2,
+    g.name,
+    g.id,
+    g.tel,
+    g.email,
+    g.zipCode,
+    g.address,
+    g.institution_id
 ORDER BY s.created_at DESC;
 `;
+
+
+// const getSurveyListByInstUser = `
+// SELECT
+//     s.J_ID,
+//     s.Ver_Id,
+//     s.G_UserId,
+//     s.support_id,
+//     s.result,
+//     s.reason,
+//     s.created_at,
+//     s.updated_at,
+//     COALESCE(s.updated_at, s.created_at) AS survey_write_date,
+
+//     sp.name AS support_name,
+//     sp.born AS support_born,
+//     sp.gender AS support_gender,
+//     sp.relation AS support_relation,
+//     sp.zipCode AS support_zipCode,
+//     sp.address AS support_address,
+//     sp.major AS support_major,
+//     ds.description AS disname,
+//     sp.middle AS support_middle,
+//     sp.sub AS support_sub,
+//     sp.I_UserId1,
+//     sp.I_UserId2,
+
+//     g.name AS general_name,
+//     g.id AS general_login_id,
+//     g.tel AS general_tel,
+//     g.email AS general_email,
+//     g.zipCode AS general_zipCode,
+//     g.address AS general_address,
+//     g.institution_id
+// FROM Survey_Tbl s
+// INNER JOIN Support_Tbl sp
+//     ON s.support_id = sp.support_id
+// INNER JOIN GeneralUser_Tbl g
+//     ON s.G_UserId = g.G_UserId
+// LEFT JOIN DisMajor_Tbl ds
+//     ON sp.major = ds.b_Code
+// WHERE
+//     (sp.I_UserId1 = ? OR sp.I_UserId2 = ?)
+//     AND result IS NOT NULL
+//     AND result != "f005"
+// ORDER BY s.created_at DESC
+// `;
 
 const getSupportListByInstUser = `
 SELECT DISTINCT

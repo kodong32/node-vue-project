@@ -134,6 +134,63 @@ const resetInstitutionEditInfo = () => {
   Object.assign(institutionEditInfo, institutionInfo);
 };
 
+const saveGeneralInfo = async (formData) => {
+  try {
+    const payload = {
+      name: formData.name,
+      tel: formData.tel,
+      institution_id: formData.institution_id,
+    };
+
+    const result = await fetch("/api/user/instiUsersinfo", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    }).then((res) => res.json());
+
+    console.log("기관 관리자 정보 수정 결과 :", result);
+
+    if (result.status === "Success") {
+      alert("내 정보가 수정되었습니다.");
+      await getGeneralInfo();
+      currentMode.value = "myInfo";
+    } else {
+      alert(result.message || "내 정보 수정 실패");
+    }
+  } catch (err) {
+    console.log("saveGeneralInfo error :", err);
+    alert("내 정보 수정 중 오류가 발생했습니다.");
+  }
+};
+
+
+const changePassword = async (formData) => {
+  try {
+    const result = await fetch("/api/user/instiUsersPassword", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(formData),
+    }).then((res) => res.json());
+
+    console.log("비밀번호 변경 결과 :", result);
+
+    if (result.status === "Success") {
+      alert("비밀번호가 변경되었습니다.");
+    } else {
+      alert(result.message || "비밀번호 변경 실패");
+    }
+  } catch (err) {
+    console.log(err);
+    alert("비밀번호 변경 중 오류 발생");
+  }
+};
+
 const openHome = () => (currentMode.value = "home");
 const openMyInfo = () => (currentMode.value = "myInfo");
 const openMyEdit = () => {
@@ -230,6 +287,8 @@ const saveInstitutionInfo = async (formData) => {
           <div class="col-xl-10 col-lg-9 col-md-12">
             <GeneralEditForm
               :data="generalEditInfo"
+              @save="saveGeneralInfo"
+              @change-password="changePassword"
               @cancel="cancelEdit"
               @home="openHome"
             />

@@ -490,6 +490,16 @@ router.get(`/managerlist`, requireInstRole, async (req, res) => {
   res.send(result);
 });
 
+//기관 관리자 정보 수정
+router.put('/instiUserinfo', async(req,res) =>{
+  const body = req.body;
+
+  const result = await userService.updateInstiUserInfo(body);
+  res.send(result);
+ });
+
+
+
 //정,부담당자 확인 김경환
 router.get(`/managerlist2`, requireInstRole, async (req, res) => {
   const instId = req.session.loginInstUser.institution_id; //기관PK
