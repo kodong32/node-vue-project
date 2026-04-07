@@ -150,7 +150,16 @@ const selectedUserInfo = computed(() => {
     };
 
   // 생년월일
-  const formattedBorn = user.born ? String(user.born).substring(0, 10) : "";
+  let formattedBorn = "";
+  if (user.born) {
+    const date = new Date(user.born);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    // 프론트 화면에 맞는 형식으로 조립 (예: YYYY-MM-DD)
+    formattedBorn = `${year}-${month}-${day}`;
+  }
 
   //fetchGenders로 가져온 데이터에서 성별 이름 찾기
   const genderObj = genders.value.find((g) => g.Code === user.gender);
