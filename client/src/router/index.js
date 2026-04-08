@@ -92,7 +92,9 @@ router.beforeEach(async (to, from, next) => {
     to.path !== "/user/signup"
   ) {
     try {
-      const response = await axios.get("/api/user/session-check");
+      const response = await axios.get("/api/user/auth/me",{
+        withCredentials: true,
+      });
       const result = response.data;
 
       if (!result.isLogin) {

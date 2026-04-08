@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = "D:/home/ubuntu/uploads/result";
+const uploadDir = "/home/ubuntu/uploads/result";
 
 const downloadFileApprovalResult = (req, res, next) => {
   try {

@@ -108,6 +108,5 @@ app.get('/',function (req,res, next) {
 });
 
 app.use((req,res) => {
-  res.status(404).sendFile(path.join(__dirname, '/public',"index.html"));
+  res.status(404).sendFile(path.join(__dirname, './public',"index.html"));
 });
-

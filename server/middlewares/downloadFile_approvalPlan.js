@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = "D:/home/ubuntu/uploads/supportPlan";
+const uploadDir = "/home/ubuntu/uploads/supportPlan";
 
 const downloadFileApprovalPlan = (req, res, next) => {
   try {
