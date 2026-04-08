@@ -179,6 +179,10 @@ router.post(`/login`, async (req, res) => {
   // 서비스에서 성공여부와 이유(reason)를 받아옴
   let result = await userService.confirmUser(body.id, body.password);
 
+  req.session.save(err => {
+    console.log(err);
+  })
+
   // session추가 26.03.27 고동현
   if (result.success) {
     req.session.user = {
@@ -233,6 +237,11 @@ router.get("/session-check", (req, res) => {
 router.post(`/ilogin`, async (req, res) => {
   let body = req.body;
   let result = await userService.confirmInstiUser(body.id, body.password);
+
+  req.session.save(err => {
+    console.log(err);
+  })
+
 
   //session 추가 26.03.27 고동현 추가
   if (result.success) {
@@ -492,12 +501,12 @@ router.get(`/managerlist`, requireInstRole, async (req, res) => {
 });
 
 //기관 관리자 정보 수정
-router.put('/instiUserinfo', async(req,res) =>{
+router.put('/instiUserinfo', async (req, res) => {
   const body = req.body;
 
   const result = await userService.updateInstiUserInfo(body);
   res.send(result);
- });
+});
 
 
 
