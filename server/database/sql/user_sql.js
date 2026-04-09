@@ -351,12 +351,20 @@ SELECT
   s.major,
   s.I_UserId1,
   s.I_UserId2,
-  dm.description AS major_name
+  GROUP_CONCAT(dm.description ORDER BY dm.b_Code SEPARATOR ', ') AS major_name
 FROM Support_Tbl s
 LEFT JOIN DisMajor_Tbl dm
-  ON s.major = dm.b_Code
+  ON FIND_IN_SET(dm.b_Code, s.major) > 0
 WHERE s.I_UserId1 = ?
    OR s.I_UserId2 = ?
+GROUP BY
+  s.support_id,
+  s.name,
+  s.born,
+  s.gender,
+  s.major,
+  s.I_UserId1,
+  s.I_UserId2
 ORDER BY s.name ASC
 `;
 
