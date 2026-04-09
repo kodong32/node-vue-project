@@ -13,7 +13,14 @@ const selectApprovedPlansForModal = `
     sp.name AS supportName, 
     sp.born AS birthDate, 
     sp.gender AS genderCode, 
-    dm.description AS disabilityType,
+    
+    /* 🌟 [수정] 콤마로 묶인 장애유형 쪼개서 합치기! */
+    (
+      SELECT GROUP_CONCAT(dm.description SEPARATOR ', ') 
+      FROM DisMajor_Tbl dm 
+      WHERE FIND_IN_SET(dm.b_Code, sp.major) > 0
+    ) AS disabilityType,
+    
     gu.name AS guardianName, 
     iu.name AS managerName 
   FROM Plan_Tbl p
@@ -21,9 +28,9 @@ const selectApprovedPlansForModal = `
   JOIN Support_Tbl sp ON sv.support_id = sp.support_id
   JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
   LEFT JOIN InstiUser_Tbl iu ON p.I_UserId1 = iu.I_UserId
-  LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
-  WHERE p.state = 'g001' /* 🚨 무조건 승인된 계획서만! */
-    AND p.I_UserId1 = ?  /* 💡 로그인한 담당자 본인 것만! */
+  /* 🚨 LEFT JOIN DisMajor_Tbl 삭제 완료 */
+  WHERE p.state = 'g001' 
+    AND p.I_UserId1 = ?  
     
     /* 🌟 핵심 해결: 현재 승인완료(g001) 또는 대기중(g003)인 결과서가 존재하는 계획서는 제외! (반려(g002)된 건 다시 노출) */
     AND p.supportPlan_id NOT IN (
@@ -64,7 +71,14 @@ const selectGeneralResultList = `
     sp.name AS supportName,
     sp.born AS birthDate,
     sp.gender AS genderCode,
-    dm.description AS disabilityType,
+    
+    /* 🌟 [수정] 콤마로 묶인 장애유형 쪼개서 합치기! */
+    (
+      SELECT GROUP_CONCAT(dm.description SEPARATOR ', ') 
+      FROM DisMajor_Tbl dm 
+      WHERE FIND_IN_SET(dm.b_Code, sp.major) > 0
+    ) AS disabilityType,
+    
     gu.name AS guardianName,
     iu.name AS managerName
   FROM PlanResult_Tbl pr
@@ -73,7 +87,7 @@ const selectGeneralResultList = `
   JOIN Support_Tbl sp ON sv.support_id = sp.support_id
   JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
   LEFT JOIN InstiUser_Tbl iu ON pr.I_UserId = iu.I_UserId
-  LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
+  /* 🚨 LEFT JOIN DisMajor_Tbl 삭제 완료 */
   WHERE iu.institution_id = ?
 `;
 
@@ -96,7 +110,14 @@ const selectRejectedResultList = `
     sp.name AS supportName,
     sp.born AS birthDate,
     sp.gender AS genderCode,
-    dm.description AS disabilityType,
+    
+    /* 🌟 [수정] 콤마로 묶인 장애유형 쪼개서 합치기! */
+    (
+      SELECT GROUP_CONCAT(dm.description SEPARATOR ', ') 
+      FROM DisMajor_Tbl dm 
+      WHERE FIND_IN_SET(dm.b_Code, sp.major) > 0
+    ) AS disabilityType,
+    
     gu.name AS guardianName,
     iu.name AS managerName
   FROM PlanResult_Tbl pr
@@ -105,7 +126,7 @@ const selectRejectedResultList = `
   JOIN Support_Tbl sp ON sv.support_id = sp.support_id
   JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
   LEFT JOIN InstiUser_Tbl iu ON pr.I_UserId = iu.I_UserId
-  LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
+  /* 🚨 LEFT JOIN DisMajor_Tbl 삭제 완료 */
   WHERE pr.state = 'g002' /* 🚨 반려된 상태만! */
     AND iu.institution_id = ?
 `;
