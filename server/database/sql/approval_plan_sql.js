@@ -17,7 +17,13 @@ const selectPendingList = `
     sp.name AS supportName, 
     sp.born AS birthDate, 
     sp.gender AS genderCode, 
-    dm.description AS disabilityType,
+    
+    (
+      SELECT GROUP_CONCAT(dm.description SEPARATOR ', ') 
+      FROM DisMajor_Tbl dm 
+      WHERE FIND_IN_SET(dm.b_Code, sp.major) > 0
+    ) AS disabilityType,
+    
     gu.name AS guardianName, 
     iu.name AS managerName 
   FROM Plan_Tbl p
@@ -25,7 +31,7 @@ const selectPendingList = `
   JOIN Support_Tbl sp ON sv.support_id = sp.support_id
   JOIN GeneralUser_Tbl gu ON sv.G_UserId = gu.G_UserId
   LEFT JOIN InstiUser_Tbl iu ON p.I_UserId1 = iu.I_UserId
-  LEFT JOIN DisMajor_Tbl dm ON sp.major = dm.b_Code
+  /* 🚨 LEFT JOIN DisMajor_Tbl 은 삭제했습니다! */
   WHERE p.state = 'g003'
     AND iu.institution_id = ?
 `;
