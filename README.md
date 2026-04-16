@@ -83,3 +83,14 @@ client/    # Vue3 프론트엔드
 server/    # Node.js / Express 백엔드
 database/  # DB 쿼리 및 매퍼
 public/    # 배포용 정적 파일
+
+
+▶️ 실행 방법
+Frontend cd client npm install npm run serve
+Backend cd server npm install node app.js
+
+👥 팀원 구성
+고동현 (팀장) - 서버 배포 및 기능 구현 이태호 (부팀장) - Git 관리 김경환 - 개발 환경 구축 김민지 - DB 관리
+
+📝 회고
+이번 프로젝트를 통해 역할별 사용자 관리, 세션 기반 인증 처리, CRUD 구현, 서버 배포까지 전체적인 웹 개발 흐름을 경험할 수 있었습니다. 특히 프론트엔드와 백엔드를 연결하고 실제 배포 환경에서 발생하는 문제를 해결하며 실무적인 역량을 키울 수 있었습니다.
